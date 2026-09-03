@@ -7,8 +7,8 @@ class Database
     public function __construct()
     {
         $host = $_ENV['DB_HOST'];
-        $port = $_ENV['DB_PORT'] ?? '5432';
-        $database = $_ENV['DB_NAME'] ?? 'postgres';
+        $port = $_ENV['DB_PORT'];
+        $database = $_ENV['DB_NAME'];
         $username = $_ENV['DB_USERNAME'];
         $password = $_ENV['DB_PASSWORD'];
 
