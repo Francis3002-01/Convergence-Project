@@ -1,3 +1,4 @@
+<?php
 /*
 Dashboard has:
 -number of journal downloads

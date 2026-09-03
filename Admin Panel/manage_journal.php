@@ -1,14 +1,15 @@
+<?php
+
 /*
-    Manage Journals has:
-    - Search bar
-    -Add journal
-    -Edit journal
-    -Delete journal
-    -Journal Details
-    -Save Draft
-    -Download journal
-    -Read Journal Online
+    Manage Journals includes:
+    - Search journals
+    - Add journal
+    - Edit journal
+    - Delete journal
+    - View journal details
+    - Save journal as draft
+    - Download journal
+    - Read journal online
 
     Code coming soon...
 */
-
