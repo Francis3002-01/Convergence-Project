@@ -1,0 +1,61 @@
+/* =========================
+   FOOTER
+========================= */
+
+footer {
+  background: #7a1f2b;
+  color: white;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  padding: 50px 30px;
+
+  display: flex;
+  justify-content: space-between;
+
+  gap: 40px;
+}
+
+.footer-brand h3 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.footer-brand p {
+  color: #e8cdd1;
+  font-size: 14px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 25px;
+}
+
+.footer-links a {
+  color: #f3dfe2;
+
+  text-decoration: none;
+
+  font-size: 14px;
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 650px) {
+  .footer-container {
+    flex-direction: column;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+  }
+}

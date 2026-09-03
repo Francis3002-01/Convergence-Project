@@ -1,0 +1,226 @@
+/* =========================
+   HEADER
+========================= */
+
+header {
+  border-bottom: 1px solid #ddd;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 22px 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 30px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo {
+  width: 65px;
+  height: 65px;
+  border: 2px solid #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #777;
+}
+
+.brand-text h1 {
+  font-size: 27px;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.brand-text p {
+  margin-top: 3px;
+
+  font-size: 13px;
+  color: #777;
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+.search-box {
+  display: flex;
+  width: 280px;
+}
+
+.search-box input {
+  width: 100%;
+
+  padding: 11px 13px;
+
+  border: 1px solid #ccc;
+  border-right: none;
+
+  outline: none;
+
+  font-size: 14px;
+}
+
+.search-box button {
+  padding: 0 18px;
+
+  border: none;
+
+  background: #7a1f2b;
+  color: white;
+
+  cursor: pointer;
+}
+
+/* =========================
+   NAVIGATION
+========================= */
+
+nav {
+  border-top: 1px solid #eee;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+}
+
+nav a {
+  position: relative;
+  padding: 18px 25px;
+  color: #222;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  left: 25px;
+  right: 25px;
+  bottom: 8px;
+  height: 2px;
+  background: #7a1f2b;
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+nav a:hover::after,
+nav a.active::after {
+  transform: scaleX(1);
+}
+
+/* =========================
+   MENU BUTTON
+========================= */
+
+.menu-toggle {
+  display: none;
+  border: none;
+  background: none;
+  color: #7a1f2b;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 12px;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 850px) {
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-box {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
+/*MOBILE*/
+@media (max-width: 650px) {
+  .header-container {
+    padding: 18px 20px;
+  }
+
+  .brand {
+    gap: 12px;
+  }
+
+  .logo {
+    width: 55px;
+    height: 55px;
+  }
+
+  .brand-text h1 {
+    font-size: 23px;
+  }
+
+  .nav-container {
+    padding: 0 20px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  /* Hamburger button */
+  .menu-toggle {
+    display: block;
+  }
+
+  /* Dropdown menu */
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+
+    transition:
+      max-height 0.8s ease,
+      opacity 0.5s ease;
+  }
+
+  /* Open menu */
+  .nav-links.open {
+    max-height: 300px;
+    opacity: 1;
+  }
+
+  nav a {
+    padding: 14px 5px;
+    white-space: nowrap;
+    border-top: 1px solid #eee;
+    text-align: center;
+  }
+
+  nav a::after {
+    display: none;
+  }
+}
