@@ -1,0 +1,588 @@
+/*PAGE HEADER*/
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.page-header p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #666666;
+}
+
+/*BACK BUTTON*/
+.back-button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #8b0000;
+  cursor: pointer;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-button:hover {
+  background: #f1f1f1;
+}
+
+/*EDIT SECTIONS*/
+.edit-section {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 20px;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  box-sizing: border-box;
+}
+
+/*SECTION HEADER*/
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.section-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: #f8eaea;
+  color: #8b0000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-icon i {
+  font-size: 18px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #8b0000;
+}
+
+.section-header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #777777;
+}
+
+/*FORM*/
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333333;
+  font-size: 14px;
+}
+
+.required {
+  color: #8b0000;
+}
+
+/*TEXT / NUMBER INPUTS*/
+.form-group > input[type="text"],
+.form-group > input[type="number"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #333333;
+  font-size: 15px;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.form-group > input[type="text"]:focus,
+.form-group > input[type="number"]:focus {
+  border-color: #8b0000;
+}
+
+/*LABEL ROW */
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.label-row label {
+  margin-bottom: 0;
+}
+
+/*PUBLICATION FIELDS*/
+.publication-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.publication-grid .form-group {
+  margin-bottom: 0;
+}
+
+/*AUTHORS*/
+.authors-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.author-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.author-row input {
+  flex: 1;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #444444;
+  font-size: 15px;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.author-row input:focus {
+  border-color: #8b0000;
+}
+
+.remove-author-button {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 6px;
+  background: #fce8e8;
+  color: #a00000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-author-button:hover {
+  background: #f5cccc;
+}
+
+.add-author-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px solid #8b0000;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #8b0000;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-author-button:hover {
+  background: #8b0000;
+  color: #ffffff;
+}
+
+/* =========================================================
+FORM HELP
+========================================================= */
+
+.form-help {
+  display: block;
+  margin-top: 7px;
+  color: #777777;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+CURRENT PDF
+========================================================= */
+
+.current-file {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  background: #f8f8f8;
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
+}
+
+.file-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-icon i {
+  font-size: 28px;
+  color: #8b0000;
+}
+
+.file-information {
+  min-width: 0;
+  flex: 1;
+}
+
+.file-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #444444;
+  font-size: 12px;
+}
+
+.pdf-link {
+  color: #8b0000;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.pdf-link:hover {
+  text-decoration: underline;
+}
+
+.no-file {
+  color: #777777;
+  font-size: 13px;
+}
+
+.file-path {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #555555;
+  font-size: 13px;
+}
+
+/* =========================================================
+PDF UPLOAD
+========================================================= */
+
+.pdf-upload-box {
+  position: relative;
+  min-height: 150px;
+  padding: 25px;
+  border: 2px dashed #cccccc;
+  border-radius: 8px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.pdf-upload-box:hover {
+  border-color: #8b0000;
+  background: #fff8f8;
+}
+
+/* =========================================================
+HIDDEN FILE INPUT
+========================================================= */
+
+.pdf-upload-box input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* =========================================================
+PDF ICON
+========================================================= */
+
+.pdf-upload-icon {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdf-upload-icon i {
+  font-size: 38px;
+  color: #8b0000;
+}
+
+/* =========================================================
+PDF UPLOAD TEXT
+========================================================= */
+
+.pdf-upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-width: 100%;
+}
+
+.pdf-upload-text strong {
+  font-size: 14px;
+  color: #333333;
+}
+
+.pdf-upload-text span {
+  max-width: 100%;
+  font-size: 13px;
+  color: #777777;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+CHOOSE FILE BUTTON
+========================================================= */
+
+.choose-pdf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  background: #8b0000;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.choose-pdf:hover {
+  background: #700000;
+}
+
+/* =========================================================
+SELECTED FILE
+========================================================= */
+
+.pdf-upload-box.has-file {
+  border-color: #8b0000;
+  background: #fff8f8;
+}
+
+.pdf-upload-box.has-file .pdf-upload-text span {
+  color: #8b0000;
+  font-weight: 600;
+}
+
+/* =========================================================
+FORM ACTIONS
+========================================================= */
+
+.form-actions {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 5px 0 30px;
+  box-sizing: border-box;
+}
+
+.cancel-button,
+.save-button {
+  min-width: 120px;
+  padding: 11px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-button {
+  border: none;
+  background: #e8e8e8;
+  color: #333333;
+}
+
+.cancel-button:hover {
+  background: #dcdcdc;
+}
+
+.save-button {
+  border: none;
+  background: #8b0000;
+  color: #ffffff;
+}
+
+.save-button:hover {
+  background: #700000;
+}
+
+.save-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+STATUS MESSAGES
+========================================================= */
+
+.status-message {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 20px;
+  padding: 12px 15px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  background: #f8f8f8;
+  color: #777777;
+  font-size: 14px;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+/* =========================================================
+RESPONSIVE
+========================================================= */
+
+@media (max-width: 768px) {
+  .page-header {
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .publication-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .publication-grid .form-group {
+    margin-bottom: 20px;
+  }
+
+  .publication-grid .form-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .edit-section {
+    padding: 20px;
+  }
+
+  .current-file {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .author-row {
+    align-items: stretch;
+  }
+
+  .remove-author-button {
+    align-self: flex-end;
+  }
+
+  .pdf-upload-box {
+    min-height: 150px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .cancel-button,
+  .save-button {
+    width: 100%;
+  }
+}
+
+/*SMALL MOBILE */
+@media (max-width: 500px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .back-button {
+    align-self: flex-start;
+  }
+
+  .label-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .add-author-button {
+    align-self: flex-start;
+  }
+
+  .author-row {
+    flex-wrap: wrap;
+  }
+
+  .author-row input {
+    flex: 1 1 100%;
+  }
+
+  .remove-author-button {
+    align-self: flex-end;
+  }
+
+  .pdf-upload-box {
+    padding: 20px;
+  }
+}

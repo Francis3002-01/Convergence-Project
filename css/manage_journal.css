@@ -1,0 +1,781 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  width: 280px;
+}
+
+.search-box input {
+  width: 100%;
+  height: 40px;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  box-sizing: border-box;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-box button {
+  width: 44px;
+  height: 40px;
+  border: 1px solid #ccc;
+  border-left: none;
+  background: #fff;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  background: #f5f5f5;
+}
+
+.add-button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  background: #800000;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background: #660000;
+}
+
+.journal-list-container {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#journalList {
+  width: 100%;
+}
+
+.journal-list-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 100px;
+  align-items: center;
+
+  min-height: 52px;
+  padding: 0 28px;
+
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+
+  box-sizing: border-box;
+
+  font-size: 18px;
+  font-weight: 700;
+  color: #444;
+}
+
+.journal-list-header div {
+  padding: 0 8px;
+}
+
+/* =========================
+   Article Rows
+========================= */
+
+.issue-articles {
+  width: 100%;
+}
+
+.article-item {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 100px;
+  align-items: center;
+
+  min-height: 72px;
+  padding: 12px 28px;
+
+  box-sizing: border-box;
+  border-bottom: 1px solid #eee;
+}
+
+.article-item:last-child {
+  border-bottom: none;
+}
+
+.article-item > div {
+  padding: 0 8px;
+}
+
+.article-info {
+  min-width: 0;
+}
+
+.article-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.article-authors {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* =========================
+   Publication Issue
+========================= */
+
+.publication-issue {
+  width: 100%;
+  border-bottom: 1px solid #ddd;
+}
+
+.publication-issue:last-child {
+  border-bottom: none;
+}
+
+.issue-details {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 28px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  box-sizing: border-box;
+
+  font-size: 13px;
+  font-weight: 600;
+  color: #800000;
+}
+
+.issue-articles {
+  width: 100%;
+}
+
+.article-item {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) minmax(180px, 1.5fr) 100px;
+  align-items: center;
+  min-height: 72px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #eee;
+}
+
+.article-item:last-child {
+  border-bottom: none;
+}
+
+.article-item > div {
+  padding: 0 8px;
+}
+
+.article-info {
+  min-width: 0;
+}
+
+.article-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.article-authors {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.action-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.edit-btn {
+  background: #f0f0f0;
+  color: #444;
+}
+
+.edit-btn:hover {
+  background: #ddd;
+}
+
+.delete-btn {
+  background: #fce8e8;
+  color: #a00000;
+}
+
+.delete-btn:hover {
+  background: #f5cccc;
+}
+
+.empty-message {
+  padding: 40px 20px;
+  text-align: center;
+  color: #777;
+  font-size: 14px;
+}
+
+.journal-form {
+  display: none;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#publicationStep {
+  padding: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #800000;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.save-btn,
+.cancel-btn {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.save-btn {
+  border: none;
+  background: #800000;
+  color: #fff;
+}
+
+.save-btn:hover {
+  background: #660000;
+}
+
+.cancel-btn {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background: #f5f5f5;
+}
+
+#articleStep {
+  display: none;
+}
+
+.article-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 20px 30px 0;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+.back-publication {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  margin-bottom: 20px;
+  border: none;
+  background: none;
+  color: #800000;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.back-publication:hover {
+  color: #660000;
+}
+
+.publication-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.publication-detail {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f8f8f8;
+}
+
+.publication-detail span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #777;
+}
+
+.publication-detail strong {
+  font-size: 15px;
+  color: #222;
+}
+
+.article-tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.article-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.article-tab {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  color: #444;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.article-tab:hover {
+  background: #f5f5f5;
+}
+
+.article-tab.active {
+  background: #800000;
+  border-color: #800000;
+  color: #fff;
+}
+
+.add-article-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid #800000;
+  border-radius: 6px;
+  background: #fff;
+  color: #800000;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.add-article-btn:hover {
+  background: #800000;
+  color: #fff;
+}
+
+.article-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 15px;
+}
+
+.article-heading h2 {
+  margin: 0;
+  font-size: 21px;
+  color: #222;
+}
+
+.delete-article-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 5px;
+  background: #fce8e8;
+  color: #a00000;
+  cursor: pointer;
+}
+
+.delete-article-btn:hover {
+  background: #f5cccc;
+}
+
+.article-content {
+  padding: 30px;
+}
+
+.pdf-upload-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-height: 100px;
+  padding: 20px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  background: #fafafa;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.pdf-upload-box:hover,
+.pdf-upload-box.dragover {
+  border-color: #800000;
+  background: #fff8f8;
+}
+
+.pdf-upload-box input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pdf-upload-icon {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pdf-upload-icon svg {
+  width: 35px;
+  height: 35px;
+  fill: none;
+  stroke: #800000;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pdf-upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pdf-upload-text strong {
+  font-size: 14px;
+  color: #333;
+}
+
+.pdf-upload-text span {
+  font-size: 13px;
+  color: #777;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.choose-pdf {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border: 1px solid #800000;
+  border-radius: 6px;
+  background: #fff;
+  color: #800000;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.choose-pdf:hover {
+  background: #800000;
+  color: #fff;
+}
+
+.authors-section {
+  margin-top: 30px;
+}
+
+.authors-section h3 {
+  margin: 0 0 15px;
+  font-size: 18px;
+  color: #222;
+}
+
+.author-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.author-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  flex: 1;
+}
+
+.author-fields .form-group {
+  margin-bottom: 0;
+}
+
+.delete-author-btn {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 6px;
+  background: #fce8e8;
+  color: #a00000;
+  cursor: pointer;
+}
+
+.delete-author-btn:hover {
+  background: #f5cccc;
+}
+
+.add-author-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid #800000;
+  border-radius: 6px;
+  background: #fff;
+  color: #800000;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-author-btn:hover {
+  background: #800000;
+  color: #fff;
+}
+
+.article-actions {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.confirmation-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.confirmation-modal.active {
+  display: flex;
+}
+
+.confirmation-box {
+  width: 100%;
+  max-width: 420px;
+  padding: 25px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.confirmation-box h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  color: #222;
+}
+
+.confirmation-box p {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 14px;
+  color: #666;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.remove-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  background: #a00000;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background: #800000;
+}
+
+@media (max-width: 1100px) {
+  .journal-list-container {
+    overflow-x: auto;
+  }
+
+  .journal-list-header,
+  .article-item {
+    min-width: 650px;
+  }
+
+  .issue-details {
+    min-width: 650px;
+  }
+}
+
+@media (max-width: 700px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .page-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .add-button {
+    width: 100%;
+  }
+
+  .publication-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .article-tabs-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .add-article-btn {
+    align-self: flex-start;
+  }
+
+  .author-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .author-row {
+    align-items: stretch;
+  }
+
+  .delete-author-btn {
+    align-self: flex-end;
+  }
+
+  .pdf-upload-box {
+    flex-wrap: wrap;
+  }
+
+  .choose-pdf {
+    margin-left: 60px;
+  }
+}
+
+@media (max-width: 500px) {
+  #publicationStep,
+  .article-content {
+    padding: 20px;
+  }
+
+  .article-sticky {
+    padding: 15px 20px 0;
+  }
+
+  .pdf-upload-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .choose-pdf {
+    margin-left: 0;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
