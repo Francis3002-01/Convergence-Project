@@ -10,7 +10,6 @@ body {
   color: #333;
 }
 
-/*SIDEBAR*/
 .sidebar {
   position: fixed;
   top: 0;
@@ -75,13 +74,10 @@ body {
   margin-top: auto;
 }
 
-/*MAIN AREA*/
 .main-area {
   margin-left: 240px;
   min-height: 100vh;
 }
-
-/*ADMIN HEADER*/
 
 .admin-header {
   height: 70px;

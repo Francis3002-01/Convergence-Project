@@ -50,18 +50,15 @@
                         <select id="year"></select>
                     </div>
 
-
                     <div class="form-group">
                         <label for="volume">Volume</label>
                         <input type="number" id="volume" min="1" placeholder="Enter volume">
                     </div>
 
-
                     <div class="form-group">
                         <label for="number">Number</label>
                         <input type="number" id="number" min="1" placeholder="Enter number">
                     </div>
-
 
                     <!-- Publication Issue PDF-->
                     <div class="form-group">
@@ -86,14 +83,12 @@
                         </div>
                     </div>
 
-
                     <!--Publication Actions-->
                     <div class="form-actions">
                         <button type="button" class="cancel-btn" onclick="hideForm()">Cancel</button>
                         <button type="button" class="save-btn" onclick="goToArticles()">Next</button>
                     </div>
                 </div>
-
 
                 <!--Article Step-->
                 <div id="articleStep">
@@ -212,8 +207,6 @@
 
     </div>
 
-    <!--JavaScript-->
     <script src="../javascript/manage_journal.js"></script>
 </body>
-
 </html>

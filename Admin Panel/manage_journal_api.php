@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../classes/JournalArticle.php';
 
 use Dotenv\Dotenv;
 
@@ -56,7 +57,6 @@ function normalizeStoragePath(string $storagePath): string{
     }
 
     $storagePath = ltrim($storagePath, '/');
-
     $bucketName = trim($bucket, '/');
     $bucketPrefix = $bucketName . '/';
 
@@ -78,8 +78,7 @@ function normalizeStoragePath(string $storagePath): string{
 }
 
 //Create public PDF URL
-function createPublicPdfUrl(string $storagePath): string
-{
+function createPublicPdfUrl(string $storagePath): string{
     global $supabaseUrl;
     global $bucket;
 
@@ -371,1119 +370,64 @@ function createStorageFilename(string $originalName, string $prefix): string{
         $safeFileName;
 }
 
-//Manage Journal class
-class ManageJournal{
-
-    private PDO $connection;
-
-    public function __construct(PDO $connection){
-        $this->connection = $connection;
-    }
-
-    // Add publication issue, articles, authors, and relationships.
-    public function addjournal(int $year, int $volume, int $number, array $publicationPdf, array $articles): int
-    {
-        if ($year <= 0 || $volume <= 0 || $number <= 0) 
-            throw new Exception('Invalid publication issue information.');
-
-        if (empty($publicationPdf)) 
-            throw new Exception('Publication issue PDF is required.');
-
-        if (empty($articles)) 
-            throw new Exception('At least one article is required.');
-
-        validatePdf(
-            $publicationPdf,
-            'Publication issue PDF'
-        );
-
-        $publicationID = null;
-        $uploadedFiles = [];
-        $createdJournalIDs = [];
-        $authorCache = [];
-
-        try {
-            $this->connection->beginTransaction();
-
-            $statement = $this->connection->prepare(
-                'INSERT INTO "PublicationIssue"
-                ("year", "volume", "number")
-                VALUES (:year, :volume, :number)
-                RETURNING "publicationID"'
-            );
-
-            $statement->execute(
-                [
-                    ':year' => $year,
-                    ':volume' => $volume,
-                    ':number' => $number
-                ]
-            );
-
-            $publicationID = (int) $statement
-                ->fetchColumn();
-
-            if ($publicationID <= 0) {
-                throw new Exception('Publication issue was created but its ID was not returned.');
-            }
-
-            $uploads = [];
-
-            $publicationPdfFilename =
-                createStorageFilename(
-                    $publicationPdf['name'],
-                    'publication_issue'
-                );
-
-            $publicationPdfPath =
-                $year .
-                '/publication_' .
-                $publicationID .
-                '/' .
-                $publicationPdfFilename;
-
-            $uploads[] = [
-                'localFile' =>
-                $publicationPdf['tmp_name'],
-                'storagePath' =>
-                $publicationPdfPath,
-                'description' =>
-                'Publication issue PDF'
-            ];
-
-            foreach ($articles as $index => $article) {
-                $articleNumber = $index + 1;
-
-                $title = trim(
-                    $article['title'] ?? ''
-                );
-
-                if ($title === '') {
-                    throw new Exception('Title for Article ' .$articleNumber .' is required.');
-                }
-
-                $fileKey = 'pdf_' . $index;
-
-                if (!isset($_FILES[$fileKey])) {
-                    throw new Exception('PDF for Article ' .$articleNumber .' is missing.');
-                }
-
-                $pdf = $_FILES[$fileKey];
-                validatePdf($pdf,'PDF for Article ' .$articleNumber);
-                $articleFilename =createStorageFilename($pdf['name'],'article');
-
-                $storagePath =
-                    $year .
-                    '/publication_' .
-                    $publicationID .
-                    '/' .
-                    $articleFilename;
-
-                $uploads[] = [
-                    'localFile' =>
-                    $pdf['tmp_name'],
-                    'storagePath' =>
-                    $storagePath,
-                    'description' =>
-                    'Article ' .
-                        $articleNumber .
-                        ' PDF'
-                ];
-            }
-
-            uploadPdfsConcurrently($uploads);
-
-            foreach ($uploads as $upload) {
-                $uploadedFiles[] =
-                    $upload['storagePath'];
-            }
-
-            $publicationPdfPath =
-                $uploads[0]['storagePath'];
-
-            $statement = $this->connection->prepare(
-                'UPDATE "PublicationIssue"
-                SET "publicationPDF" = :publicationPDF
-                WHERE "publicationID" = :publicationID'
-            );
-
-            $statement->execute(
-                [
-                    ':publicationPDF' =>
-                    $publicationPdfPath,
-                    ':publicationID' =>
-                    $publicationID
-                ]
-            );
-
-            foreach ($articles as $index => $article) {
-                $title = trim($article['title']);
-
-                $storagePath =
-                    $uploads[$index + 1]['storagePath'];
-
-                $statement = $this->connection->prepare(
-                    'INSERT INTO "JournalArticle"
-                    ("title", "journalPDF", "publicationID")
-                    VALUES
-                    (:title, :journalPDF, :publicationID)
-                    RETURNING "journalID"'
-                );
-
-                $statement->execute(
-                    [
-                        ':title' => $title,
-                        ':journalPDF' => $storagePath,
-                        ':publicationID' =>
-                        $publicationID
-                    ]
-                );
-
-                $journalID = (int) $statement
-                    ->fetchColumn();
-
-                if ($journalID <= 0) {
-                    throw new Exception('Article was created but its ID was not returned.');
-                }
-
-                $createdJournalIDs[] = $journalID;
-
-                $authors =
-                    $article['authors'] ?? [];
-
-                if (!is_array($authors) || count($authors) === 0) {
-                    throw new Exception('Article ' .($index + 1) .' must have at least one author.');
-                }
-
-                foreach ($authors as $author) {
-                    $firstName = trim($author['firstName'] ?? '');
-                    $lastName = trim($author['lastName'] ?? '');
-
-                    if ($firstName === '' ||$lastName === '') {
-                        throw new Exception(
-                            'Both first name and last name are required for every author in Article ' .
-                                ($index + 1) .
-                                '.'
-                        );
-                    }
-
-                    $authorID =$this->findOrCreateAuthor($firstName, $lastName,$authorCache);
-
-                    $statement =
-                        $this->connection->prepare(
-                            'INSERT INTO "ArticleAuthor"
-                            ("journalID", "authorID")
-                            VALUES
-                            (:journalID, :authorID)'
-                        );
-
-                    $statement->execute(
-                        [
-                            ':journalID' =>
-                            $journalID,
-                            ':authorID' =>
-                            $authorID
-                        ]
-                    );
-                }
-            }
-
-            $this->connection->commit();
-
-            return $publicationID;
-        } 
-        
-        catch (Throwable $e) {
-
-            if ($this->connection->inTransaction()) {
-                $this->connection->rollBack();
-            }
-
-            foreach ($uploadedFiles as $uploadedFile) {
-                try {
-                    deletePdf($uploadedFile);
-                } catch (Throwable $cleanupError) {
-                    error_log(
-                        'Storage cleanup error: ' .
-                            $cleanupError->getMessage()
-                    );
-                }
-            }
-
-            throw $e;
-        }
-    }
-
-    public function updatejournal(int $journalID, int $year, int $volume, int $number, string $title, ?array $journalPdf = null, ?array $publicationPdf = null, ?array $authors = null): void
-    {
-        if ($journalID <= 0) {
-            throw new Exception('Invalid journal ID.');
-        }
-
-        if ($year <= 0 || $volume <= 0 || $number <= 0) {
-            throw new Exception('Invalid publication issue information.');
-        }
-
-        $title = trim($title);
-
-        if ($title === '') {
-            throw new Exception('Article title is required.');
-        }
-
-        $oldArticlePdf = null;
-        $oldPublicationPdf = null;
-        $newArticlePdfPath = null;
-        $newPublicationPdfPath = null;
-
-        try {
-            $this->connection->beginTransaction();
-
-            $statement = $this->connection->prepare(
-                'SELECT
-                    ja."journalID",
-                    ja."title",
-                    ja."journalPDF",
-                    ja."publicationID",
-                    pi."year",
-                    pi."volume",
-                    pi."number",
-                    pi."publicationPDF"
-                FROM "JournalArticle" ja
-                INNER JOIN "PublicationIssue" pi
-                    ON ja."publicationID" =
-                       pi."publicationID"
-                WHERE ja."journalID" = :journalID
-                FOR UPDATE'
-            );
-
-            $statement->execute(
-                [
-                    ':journalID' => $journalID
-                ]
-            );
-
-            $current = $statement->fetch();
-
-            if (!$current) {
-                throw new Exception(
-                    'Journal article not found.'
-                );
-            }
-
-            $publicationID =
-                (int) $current['publicationID'];
-
-            $oldArticlePdf =
-                $current['journalPDF'] ?? null;
-
-            $oldPublicationPdf =
-                $current['publicationPDF'] ?? null;
-
-            if ($journalPdf !== null) {
-                validatePdf(
-                    $journalPdf,
-                    'Journal article PDF'
-                );
-
-                $newArticlePdfPath =
-                    $year .
-                    '/publication_' .
-                    $publicationID .
-                    '/' .
-                    createStorageFilename(
-                        $journalPdf['name'],
-                        'article'
-                    );
-
-                uploadPdf(
-                    $journalPdf['tmp_name'],
-                    $newArticlePdfPath
-                );
-            }
-
-            if ($publicationPdf !== null) {
-                validatePdf(
-                    $publicationPdf,
-                    'Publication issue PDF'
-                );
-
-                $newPublicationPdfPath =
-                    $year .
-                    '/publication_' .
-                    $publicationID .
-                    '/' .
-                    createStorageFilename(
-                        $publicationPdf['name'],
-                        'publication_issue'
-                    );
-
-                uploadPdf(
-                    $publicationPdf['tmp_name'],
-                    $newPublicationPdfPath
-                );
-            }
-
-            $statement = $this->connection->prepare(
-                'UPDATE "PublicationIssue"
-                SET
-                    "year" = :year,
-                    "volume" = :volume,
-                    "number" = :number
-                WHERE "publicationID" =
-                    :publicationID'
-            );
-
-            $statement->execute(
-                [
-                    ':year' => $year,
-                    ':volume' => $volume,
-                    ':number' => $number,
-                    ':publicationID' =>
-                    $publicationID
-                ]
-            );
-
-            if ($newPublicationPdfPath !== null) {
-                $statement = $this->connection->prepare(
-                    'UPDATE "PublicationIssue"
-                    SET "publicationPDF" =
-                        :publicationPDF
-                    WHERE "publicationID" =
-                        :publicationID'
-                );
-
-                $statement->execute(
-                    [
-                        ':publicationPDF' =>
-                        $newPublicationPdfPath,
-                        ':publicationID' =>
-                        $publicationID
-                    ]
-                );
-            }
-
-            if ($newArticlePdfPath !== null) {
-                $statement = $this->connection->prepare(
-                    'UPDATE "JournalArticle"
-                    SET
-                        "title" = :title,
-                        "journalPDF" = :journalPDF
-                    WHERE "journalID" = :journalID'
-                );
-
-                $statement->execute(
-                    [
-                        ':title' => $title,
-                        ':journalPDF' =>
-                        $newArticlePdfPath,
-                        ':journalID' =>
-                        $journalID
-                    ]
-                );
-            } else {
-                $statement = $this->connection->prepare(
-                    'UPDATE "JournalArticle"
-                    SET "title" = :title
-                    WHERE "journalID" = :journalID'
-                );
-
-                $statement->execute(
-                    [
-                        ':title' => $title,
-                        ':journalID' =>
-                        $journalID
-                    ]
-                );
-            }
-
-            if ($authors !== null) {
-                if (
-                    !is_array($authors) ||
-                    count($authors) === 0
-                ) {
-                    throw new Exception(
-                        'At least one author is required.'
-                    );
-                }
-
-                $statement = $this->connection->prepare(
-                    'DELETE FROM "ArticleAuthor"
-                    WHERE "journalID" = :journalID'
-                );
-
-                $statement->execute(
-                    [
-                        ':journalID' => $journalID
-                    ]
-                );
-
-                $authorCache = [];
-
-                foreach ($authors as $author) {
-                    $firstName = trim($author['firstName'] ?? '');
-                    $lastName = trim($author['lastName'] ?? '');
-                    if ($firstName === '' || $lastName === '') {
-                        throw new Exception(
-                            'Both first name and last name are required for every author.'
-                        );
-                    }
-
-                    $authorID =
-                        $this->findOrCreateAuthor(
-                            $firstName,
-                            $lastName,
-                            $authorCache
-                        );
-
-                    $statement =
-                        $this->connection->prepare(
-                            'INSERT INTO "ArticleAuthor"
-                            ("journalID", "authorID")
-                            VALUES
-                            (:journalID, :authorID)'
-                        );
-
-                    $statement->execute(
-                        [
-                            ':journalID' =>
-                            $journalID,
-                            ':authorID' =>
-                            $authorID
-                        ]
-                    );
-                }
-            }
-
-            $this->connection->commit();
-
-            if ($newArticlePdfPath !== null) {
-                try {
-                    deletePdf($oldArticlePdf);
-                } catch (Throwable $cleanupError) {
-                    error_log(
-                        'Old article PDF cleanup error: ' .
-                            $cleanupError->getMessage()
-                    );
-                }
-            }
-
-            if ($newPublicationPdfPath !== null) {
-                try {
-                    deletePdf(
-                        $oldPublicationPdf
-                    );
-                } catch (Throwable $cleanupError) {
-                    error_log(
-                        'Old publication PDF cleanup error: ' .
-                            $cleanupError->getMessage()
-                    );
-                }
-            }
-        } catch (Throwable $e) {
-            if ($this->connection->inTransaction()) {
-                $this->connection->rollBack();
-            }
-
-            if ($newArticlePdfPath !== null) {
-
-                try {
-                    deletePdf(
-                        $newArticlePdfPath
-                    );
-                } catch (Throwable $cleanupError) {
-                    error_log(
-                        'New article PDF cleanup error: ' .
-                            $cleanupError->getMessage()
-                    );
-                }
-            }
-
-            if ($newPublicationPdfPath !== null) {
-                try {
-                    deletePdf(
-                        $newPublicationPdfPath
-                    );
-                } catch (Throwable $cleanupError) {
-                    error_log(
-                        'New publication PDF cleanup error: ' .
-                            $cleanupError->getMessage()
-                    );
-                }
-            }
-
-            throw $e;
-        }
-    }
-
-    public function removejournal(int $journalID): void{
-
-        if ($journalID <= 0) {
-            throw new Exception('Invalid journal ID.');
-        }
-
-        $journalPDF = null;
-        $publicationPDF = null;
-        $publicationID = null;
-
-        try {
-            $this->connection->beginTransaction();
-
-            $statement = $this->connection->prepare(
-                'SELECT
-                    "journalID",
-                    "journalPDF",
-                    "publicationID"
-                FROM "JournalArticle"
-                WHERE "journalID" = :journalID
-                FOR UPDATE'
-            );
-
-            $statement->execute(
-                [
-                    ':journalID' => $journalID
-                ]
-            );
-
-            $article = $statement->fetch();
-
-            if (!$article) {
-                throw new Exception(
-                    'Journal article not found.'
-                );
-            }
-
-            $journalPDF =
-                $article['journalPDF'] ?? null;
-
-            $publicationID =
-                (int) $article['publicationID'];
-
-            $statement = $this->connection->prepare(
-                'DELETE FROM "ArticleAuthor"
-                WHERE "journalID" = :journalID'
-            );
-
-            $statement->execute(
-                [
-                    ':journalID' => $journalID
-                ]
-            );
-
-            $statement = $this->connection->prepare(
-                'DELETE FROM "JournalArticle"
-                WHERE "journalID" = :journalID'
-            );
-
-            $statement->execute(
-                [
-                    ':journalID' => $journalID
-                ]
-            );
-
-            $statement = $this->connection->prepare(
-                'SELECT COUNT(*)
-                FROM "JournalArticle"
-                WHERE "publicationID" =
-                    :publicationID'
-            );
-
-            $statement->execute(
-                [
-                    ':publicationID' =>
-                    $publicationID
-                ]
-            );
-
-            $remainingArticles =
-                (int) $statement->fetchColumn();
-
-            if ($remainingArticles === 0) {
-                $statement = $this->connection->prepare(
-                    'SELECT "publicationPDF"
-                    FROM "PublicationIssue"
-                    WHERE "publicationID" =
-                        :publicationID'
-                );
-
-                $statement->execute(
-                    [
-                        ':publicationID' =>
-                        $publicationID
-                    ]
-                );
-
-                $publicationPDF =
-                    $statement->fetchColumn();
-
-                $statement = $this->connection->prepare(
-                    'DELETE FROM "PublicationIssue"
-                    WHERE "publicationID" =
-                        :publicationID'
-                );
-
-                $statement->execute(
-                    [
-                        ':publicationID' =>
-                        $publicationID
-                    ]
-                );
-            }
-
-            $this->connection->commit();
-
-            if ($journalPDF !== null) {
-                deletePdf($journalPDF);
-            }
-
-            if ($publicationPDF !== null) {
-                deletePdf($publicationPDF);
-            }
-        } catch (Throwable $e) {
-            if ($this->connection->inTransaction()) {
-                $this->connection->rollBack();
-            }
-
-            throw $e;
-        }
-    }
-
-    public function viewjournal(int $journalID): ?array{
-
-        if ($journalID <= 0) {
-            throw new Exception('Invalid journal ID.');
-        }
-
-        $statement = $this->connection->prepare(
-            'SELECT
-                ja."journalID",
-                ja."title",
-                ja."journalPDF",
-                ja."publicationID",
-                pi."year",
-                pi."volume",
-                pi."number",
-                pi."publicationPDF"
-            FROM "JournalArticle" ja
-            INNER JOIN "PublicationIssue" pi
-                ON ja."publicationID" =
-                   pi."publicationID"
-            WHERE ja."journalID" = :journalID'
-        );
-
-        $statement->execute(
-            [
-                ':journalID' => $journalID
-            ]
-        );
-
-        $article = $statement->fetch();
-
-        if (!$article) {
-            return null;
-        }
-
-        $statement = $this->connection->prepare(
-            'SELECT
-                a."authorID",
-                a."firstName",
-                a."lastName"
-            FROM "ArticleAuthor" aa
-            INNER JOIN "Author" a
-                ON aa."authorID" =
-                   a."authorID"
-            WHERE aa."journalID" = :journalID
-            ORDER BY aa."authorID"'
-        );
-
-        $statement->execute(
-            [
-                ':journalID' => $journalID
-            ]
-        );
-
-        $authors = $statement->fetchAll();
-
-        $publication = [
-            'publicationID' =>
-            (int) $article['publicationID'],
-            'year' =>
-            (int) $article['year'],
-            'volume' =>
-            (int) $article['volume'],
-            'number' =>
-            (int) $article['number'],
-            'publicationPDF' =>
-            $article['publicationPDF']
-        ];
-
-        unset(
-            $article['year'],
-            $article['volume'],
-            $article['number'],
-            $article['publicationPDF']
-        );
-
-        $article['journalID'] =
-            (int) $article['journalID'];
-
-        $article['publicationID'] =
-            (int) $article['publicationID'];
-
-        return [
-            'article' => $article,
-            'publication' => $publication,
-            'authors' => $authors
-        ];
-    }
-
-    public function generatecitation(array $article, array $publication, array $authors): string{
-        $authorParts = [];
-
-        foreach ($authors as $author) {
-            $firstName = trim(
-                $author['firstName'] ?? ''
-            );
-
-            $lastName = trim(
-                $author['lastName'] ?? ''
-            );
-
-            $initials = '';
-
-            if ($firstName !== '') {
-                $nameParts = preg_split(
-                    '/\s+/',
-                    $firstName
-                );
-
-                foreach ($nameParts as $namePart) {
-                    if ($namePart === '') {
-                        continue;
-                    }
-
-                    $initials .=
-                        strtoupper(
-                            substr(
-                                $namePart,
-                                0,
-                                1
-                            )
-                        ) .
-                        '. ';
-                }
-
-                $initials = trim($initials);
-            }
-
-            if ($lastName !== '') {
-                if ($initials !== '') {
-                    $authorParts[] =
-                        $lastName .
-                        ', ' .
-                        $initials;
-                } else {
-                    $authorParts[] =
-                        $lastName;
-                }
-            } elseif ($firstName !== '') {
-                $authorParts[] =
-                    $firstName;
-            }
-        }
-
-        if (count($authorParts) === 0) {
-            $authorText = 'Unknown Author.';
-        } 
-        
-        elseif (count($authorParts) === 1) {
-            $authorText =
-                $authorParts[0] . '.';
-        } 
-        
-        elseif (count($authorParts) === 2) {
-            $authorText =
-                $authorParts[0] .
-                ', & ' .
-                $authorParts[1] .
-                '.';
-        } 
-        
-        else {
-            $authorText =
-                $authorParts[0] .
-                ' et al.';
-        }
-
-        $year =
-            $publication['year'] ??
-            'n.d.';
-
-        $title = trim(
-            $article['title'] ??
-                'Untitled Article'
-        );
-
-        $citation =
-            $authorText .
-            ' (' .
-            $year .
-            '). ' .
-            $title .
-            '.';
-
-        $volume =
-            $publication['volume'] ??
-            '';
-
-        $number =
-            $publication['number'] ??
-            '';
-
-        $citation .=
-            ' Convergence: A Multidisciplinary Journal, ' .
-            $volume .
-            '(' .
-            $number .
-            ').';
-
-        return $citation;
-    }
-
-    public function listjournals(): array{
-        $statement = $this->connection->query(
-            'SELECT
-                ja."journalID",
-                ja."title",
-                ja."journalPDF",
-                ja."publicationID",
-                pi."year",
-                pi."volume",
-                pi."number",
-                pi."publicationPDF"
-            FROM "JournalArticle" ja
-            INNER JOIN "PublicationIssue" pi
-                ON ja."publicationID" =
-                   pi."publicationID"
-            ORDER BY
-                pi."year" DESC,
-                pi."volume" DESC,
-                pi."number" DESC,
-                ja."journalID" DESC'
-        );
-
-        $rows = $statement->fetchAll();
-
-        if (empty($rows)) {
-            return [];
-        }
-
-        $journalIDs = array_map(
-            'intval',
-            array_column(
-                $rows,
-                'journalID'
-            )
-        );
-
-        $placeholders = implode(
-            ',',
-            array_fill(
-                0,
-                count($journalIDs),
-                '?'
-            )
-        );
-
-        $statement = $this->connection->prepare(
-            'SELECT
-                aa."journalID",
-                a."authorID",
-                a."firstName",
-                a."lastName"
-            FROM "ArticleAuthor" aa
-            INNER JOIN "Author" a
-                ON aa."authorID" =
-                   a."authorID"
-            WHERE aa."journalID" IN (' .
-                $placeholders .
-                ')'
-        );
-
-        $statement->execute($journalIDs);
-        $authorRows = $statement->fetchAll();
-        $authorMap = [];
-
-        foreach ($authorRows as $author) {
-            $journalID =
-                (int) $author['journalID'];
-
-            if (!isset($authorMap[$journalID])) {
-                $authorMap[$journalID] = [];
-            }
-
-            $authorMap[$journalID][] = [
-                'authorID' =>
-                (int) $author['authorID'],
-                'firstName' =>
-                $author['firstName'],
-                'lastName' =>
-                $author['lastName']
-            ];
-        }
-
-        $journals = [];
-
-        foreach ($rows as $row) {
-            $journalID =
-                (int) $row['journalID'];
-
-            $journals[] = [
-                'id' => $journalID,
-                'publicationID' =>
-                (int) $row['publicationID'],
-                'year' =>
-                (int) $row['year'],
-                'volume' =>
-                (int) $row['volume'],
-                'number' =>
-                (int) $row['number'],
-                'publicationPDF' =>
-                $row['publicationPDF'] ?? null,
-                'title' =>
-                $row['title'],
-                'journalPDF' =>
-                $row['journalPDF'],
-                'authors' =>
-                $authorMap[$journalID] ?? []
-            ];
-        }
-
-        return $journals;
-    }
-
-    private function findAuthor(string $firstName, string $lastName): ?int{
-        $statement = $this->connection->prepare(
-            'SELECT "authorID"
-            FROM "Author"
-            WHERE "firstName" = :firstName
-            AND "lastName" = :lastName
-            LIMIT 1'
-        );
-
-        $statement->execute(
-            [
-                ':firstName' =>
-                trim($firstName),
-                ':lastName' =>
-                trim($lastName)
-            ]
-        );
-
-        $authorID =
-            $statement->fetchColumn();
-
-        if ($authorID === false) {
-            return null;
-        }
-
-        return (int) $authorID;
-    }
-
-    private function createAuthor(string $firstName, string $lastName): int{
-        $statement = $this->connection->prepare(
-            'INSERT INTO "Author"
-            ("firstName", "lastName")
-            VALUES
-            (:firstName, :lastName)
-            RETURNING "authorID"'
-        );
-
-        $statement->execute(
-            [
-                ':firstName' =>
-                trim($firstName),
-                ':lastName' =>
-                trim($lastName)
-            ]
-        );
-
-        $authorID = $statement->fetchColumn();
-
-        if ($authorID === false) {
-            throw new Exception('Author was created but no ID was returned.');
-        }
-
-        return (int) $authorID;
-    }
-
-    private function findOrCreateAuthor(string $firstName, string $lastName, array &$authorCache): int{
-
-        $firstName = trim($firstName);
-        $lastName = trim($lastName);
-
-        $cacheKey = strtolower(
-            $firstName . '|' . $lastName
-        );
-
-        if (isset($authorCache[$cacheKey])) {
-            return $authorCache[$cacheKey];
-        }
-
-        $authorID = $this->findAuthor(
-            $firstName,
-            $lastName
-        );
-
-        if ($authorID === null) {
-            $authorID = $this->createAuthor(
-                $firstName,
-                $lastName
-            );
-        }
-
-        $authorCache[$cacheKey] =
-            $authorID;
-
-        return $authorID;
-    }
-}
-
-//Create database connection
+// Create database connection
 $database = new Database();
 $pdo = $database->getConnection();
 
-//Create journal object
-$journalModel = new ManageJournal($pdo);
+// Create journal object
+$journalModel = new JournalArticle();
 
 try {
+
     $action =
         $_GET['action'] ??
         $_POST['action'] ??
         '';
 
     switch ($action) {
-        case 'add':
-            $year = filter_input(INPUT_POST, 'year', FILTER_VALIDATE_INT);
-            $volume = filter_input(INPUT_POST, 'volume', FILTER_VALIDATE_INT);
-            $number = filter_input(INPUT_POST, 'number', FILTER_VALIDATE_INT);
 
-            if ($year === false || $year === null || $volume === false || $volume === null || $number === false || $number === null) {
-                sendResponse(false, 'Invalid publication issue information.', [], 400);
+        case 'add':
+            $year = filter_input(INPUT_POST,'year',FILTER_VALIDATE_INT);
+            $volume = filter_input(INPUT_POST,'volume',FILTER_VALIDATE_INT);
+            $number = filter_input(INPUT_POST,'number',FILTER_VALIDATE_INT);
+
+            if ($year === false || $year === null ||$volume === false || $volume === null ||$number === false || $number === null) {
+                sendResponse(
+                    false,
+                    'Invalid publication issue information.',
+                    [],
+                    400
+                );
             }
 
             if (!isset($_FILES['publicationPDF'])) {
-                sendResponse(false, 'Publication issue PDF is required.', [], 400);
+                sendResponse(
+                    false,
+                    'Publication issue PDF is required.',
+                    [],
+                    400
+                );
             }
 
             $articlesJson = $_POST['articles'] ?? '';
-            $articles = json_decode($articlesJson, true);
+
+            $articles = json_decode(
+                $articlesJson,
+                true
+            );
 
             if (!is_array($articles) || count($articles) === 0) {
-                sendResponse(false,'At least one article is required.',[],400);
+                sendResponse(
+                    false,
+                    'At least one article is required.',
+                    [],
+                    400
+                );
             }
 
             $publicationID =
-                $journalModel->addjournal(
+                $journalModel->addJournal(
+                    $pdo,
                     (int) $year,
                     (int) $volume,
                     (int) $number,
@@ -1495,40 +439,84 @@ try {
                 true,
                 'Publication issue and articles saved successfully.',
                 [
-                    'publicationID' =>
-                    $publicationID
+                    'publicationID' => $publicationID
                 ]
             );
 
+
         case 'update':
 
-            $journalID = filter_input(INPUT_POST, 'journalID', FILTER_VALIDATE_INT);
-            $year = filter_input(INPUT_POST, 'year', FILTER_VALIDATE_INT);
-            $volume = filter_input(INPUT_POST, 'volume', FILTER_VALIDATE_INT);
-            $number = filter_input(INPUT_POST, 'number', FILTER_VALIDATE_INT);
+            $journalID = filter_input(
+                INPUT_POST,
+                'journalID',
+                FILTER_VALIDATE_INT
+            );
 
-            $title = trim($_POST['title'] ?? '');
+            $year = filter_input(
+                INPUT_POST,
+                'year',
+                FILTER_VALIDATE_INT
+            );
 
-            if ($journalID === false || $journalID === null || $journalID <= 0) {
-                sendResponse(false, 'Invalid journal ID.', [], 400);
+            $volume = filter_input(
+                INPUT_POST,
+                'volume',
+                FILTER_VALIDATE_INT
+            );
+
+            $number = filter_input(
+                INPUT_POST,
+                'number',
+                FILTER_VALIDATE_INT
+            );
+
+            $title = trim(
+                $_POST['title'] ?? ''
+            );
+
+            if (
+                $journalID === false ||
+                $journalID === null ||
+                $journalID <= 0
+            ) {
+                sendResponse(
+                    false,
+                    'Invalid journal ID.',
+                    [],
+                    400
+                );
             }
 
-            if ($year === false || $year === null || $volume === false || $volume === null || $number === false || $number === null) {
-                sendResponse(false, 'Invalid publication issue information.', [], 400);
+            if (
+                $year === false || $year === null ||
+                $volume === false || $volume === null ||
+                $number === false || $number === null
+            ) {
+                sendResponse(
+                    false,
+                    'Invalid publication issue information.',
+                    [],
+                    400
+                );
             }
 
             if ($title === '') {
-                sendResponse(false, 'Article title is required.', [], 400);
+                sendResponse(
+                    false,
+                    'Article title is required.',
+                    [],
+                    400
+                );
             }
 
             $authors = null;
 
             if (isset($_POST['authors'])) {
-                $authors =
-                    json_decode(
-                        $_POST['authors'],
-                        true
-                    );
+
+                $authors = json_decode(
+                    $_POST['authors'],
+                    true
+                );
 
                 if (!is_array($authors)) {
                     sendResponse(
@@ -1540,18 +528,34 @@ try {
                 }
             }
 
-            $journalPdf = $_FILES['journalPDF'] ?? null;
-            $publicationPdf = $_FILES['publicationPDF'] ?? null;
+            $journalPdf =
+                $_FILES['journalPDF'] ?? null;
 
-            if ($journalPdf !== null && (!isset($journalPdf['error']) || $journalPdf['error'] === UPLOAD_ERR_NO_FILE)) {
+            $publicationPdf =
+                $_FILES['publicationPDF'] ?? null;
+
+            if (
+                $journalPdf !== null &&
+                (
+                    !isset($journalPdf['error']) ||
+                    $journalPdf['error'] === UPLOAD_ERR_NO_FILE
+                )
+            ) {
                 $journalPdf = null;
             }
 
-            if ($publicationPdf !== null && (!isset($publicationPdf['error']) || $publicationPdf['error'] === UPLOAD_ERR_NO_FILE)) {
+            if (
+                $publicationPdf !== null &&
+                (
+                    !isset($publicationPdf['error']) ||
+                    $publicationPdf['error'] === UPLOAD_ERR_NO_FILE
+                )
+            ) {
                 $publicationPdf = null;
             }
 
-            $journalModel->updatejournal(
+            $journalModel->updateJournal(
+                $pdo,
                 (int) $journalID,
                 (int) $year,
                 (int) $volume,
@@ -1567,27 +571,36 @@ try {
                 'Journal updated successfully.'
             );
 
+
         case 'list':
+
             $journals =
-                $journalModel->listjournals();
+                $journalModel->listJournals(
+                    $pdo
+                );
 
             sendResponse(
                 true,
                 'Journals retrieved successfully.',
                 [
-                    'journals' =>
-                    $journals
+                    'journals' => $journals
                 ]
             );
 
+
         case 'view':
+
             $journalID = filter_input(
                 INPUT_GET,
                 'journalID',
                 FILTER_VALIDATE_INT
             );
 
-            if ($journalID === false || $journalID === null || $journalID <= 0) {
+            if (
+                $journalID === false ||
+                $journalID === null ||
+                $journalID <= 0
+            ) {
                 sendResponse(
                     false,
                     'Invalid journal ID.',
@@ -1597,7 +610,8 @@ try {
             }
 
             $result =
-                $journalModel->viewjournal(
+                $journalModel->viewJournal(
+                    $pdo,
                     (int) $journalID
                 );
 
@@ -1611,7 +625,7 @@ try {
             }
 
             $citation =
-                $journalModel->generatecitation(
+                $journalModel->generateCitation(
                     $result['article'],
                     $result['publication'],
                     $result['authors']
@@ -1622,10 +636,11 @@ try {
             $journalPDF =
                 trim(
                     $result['article']['journalPDF'] ??
-                        ''
+                    ''
                 );
 
             if ($journalPDF !== '') {
+
                 $pdfUrl =
                     createPublicPdfUrl(
                         $journalPDF
@@ -1637,33 +652,57 @@ try {
                 'Journal retrieved successfully.',
                 [
                     'article' =>
-                    $result['article'],
+                        $result['article'],
+
                     'publication' =>
-                    $result['publication'],
+                        $result['publication'],
+
                     'authors' =>
-                    $result['authors'],
+                        $result['authors'],
+
                     'citation' =>
-                    $citation,
+                        $citation,
+
                     'pdfUrl' =>
-                    $pdfUrl
+                        $pdfUrl
                 ]
             );
 
+
         case 'delete':
+
             $journalID = filter_input(
                 INPUT_POST,
                 'journalID',
                 FILTER_VALIDATE_INT
             );
 
-            if ($journalID === false || $journalID === null || $journalID <= 0) {
-                sendResponse(false, 'Invalid journal ID.', [], 400);
+            if (
+                $journalID === false ||
+                $journalID === null ||
+                $journalID <= 0
+            ) {
+                sendResponse(
+                    false,
+                    'Invalid journal ID.',
+                    [],
+                    400
+                );
             }
 
-            $journalModel->removejournal((int) $journalID);
-            sendResponse(true, 'Journal deleted successfully.');
+            $journalModel->removeJournal(
+                $pdo,
+                (int) $journalID
+            );
+
+            sendResponse(
+                true,
+                'Journal deleted successfully.'
+            );
+
 
         default:
+
             sendResponse(
                 false,
                 'Invalid action.',
@@ -1672,9 +711,17 @@ try {
             );
     }
 
-} 
+} catch (Throwable $e) {
 
-catch (Throwable $e) {
-    error_log('Manage Journal API Error: ' . $e->getMessage());
-    sendResponse(false, $e->getMessage(), [], 500);
+    error_log(
+        'Manage Journal API Error: ' .
+        $e->getMessage()
+    );
+
+    sendResponse(
+        false,
+        $e->getMessage(),
+        [],
+        500
+    );
 }

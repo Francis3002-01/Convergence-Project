@@ -70,18 +70,15 @@ function displayJournals(list = journals) {
         .join(", ");
 
       article.innerHTML = `
-
                 <div class="article-info">
                     <div class="article-title">
                         ${escapeHtml(journal.title)}
                     </div>
                 </div>
 
-
                 <div class="article-authors">
                     ${escapeHtml(authorNames)}
                 </div>
-
 
                 <div class="actions">
                     <!-- View -->
@@ -224,13 +221,10 @@ function resetPublicationForm() {
 function createArticle() {
   return {
     title: "",
-
     pdf: null,
-
     authors: [
       {
         firstName: "",
-
         lastName: "",
       },
     ],
@@ -245,13 +239,11 @@ function goToArticles() {
 
   if (!year || !volume || !number) {
     alert("Please complete all publication issue fields.");
-
     return;
   }
 
   if (!publicationPdfFile) {
     alert("Please upload the publication issue PDF.");
-
     return;
   }
 
@@ -304,14 +296,10 @@ function loadArticle(index) {
   }
 
   currentArticleIndex = index;
-
   const article = articles[index];
-
   document.getElementById("articleHeading").textContent =
     `Article ${index + 1}`;
-
   document.getElementById("articleTitle").value = article.title;
-
   const fileName = document.getElementById("pdfFileName");
 
   if (article.pdf) {
@@ -383,7 +371,6 @@ function addArticle() {
 }
 
 /*Delete Article Request */
-
 function requestDeleteArticle() {
   if (currentArticleIndex === 0) {
     return;
@@ -455,7 +442,6 @@ function renderAuthors() {
                 }
 
             `;
-
     container.appendChild(row);
   });
 }
@@ -482,7 +468,6 @@ function requestDeleteAuthor(index) {
   document.getElementById("modalMessage").textContent = fullName
     ? `Are you sure you want to remove ${fullName}?`
     : "Are you sure you want to remove this author?";
-
   document.getElementById("confirmDeleteButton").onclick = deleteAuthor;
   document.getElementById("confirmationModal").classList.add("active");
 }
@@ -808,7 +793,6 @@ function escapeHtml(value) {
 }
 
 const searchInput = document.getElementById("searchInput");
-
 if (searchInput) {
   searchInput.addEventListener("input", searchJournals);
 }

@@ -11,7 +11,6 @@ body {
     line-height: 1.6;
 }
 
-
 /*MAIN*/
 main {
     max-width: 1200px;
@@ -84,9 +83,6 @@ main {
     margin-bottom: 12px;
 }
 
-
-/*BOOKMARK*/
-
 .bookmark {
     position: relative;
     display: inline-flex;
@@ -101,9 +97,6 @@ main {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-
-
-/*Bookmark*/
 
 .bookmark-left {
     padding: 0 24px 0 40px;
@@ -154,9 +147,7 @@ main {
 }
 
 
-/* =========================
-   TABLET
-========================= */
+/*TABLET*/
 @media (max-width: 850px) {
 
     .mission-section {
@@ -170,12 +161,8 @@ main {
     }
 
 }
-/* =========================
-   MOBILE
-========================= */
-
+/*MOBILE*/
 @media (max-width: 650px) {
-
     main {
         padding: 0 20px;
     }
@@ -208,5 +195,4 @@ main {
         margin-left: 5%;
         text-align: right;
     }
-
 }
