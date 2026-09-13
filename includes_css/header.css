@@ -1,5 +1,13 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 header {
   border-bottom: 1px solid #ddd;
+  background-color: #a42821;
+  color: white;
 }
 
 .header-container {
@@ -17,7 +25,7 @@ header {
   align-items: center;
   gap: 18px;
   text-decoration: none;
-  color: inherit;
+  color: white;
 }
 
 .logo {
@@ -35,15 +43,22 @@ header {
   font-size: 27px;
   letter-spacing: 1px;
   line-height: 1.2;
+  color: white;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .brand-text p {
-  margin-top: 3px;
-  font-size: 13px;
-  color: #777;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+  color: white;
 }
 
-/*SEARCH*/
 .search-box {
   display: flex;
   width: 280px;
@@ -52,18 +67,25 @@ header {
 .search-box input {
   width: 100%;
   padding: 11px 13px;
-  border: 1px solid #ccc;
+  border: 1px solid white;
   border-right: none;
   outline: none;
   font-size: 14px;
+  color: #a42821;
+  background: white;
 }
 
 .search-box button {
   padding: 0 18px;
-  border: none;
-  background: #7a1f2b;
+  border: 1px solid white;
+  background: #a42821;
   color: white;
   cursor: pointer;
+}
+
+.search-box button i,
+.search-box button svg {
+  color: white;
 }
 
 /*NAVIGATION*/
@@ -88,10 +110,10 @@ nav {
 nav a {
   position: relative;
   padding: 18px 25px;
-  color: #222;
+  color: white;
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 500;
 }
 
 nav a::after {
@@ -101,7 +123,7 @@ nav a::after {
   right: 25px;
   bottom: 8px;
   height: 2px;
-  background: #7a1f2b;
+  background: #fff;
   transform: scaleX(0);
   transition: transform 0.2s ease;
 }

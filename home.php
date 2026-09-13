@@ -6,6 +6,7 @@
     <title>Homepage | Convergence</title>
 
     <!--External CSS-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="includes_css/header.css">
     <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="includes_css/footer.css">
@@ -18,7 +19,6 @@
         <section class="about-section">
 
             <h2>What is Convergence?</h2>
-
             <p>
                 Convergence is a multidisciplinary academic journal
                 dedicated to providing an accessible platform for
@@ -27,7 +27,6 @@
                 exchange of ideas and promoting a deeper understanding
                 of society and the world.
             </p>
-
         </section>
 
         <hr class="section-divider">
@@ -62,7 +61,6 @@
             </ul>
         </section>
     </main>
-
 
     <?php include __DIR__ . '/includes/footer.php'; ?>
 </body>
