@@ -1,0 +1,32 @@
+/*PAGE TRANSITION*/
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root) {
+    animation: page-out 0.5s ease-in-out;
+}
+
+::view-transition-new(root) {
+    animation: page-in 0.5s ease-in-out;
+}
+
+@keyframes page-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes page-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

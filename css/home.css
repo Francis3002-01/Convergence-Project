@@ -1,198 +1,280 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #fff;
-    color: #222;
-    line-height: 1.6;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  color: #222;
+  line-height: 1.6;
 }
 
-/*MAIN*/
-main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 30px;
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  color: #222;
+  line-height: 1.6;
 }
 
-.about-section {
-    padding: 100px 0 80px;
-    text-align: center;
+.hero {
+  background: #FAF3E3;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
 }
 
-.about-section h2 {
-    font-size: 40px;
-    margin-bottom: 25px;
+.hero-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 70px 30px 65px;
 }
 
-.about-section p {
-    max-width: 800px;
-    margin: 0 auto;
-    color: #555;
-    font-size: 17px;
-    line-height: 1.9;
+.hero h2 {
+  margin-bottom: 18px;
+  color: #333;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 48px;
+  font-weight: normal;
+  line-height: 1.2;
 }
 
-.section-divider {
-    border: none;
-    border-top: 1px solid #222;
-    width: 80%;
-    margin: 0 auto 70px;
+.hero-description {
+  max-width: 700px;
+  margin: 0 auto 28px;
+  color: #555;
+  font-size: 17px;
+  line-height: 1.8;
 }
 
-/*MISSION*/
-
-.mission-section {
-    width: 55%;
-    margin-left: 10%;
-    padding: 20px 0 70px;
+.latest-issue {
+  max-width: 600px;
+  margin: 0 auto 30px;
+  padding: 15px 0;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
 }
 
-.mission-section p {
-    max-width: 550px;
-    color: #555;
-    font-size: 16px;
-    line-height: 1.9;
+.latest-issue-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #a42821;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
 }
 
-
-/* OUR AIMS */
-
-.aims-section {
-    width: 55%;
-    margin-left: 35%;
-    padding: 0 0 100px;
-    text-align: right;
+.latest-issue-title {
+  color: #333;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
 }
 
-.aims-section ul {
-    width: fit-content;
-    margin-left: auto;
-    padding: 0;
-    list-style-position: outside;
-    color: #555;
-    font-size: 16px;
-    line-height: 1.9;
-    text-align: left;
+.hero-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #a42821;
+  border: 1px solid #a42821;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background 0.2s ease;
 }
 
-.aims-section li {
-    margin-bottom: 12px;
+.hero-button:hover {
+  background: #7f1f1a;
 }
 
-.bookmark {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    height: 58px;
-    min-width: 190px;
-    margin-bottom: 28px;
-    background: #7A1F2B;
-    color: white;
-    font-size: 18px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+/*EXPLORE SECTION*/
+.explore-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 70px 30px;
 }
 
-.bookmark-left {
-    padding: 0 24px 0 40px;
+.section-title {
+  margin-bottom: 35px;
+  text-align: center;
+  color: #333;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  font-weight: normal;
 }
 
-.bookmark-left::before {
-    content: "";
-    position: absolute;
-    left: 20px;
-    width: 9px;
-    height: 9px;
-    background: white;
-    border-radius: 50%;
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
 }
 
-.bookmark-left::after {
-    content: "";
-    position: absolute;
-    left: -1px;
-    bottom: 0;
-    border-top: 29px solid transparent;
-    border-bottom: 29px solid transparent;
-    border-left: 18px solid white;
+.explore-card {
+  border: 1px solid #d5d5d5;
+  padding: 30px;
+  background: #fff;
 }
 
-.bookmark-right {
-    padding: 0 40px 0 24px;
+.explore-number {
+  display: block;
+  margin-bottom: 12px;
+  color: #a42821;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
-.bookmark-right::before {
-    content: "";
-    position: absolute;
-    right: 20px;
-    width: 9px;
-    height: 9px;
-    background: white;
-    border-radius: 50%;
+.explore-card h3 {
+  margin-bottom: 12px;
+  color: #333;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-weight: normal;
 }
 
-.bookmark-right::after {
-    content: "";
-    position: absolute;
-    right: -1px;
-    bottom: 0;
-    border-top: 29px solid transparent;
-    border-bottom: 29px solid transparent;
-    border-right: 18px solid white;
+.explore-card p {
+  min-height: 55px;
+  margin-bottom: 20px;
+  color: #555;
+  font-size: 16px;
+  line-height: 1.7;
 }
 
+.explore-link {
+  color: #a42821;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.explore-link:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   ABOUT INTRODUCTION
+========================= */
+
+.about-intro {
+  border-top: 1px solid #ddd;
+  background: #f7f7f7;
+}
+
+.about-intro-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 70px 30px;
+  text-align: center;
+}
+
+.about-intro h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  font-weight: normal;
+}
+
+.about-intro p {
+  max-width: 750px;
+  margin: 0 auto 25px;
+  color: #555;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.about-link {
+  color: #a42821;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}
 
 /*TABLET*/
 @media (max-width: 850px) {
+  .hero-container {
+    padding: 60px 25px;
+  }
 
-    .mission-section {
-        width: 70%;
-        margin-left: 5%;
-    }
+  .hero h2 {
+    font-size: 42px;
+  }
 
-    .aims-section {
-        width: 70%;
-        margin-left: 25%;
-    }
+  .explore-section {
+    padding: 60px 25px;
+  }
 
+  .explore-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .explore-card p {
+    min-height: auto;
+  }
+
+  .about-intro-container {
+    padding: 60px 25px;
+  }
 }
+
 /*MOBILE*/
 @media (max-width: 650px) {
-    main {
-        padding: 0 20px;
-    }
+  .hero-container {
+    padding: 50px 20px;
+  }
 
-    .about-section {
-        padding: 70px 0 60px;
-    }
+  .hero h2 {
+    font-size: 36px;
+  }
 
-    .about-section h2 {
-        font-size: 30px;
-    }
+  .hero-description {
+    font-size: 16px;
+    line-height: 1.7;
+  }
 
-    .about-section p {
-        font-size: 16px;
-    }
+  .latest-issue {
+    margin-bottom: 25px;
+  }
 
-    .mission-section {
-        width: 90%;
+  .latest-issue-title {
+    font-size: 18px;
+  }
 
-        margin-left: 5%;
-    }
+  .hero-button {
+    padding: 11px 20px;
+    font-size: 13px;
+  }
 
-    .section-divider {
-        width: 90%;
-        margin-bottom: 55px;
-    }
+  .explore-section {
+    padding: 50px 20px;
+  }
 
-    .aims-section {
-        width: 90%;
-        margin-left: 5%;
-        text-align: right;
-    }
+  .section-title {
+    margin-bottom: 25px;
+    font-size: 28px;
+  }
+
+  .explore-card {
+    padding: 25px;
+  }
+
+  .explore-card h3 {
+    font-size: 22px;
+  }
+
+  .about-intro-container {
+    padding: 50px 20px;
+  }
+
+  .about-intro h2 {
+    font-size: 28px;
+  }
+
+  .about-intro p {
+    font-size: 15px;
+  }
 }
