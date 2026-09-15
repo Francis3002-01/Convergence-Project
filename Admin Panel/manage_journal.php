@@ -33,9 +33,7 @@
                     </div>
 
                     <!-- ADD JOURNAL -->
-                    <button type="button" class="add-button" id="addJournalButton"onclick="showForm()">
-                        <i class="fa-solid fa-plus"></i>Add Journal
-                    </button>
+                    <button type="button" class="add-button" id="addJournalButton"onclick="showForm()">Add Journal</button>
                 </div>
             </div>
 

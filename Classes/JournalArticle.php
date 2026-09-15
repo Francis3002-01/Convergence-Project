@@ -1,18 +1,26 @@
 <?php
 
+require_once __DIR__ . '/PublicationIssue.php';
+
 class JournalArticle{
     private int $journalID;
+    private int $publicationID;
     private string $title;
     private string $journalPDF;
 
-    public function __construct(int $journalID = 0, string $title = '', string $journalPDF = '') {
+    public function __construct(int $journalID = 0, string $title = '', string $journalPDF = '', int $publicationID = 0) {
         $this->journalID = $journalID;
+        $this->publicationID = $publicationID;
         $this->title = $title;
         $this->journalPDF = $journalPDF;
     }
 
     public function getJournalID(): int{
         return $this->journalID;
+    }
+
+    public function getPublicationID(): int{
+        return $this->publicationID;
     }
 
     public function getTitle(): string{
@@ -25,6 +33,10 @@ class JournalArticle{
 
     public function setJournalID(int $journalID): void{
         $this->journalID = $journalID;
+    }
+
+    public function setPublicationID(int $publicationID): void{
+        $this->publicationID = $publicationID;
     }
 
     public function setTitle(string $title): void{
@@ -79,59 +91,18 @@ class JournalArticle{
         try {
             $pdo->beginTransaction();
 
-            /*
-             * If this is being published immediately,
-             * move the existing current issue to archive.
-             */
-            if ($isCurrent) {
-                $stmt = $pdo->prepare(
-                    'UPDATE "PublicationIssue"
-                     SET "is_current" = FALSE
-                     WHERE "is_current" = TRUE'
-                );
-
-                $stmt->execute();
-            }
-
-            /*
-             * Create PublicationIssue.
-             */
-            $stmt = $pdo->prepare(
-                'INSERT INTO "PublicationIssue"
-                (
-                    "year",
-                    "volume",
-                    "number",
-                    "publicationPDF",
-                    "is_current",
-                    "is_draft"
-                )
-                VALUES
-                (
-                    :year,
-                    :volume,
-                    :number,
-                    :publicationPDF,
-                    :is_current,
-                    :is_draft
-                )
-                RETURNING "publicationID"'
+            $publicationIssue = new PublicationIssue();
+            $publicationID = $publicationIssue->createIssue(
+                $pdo,
+                $year,
+                $volume,
+                $number,
+                $publicationPDF,
+                $isCurrent,
+                $isDraft
             );
 
-            $stmt->execute([
-                ':year' => $year,
-                ':volume' => $volume,
-                ':number' => $number,
-                ':publicationPDF' => $publicationPDF,
-                ':is_current' => $isCurrent,
-                ':is_draft' => $isDraft
-            ]);
-
-            $publicationID = (int) $stmt->fetchColumn();
-
-            /*
-             * Create articles.
-             */
+            /*Create articles*/
             foreach ($articles as $article) {
                 $title = trim($article['title']);
                 $journalPDF = $article['journalPDF'] ?? '';
@@ -184,9 +155,7 @@ class JournalArticle{
         }
     }
 
-    /*
-     * Update Journal Article
-     */
+    /*Update Journal Article*/
     public function updateJournal(PDO $pdo,int $journalID,int $year,int $volume,int $number,string $title,?string $journalPDF = null,?string $publicationPDF = null,?array $authors = null): bool {
         if ($journalID <= 0) {
             throw new InvalidArgumentException(
@@ -194,9 +163,7 @@ class JournalArticle{
             );
         }
 
-        /*
-         * Get the existing article and publication issue.
-         */
+        /*Get the existing article and publication issue*/
         $stmt = $pdo->prepare(
             'SELECT
                 ja."journalID",
@@ -259,47 +226,20 @@ class JournalArticle{
             $pdo->beginTransaction();
 
             /*
-             * Update PublicationIssue.
+             * Update PublicationIssue through the dedicated issue class.
+             * The database column remains "publicationPDF" to avoid renaming the live schema.
              */
-            if ($publicationPDF !== null && $publicationPDF !== '') {
-                $stmt = $pdo->prepare(
-                    'UPDATE "PublicationIssue"
-                     SET
-                        "year" = :year,
-                        "volume" = :volume,
-                        "number" = :number,
-                        "publicationPDF" = :publicationPDF
-                     WHERE "publicationID" = :publicationID'
-                );
+            $publicationIssue = new PublicationIssue();
+            $publicationIssue->updateIssue(
+                $pdo,
+                $publicationID,
+                $year,
+                $volume,
+                $number,
+                $publicationPDF
+            );
 
-                $stmt->execute([
-                    ':year' => $year,
-                    ':volume' => $volume,
-                    ':number' => $number,
-                    ':publicationPDF' => $publicationPDF,
-                    ':publicationID' => $publicationID
-                ]);
-            } else {
-                $stmt = $pdo->prepare(
-                    'UPDATE "PublicationIssue"
-                     SET
-                        "year" = :year,
-                        "volume" = :volume,
-                        "number" = :number
-                     WHERE "publicationID" = :publicationID'
-                );
-
-                $stmt->execute([
-                    ':year' => $year,
-                    ':volume' => $volume,
-                    ':number' => $number,
-                    ':publicationID' => $publicationID
-                ]);
-            }
-
-            /*
-             * Update JournalArticle.
-             */
+            /*Update JournalArticle.*/
             $stmt = $pdo->prepare(
                 'UPDATE "JournalArticle"
                  SET
@@ -314,9 +254,7 @@ class JournalArticle{
                 ':journalID' => $this->journalID
             ]);
 
-            /*
-             * Update authors only when supplied.
-             */
+            /*Update authors only when supplied.*/
             if ($authors !== null) {
                 if (empty($authors)) {
                     throw new InvalidArgumentException(
@@ -357,9 +295,7 @@ class JournalArticle{
             );
         }
 
-        /*
-         * Get article and publication information.
-         */
+        /*Get article and publication information.*/
         $stmt = $pdo->prepare(
             'SELECT
                 ja."journalID",
@@ -409,9 +345,7 @@ class JournalArticle{
         try {
             $pdo->beginTransaction();
 
-            /*
-             * Remove author relationships first.
-             */
+            /*Remove author relationships first*/
             $stmt = $pdo->prepare(
                 'DELETE FROM "ArticleAuthor"
                  WHERE "journalID" = :journalID'
@@ -421,9 +355,7 @@ class JournalArticle{
                 ':journalID' => $journalID
             ]);
 
-            /*
-             * Remove the article.
-             */
+            /*Remove the article.*/
             $stmt = $pdo->prepare(
                 'DELETE FROM "JournalArticle"
                  WHERE "journalID" = :journalID'
@@ -446,9 +378,7 @@ class JournalArticle{
         }
     }
 
-    /*
-     * View Journal Article
-     */
+    /*View Journal Article*/
     public function viewJournal(PDO $pdo,int $journalID): ?array {
         $stmt = $pdo->prepare(
             'SELECT
@@ -478,9 +408,7 @@ class JournalArticle{
             return null;
         }
 
-        /*
-         * Get authors.
-         */
+        /*Get authors*/
         $stmt = $pdo->prepare(
             'SELECT
                 a."authorID",
@@ -542,9 +470,7 @@ class JournalArticle{
         return (string) $journalPDF;
     }
 
-    /*
-     * Search Journal Articles
-     */
+    /*Search Journal Articles*/
     public function searchJournal(PDO $pdo,string $keyword): array {
         $keyword = trim($keyword);
 
@@ -605,12 +531,18 @@ class JournalArticle{
 
         if (empty($authorNames)) {
             $authorText = '';
-        } elseif (count($authorNames) === 1) {
+        } 
+        
+        elseif (count($authorNames) === 1) {
             $authorText = $authorNames[0];
-        } elseif (count($authorNames) === 2) {
+        } 
+        
+        elseif (count($authorNames) === 2) {
             $authorText =
                 $authorNames[0] . ', & ' . $authorNames[1];
-        } else {
+        } 
+        
+        else {
             $lastAuthor = array_pop($authorNames);
 
             $authorText =
@@ -705,18 +637,14 @@ class JournalArticle{
                 );
             }
 
-            /*
-             * Find an existing author.
-             */
+            /*Find an existing author*/
             $authorID = $this->findAuthor(
                 $pdo,
                 $firstName,
                 $lastName
             );
 
-            /*
-             * Create the author if one does not exist.
-             */
+            /*Create the author if one does not exist.*/
             if ($authorID === null) {
                 $authorID = $this->createAuthor(
                     $pdo,
@@ -725,7 +653,7 @@ class JournalArticle{
                 );
             }
 
-            /* Create ArticleAuthor relationship.*/
+            /*Create ArticleAuthor relationship.*/
             $stmt = $pdo->prepare(
                 'INSERT INTO "ArticleAuthor"
                 (

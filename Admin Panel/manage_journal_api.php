@@ -102,6 +102,11 @@ function createSignedPdfUrl(string $storagePath,int $expiresIn = 3600): string {
     }
 
     $storagePath = normalizeStoragePath($storagePath);
+
+    error_log('SIGNED PDF STORAGE PATH: ' . $storagePath);
+    error_log('BUCKET: ' . $bucketName);
+
+
     $encodedPath = implode('/',array_map('rawurlencode',explode('/', $storagePath)));
 
     $url = rtrim($supabaseUrl,'/')
@@ -1543,7 +1548,6 @@ function saveIssue(PDO $pdo,int $year,int $volume,int $number,array $articleList
 }
 
 /*PUBLISH EXISTING DRAFT */
-
 function publishExistingDraft(PDO $pdo,int $publicationID): void {
     $issue =
         getIssueByPublicationId(
@@ -1551,11 +1555,7 @@ function publishExistingDraft(PDO $pdo,int $publicationID): void {
             $publicationID
         );
 
-    if (
-        !$issue
-        || !(bool) $issue['is_draft']
-    ) {
-
+    if (!$issue|| !(bool) $issue['is_draft']) {
         throw new Exception(
             'Only a draft issue can be published.'
         );
@@ -1574,9 +1574,7 @@ function publishExistingDraft(PDO $pdo,int $publicationID): void {
                  LIMIT 1'
             )->fetchColumn();
 
-        if (
-            $current !== false
-        ) {
+        if ($current !== false) {
 
             $pdo->prepare(
                 'UPDATE "PublicationIssue"
@@ -1606,16 +1604,12 @@ function publishExistingDraft(PDO $pdo,int $publicationID): void {
 
         $pdo->commit();
 
-    } catch (
-        Throwable $e
-    ) {
-
-        if (
-            $pdo->inTransaction()
-        ) {
+    } 
+    
+    catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-
         throw $e;
     }
 }
@@ -1677,29 +1671,15 @@ function deleteIssue(PDO $pdo,int $publicationID): void {
     ]);
 
 
-    if (
-        !empty(
-            $issue['publicationPDF']
-        )
-    ) {
-
+    if (!empty($issue['publicationPDF'])) {
         try {
-
-            deletePdf(
-                $issue['publicationPDF']
-            );
-
-        } catch (
-            Throwable $e
-        ) {
-
-            error_log(
-                'Publication PDF cleanup error: '
-                . $e->getMessage()
-            );
+            deletePdf($issue['publicationPDF']);
+        } 
+        
+        catch (Throwable $e) {
+            error_log('Publication PDF cleanup error: '. $e->getMessage());
         }
     }
-
 
     $pdo->prepare(
         'DELETE FROM "PublicationIssue"
