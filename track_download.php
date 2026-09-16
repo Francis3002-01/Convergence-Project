@@ -1,19 +1,14 @@
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/Classes/Continent.php';
+require_once __DIR__ . '/Classes/Download.php';
 
 use Dotenv\Dotenv;
-use GeoIp2\Database\Reader;
 
 header('Content-Type: application/json; charset=utf-8');
 
-
-/*
-|--------------------------------------------------------------------------
-| Load environment variables
-|--------------------------------------------------------------------------
-*/
-
+/*Load environment variables*/
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
@@ -32,18 +27,8 @@ if ($supabaseUrl === '' || $supabaseKey === '') {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| JSON response helper
-|--------------------------------------------------------------------------
-*/
-
-function sendJsonResponse(
-    bool $success,
-    string $message,
-    array $data = [],
-    int $statusCode = 200
-): void {
+/*JSON response helper*/
+function sendJsonResponse(bool $success,string $message,array $data = [],int $statusCode = 200): void {
     http_response_code($statusCode);
 
     echo json_encode([
@@ -55,117 +40,58 @@ function sendJsonResponse(
     exit;
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| Check if IP is local/private
-|--------------------------------------------------------------------------
-*/
-
-function isLocalOrPrivateIp(string $ip): bool
-{
+/*Check if IP is local/private*/
+function isLocalOrPrivateIp(string $ip): bool{
     if ($ip === '127.0.0.1' || $ip === '::1') {
         return true;
     }
 
-    return filter_var(
-        $ip,
-        FILTER_VALIDATE_IP,
-        FILTER_FLAG_NO_PRIV_RANGE |
-        FILTER_FLAG_NO_RES_RANGE
-    ) === false;
+    return filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_NO_PRIV_RANGE |FILTER_FLAG_NO_RES_RANGE) === false;
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| Get visitor IP
-|--------------------------------------------------------------------------
-*/
-
-function getClientIp(): string
-{
+/*Get visitor IP*/
+function getClientIp(): string{
     /*
      * Optional testing:
      *
      * track_download.php?test_ip=8.8.8.8
      */
-    if (
-        isset($_GET['test_ip']) &&
-        filter_var(
-            $_GET['test_ip'],
-            FILTER_VALIDATE_IP
-        )
-    ) {
+    if (isset($_GET['test_ip']) &&filter_var($_GET['test_ip'],FILTER_VALIDATE_IP)) {
         return $_GET['test_ip'];
     }
-
 
     /*
      * Cloudflare IP
      */
-    if (
-        isset($_SERVER['HTTP_CF_CONNECTING_IP']) &&
-        filter_var(
-            $_SERVER['HTTP_CF_CONNECTING_IP'],
-            FILTER_VALIDATE_IP
-        )
-    ) {
+    if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) &&filter_var($_SERVER['HTTP_CF_CONNECTING_IP'],FILTER_VALIDATE_IP)) {
         $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
     }
-
 
     /*
      * X-Forwarded-For
      */
-    elseif (
-        isset($_SERVER['HTTP_X_FORWARDED_FOR'])
-    ) {
-        $forwardedIps = explode(
-            ',',
-            $_SERVER['HTTP_X_FORWARDED_FOR']
-        );
+    elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $forwardedIps = explode(',',$_SERVER['HTTP_X_FORWARDED_FOR']);
 
         $ip = trim($forwardedIps[0]);
 
-        if (
-            !filter_var(
-                $ip,
-                FILTER_VALIDATE_IP
-            )
-        ) {
+        if (!filter_var($ip,FILTER_VALIDATE_IP)) {
             $ip = $_SERVER['REMOTE_ADDR'] ?? '';
         }
     }
 
 
-    /*
-     * Client IP
-     */
-    elseif (
-        isset($_SERVER['HTTP_CLIENT_IP']) &&
-        filter_var(
-            $_SERVER['HTTP_CLIENT_IP'],
-            FILTER_VALIDATE_IP
-        )
-    ) {
+    /*Client IP*/
+    elseif (isset($_SERVER['HTTP_CLIENT_IP']) &&filter_var($_SERVER['HTTP_CLIENT_IP'],FILTER_VALIDATE_IP)) {
         $ip = $_SERVER['HTTP_CLIENT_IP'];
     }
 
-
-    /*
-     * Normal server IP
-     */
+    /*Normal server IP*/
     else {
         $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     }
 
-
-    /*
-     * Local/private IPs cannot be geolocated.
-     *
-     * Use 8.8.8.8 during local testing.
-     */
+    /*Local/private IPs cannot be geolocated.Use 8.8.8.8 during local testing*/
     if ($ip === '' ||isLocalOrPrivateIp($ip)) {
         return '8.8.8.8';
     }
@@ -173,46 +99,11 @@ function getClientIp(): string
     return $ip;
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| Normalize continent name
-|--------------------------------------------------------------------------
-*/
-
-function normalizeContinentName(string $name): string
-{
-    $name = trim($name);
-
-    /*
-     * MaxMind can return "Australia".
-     * The database uses "Oceania".
-     */
-    if ($name === 'Australia') {
-        return 'Oceania';
-    }
-
-    return $name;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| Supabase REST API request
-|--------------------------------------------------------------------------
-*/
-
-function supabaseRequest(
-    string $method,
-    string $endpoint,
-    array $payload = []
-): array {
+/*Supabase REST API request*/
+function supabaseRequest(string $method,string $endpoint,array $payload = []): array {
     global $supabaseUrl, $supabaseKey;
 
-    $url =
-        rtrim($supabaseUrl, '/') .
-        '/rest/v1/' .
-        $endpoint;
+    $url =rtrim($supabaseUrl, '/') .'/rest/v1/' .$endpoint;
 
     $headers = [
         'apikey: ' . $supabaseKey,
@@ -222,13 +113,10 @@ function supabaseRequest(
     ];
 
 
-    /*
-     * Return inserted/updated records.
-     */
+    /*Return inserted/updated records.*/
     if ($method !== 'GET') {
         $headers[] = 'Prefer: return=representation';
     }
-
 
     $ch = curl_init($url);
 
@@ -240,16 +128,8 @@ function supabaseRequest(
     ]);
 
 
-    /*
-     * Add JSON payload for write requests.
-     */
-    if (
-        in_array(
-            $method,
-            ['POST', 'PATCH', 'PUT'],
-            true
-        )
-    ) {
+    /*Add JSON payload for write requests*/
+    if (in_array($method,['POST', 'PATCH', 'PUT'],true)) {
         $jsonPayload = json_encode($payload);
 
         if ($jsonPayload === false) {
@@ -260,60 +140,35 @@ function supabaseRequest(
             );
         }
 
-        curl_setopt(
-            $ch,
-            CURLOPT_POSTFIELDS,
-            $jsonPayload
-        );
+        curl_setopt($ch,CURLOPT_POSTFIELDS,$jsonPayload);
     }
 
-
-    /*
-     * Execute request.
-     */
+    /*Execute request*/
     $response = curl_exec($ch);
 
-
-    /*
-     * cURL error.
-     */
+    /* cURL error*/
     if ($response === false) {
         $error = curl_error($ch);
 
         curl_close($ch);
 
-        throw new RuntimeException(
-            'cURL error: ' . $error
-        );
+        throw new RuntimeException('cURL error: ' . $error);
     }
 
 
     /*
      * Get HTTP status.
      */
-    $httpCode = curl_getinfo(
-        $ch,
-        CURLINFO_HTTP_CODE
-    );
+    $httpCode = curl_getinfo($ch,CURLINFO_HTTP_CODE);
 
     curl_close($ch);
-
 
     /*
      * Supabase returned an error.
      */
-    if (
-        $httpCode < 200 ||
-        $httpCode >= 300
-    ) {
-        throw new RuntimeException(
-            'Supabase HTTP ' .
-            $httpCode .
-            ': ' .
-            $response
-        );
+    if ($httpCode < 200 ||$httpCode >= 300) {
+        throw new RuntimeException('Supabase HTTP ' .$httpCode .': ' .$response);
     }
-
 
     /*
      * Empty successful response.
@@ -323,13 +178,8 @@ function supabaseRequest(
     }
 
 
-    /*
-     * Decode Supabase JSON.
-     */
-    $decoded = json_decode(
-        $response,
-        true
-    );
+    /*Decode Supabase JSON*/
+    $decoded = json_decode($response,true);
 
     if (!is_array($decoded)) {
         throw new RuntimeException(
@@ -342,93 +192,16 @@ function supabaseRequest(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| Get continent ID from MaxMind
-|--------------------------------------------------------------------------
-*/
-
-function getContinentIdFromGeoIp(
-    string $ip,
-    array $continentMap
-): ?int {
-    $databasePath =
-        __DIR__ .
-        '/geoip/GeoLite2-Country.mmdb';
-
-
-    /*
-     * MaxMind database missing.
-     */
-    if (!file_exists($databasePath)) {
-        return null;
-    }
-
-
-    try {
-
-        $reader = new Reader(
-            $databasePath
-        );
-
-        $record = $reader->country(
-            $ip
-        );
-
-        $continentName =
-            $record->continent->name ?? null;
-
-        $reader->close();
-
-
-        if (!$continentName) {
-            return null;
-        }
-
-
-        $continentName =
-            normalizeContinentName(
-                $continentName
-            );
-
-
-        return $continentMap[
-            $continentName
-        ] ?? null;
-
-    } catch (Throwable $e) {
-
-        return null;
-    }
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| Main download tracking process
-|--------------------------------------------------------------------------
-*/
-
+/*Main download tracking process*/
 try {
 
-    /*
-     * Read JSON body.
-     */
-    $rawInput = file_get_contents(
-        'php://input'
-    );
-
+    /*Read JSON body*/
+    $rawInput = file_get_contents('php://input');
     $jsonPayload = [];
 
+    if ($rawInput !== false &&trim($rawInput) !== '') {
 
-    if (
-        $rawInput !== false &&
-        trim($rawInput) !== ''
-    ) {
-        $decoded = json_decode(
-            $rawInput,
-            true
-        );
+        $decoded = json_decode($rawInput,true);
 
         if (is_array($decoded)) {
             $jsonPayload = $decoded;
@@ -447,20 +220,11 @@ try {
         ?? $_GET['journalID']
         ?? null;
 
+    $journalID = filter_var($journalID,FILTER_VALIDATE_INT);
 
-    $journalID = filter_var(
-        $journalID,
-        FILTER_VALIDATE_INT
-    );
+    /*Validate journal ID*/
+    if ($journalID === false ||$journalID <= 0) {
 
-
-    /*
-     * Validate journal ID.
-     */
-    if (
-        $journalID === false ||
-        $journalID <= 0
-    ) {
         sendJsonResponse(
             false,
             'Invalid or missing journal ID.',
@@ -493,84 +257,37 @@ try {
      */
     $continentMap = [];
 
-
     foreach ($continents as $continent) {
 
-        if (
-            !isset($continent['continentID']) ||
-            !isset($continent['continentName'])
-        ) {
+        if (!isset($continent['continentID']) ||!isset($continent['continentName'])) {
             continue;
         }
 
+        $name = trim($continent['continentName']);
 
-        $name = normalizeContinentName(
-            $continent['continentName']
-        );
+        if ($name === 'Australia') {
+            $name = 'Oceania';
+        }
 
-
-        $continentMap[$name] =
-            (int) $continent['continentID'];
+        $continentMap[$name] = (int) $continent['continentID'];
     }
-
 
     /*
     |--------------------------------------------------------------------------
     | Determine visitor IP
     |--------------------------------------------------------------------------
     */
-
     $visitorIp = getClientIp();
 
+    /*Determine continent*/
+    $continent = new Continent();
+    $continentID = $continent->identifyContinent($visitorIp,$continentMap);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Determine continent
-    |--------------------------------------------------------------------------
-    */
+    /*Record the download through the Download model*/
+    $download = new Download(0, $continentID ?? 0, $journalID);
+    $insertedDownload = $download->recordDownload($supabaseUrl, $supabaseKey);
 
-    $continentID =
-        getContinentIdFromGeoIp(
-            $visitorIp,
-            $continentMap
-        );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Prepare download record
-    |--------------------------------------------------------------------------
-    */
-
-    $downloadRecord = [
-        'journalID' => $journalID,
-        'continentID' => $continentID
-    ];
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Insert download record
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    | Do not put double quotes around the table name.
-    |
-    */
-
-    $insertedDownload = supabaseRequest(
-        'POST',
-        'Download',
-        $downloadRecord
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Success
-    |--------------------------------------------------------------------------
-    */
-
+    /*Success*/
     sendJsonResponse(
         true,
         'Download recorded successfully.',
@@ -584,17 +301,11 @@ try {
     );
 
 
-} catch (Throwable $e) {
+} 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Error
-    |--------------------------------------------------------------------------
-    */
-
-    sendJsonResponse(
-        false,
-        'Unable to record download.',
+catch (Throwable $e) {
+    /*Error*/
+    sendJsonResponse(false,'Unable to record download.',
         [
             'error' => $e->getMessage(),
             'journalID' => $journalID ?? null

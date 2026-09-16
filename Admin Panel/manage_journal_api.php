@@ -1021,14 +1021,23 @@ function loadIssueList(PDO $pdo): array {
         }
     }
 
-    foreach ($issues as &$issue) {
-        $issue['articles'] =
+    foreach ($issues as $publicationID => $issue) {
+        $issues[$publicationID]['articles'] =
             array_values(
                 $issue['articles']
             );
-    }
 
-    unset($issue);
+        if (empty($issues[$publicationID]['articles'])) {
+            $pdo->prepare(
+                'DELETE FROM "PublicationIssue"
+                 WHERE "publicationID" = :publicationID'
+            )->execute([
+                ':publicationID' => $publicationID
+            ]);
+
+            unset($issues[$publicationID]);
+        }
+    }
 
 
     /*SEPARATE CURRENT / DRAFT / ARCHIVE */

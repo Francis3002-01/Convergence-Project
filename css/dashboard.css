@@ -71,13 +71,24 @@
     padding: 20px;
 }
 
-.journal-selector label {
+.journal-selector-label {
     font-size: 14px;
     font-weight: 600;
     color: #333333;
 }
 
-.journal-selector select {
+.issue-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.issue-menu-item {
+    position: relative;
+}
+
+.issue-menu-trigger,
+.article-menu-item {
     width: 100%;
     padding: 11px 13px;
     border: 1px solid #cccccc;
@@ -88,10 +99,40 @@
     color: #333333;
     cursor: pointer;
     outline: none;
+    text-align: left;
 }
 
-.journal-selector select:focus {
+.issue-menu-trigger:hover,
+.issue-menu-trigger:focus,
+.article-menu-item:hover,
+.article-menu-item:focus {
     border-color: #a42821;
+}
+
+.article-menu {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: calc(100% + 6px);
+    z-index: 10;
+    width: min(360px, 45vw);
+    padding: 6px;
+    background: #ffffff;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.issue-menu-item:hover .article-menu,
+.issue-menu-item:focus-within .article-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.article-menu-item {
+    border: none;
+    background: #ffffff;
 }
 
 .continent-card {
@@ -149,39 +190,33 @@
     color: #222222;
 }
 
-
-/* =========================================
-   CHART
-   ========================================= */
-
 .chart-card {
     display: flex;
     align-items: center;
     justify-content: center;
-
     gap: 50px;
-
     background: #ffffff;
-
     border: 1px solid #e1e1e1;
     border-radius: 6px;
-
     padding: 30px;
 }
 
 .chart-container {
     width: 360px;
     height: 360px;
-
     position: relative;
+    flex-shrink: 0;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .chart-legend {
     min-width: 220px;
-
     display: flex;
     flex-direction: column;
-
     gap: 12px;
 }
 
@@ -189,11 +224,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 30px;
-
     font-size: 14px;
-
     color: #444444;
 }
 
@@ -203,16 +235,16 @@
     color: #222222;
 }
 
-
-/* =========================================
-   RESPONSIVE
-   ========================================= */
-
 @media (max-width: 800px) {
+
+    .article-menu {
+        top: calc(100% + 6px);
+        left: 0;
+        width: 100%;
+    }
 
     .chart-card {
         flex-direction: column;
-
         gap: 30px;
     }
 

@@ -53,8 +53,7 @@ class JournalArticle{
      * This method handles database records only.
      * PDF uploading is handled by manage_journal_api.php.
      */
-    public function addJournal(PDO $pdo,int $year,int $volume,int $number,string $publicationPDF,array $articles,bool $isDraft = true): int 
-    {
+    public function addJournal(PDO $pdo,int $year,int $volume,int $number,string $publicationPDF,array $articles,bool $isDraft = true): int {
         if ($year <= 0) {
             throw new InvalidArgumentException('Invalid publication year.');
         }
@@ -74,15 +73,8 @@ class JournalArticle{
         }
 
         foreach ($articles as $article) {
-            if (
-                empty($article['title']) ||
-                !isset($article['authors']) ||
-                !is_array($article['authors']) ||
-                empty($article['authors'])
-            ) {
-                throw new InvalidArgumentException(
-                    'Each article must have a title and at least one author.'
-                );
+            if (empty($article['title']) ||!isset($article['authors']) ||!is_array($article['authors']) ||empty($article['authors'])) {
+                throw new InvalidArgumentException('Each article must have a title and at least one author.');
             }
         }
 
@@ -318,30 +310,6 @@ class JournalArticle{
 
         $publicationID = (int) $article['publicationID'];
 
-        /*
-         * Check the number of articles before deleting.
-         *
-         * An issue must contain at least one article,
-         * regardless of whether it is current or draft.
-         */
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM "JournalArticle"
-             WHERE "publicationID" = :publicationID'
-        );
-
-        $stmt->execute([
-            ':publicationID' => $publicationID
-        ]);
-
-        $articleCount = (int) $stmt->fetchColumn();
-
-        if ($articleCount <= 1) {
-            throw new RuntimeException(
-                'The publication issue must contain at least one article.'
-            );
-        }
-
         try {
             $pdo->beginTransaction();
 
@@ -364,6 +332,29 @@ class JournalArticle{
             $stmt->execute([
                 ':journalID' => $journalID
             ]);
+
+            /*If this was the last article in the publication issue,
+              remove the issue details as well.*/
+            $stmt = $pdo->prepare(
+                'SELECT COUNT(*)
+                 FROM "JournalArticle"
+                 WHERE "publicationID" = :publicationID'
+            );
+
+            $stmt->execute([
+                ':publicationID' => $publicationID
+            ]);
+
+            if ((int) $stmt->fetchColumn() === 0) {
+                $stmt = $pdo->prepare(
+                    'DELETE FROM "PublicationIssue"
+                     WHERE "publicationID" = :publicationID'
+                );
+
+                $stmt->execute([
+                    ':publicationID' => $publicationID
+                ]);
+            }
 
             $pdo->commit();
 
@@ -610,7 +601,6 @@ class JournalArticle{
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
 
     private function saveAuthors(PDO $pdo,int $journalID,array $authors): void {
 

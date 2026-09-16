@@ -70,7 +70,7 @@
                         <h2>Download Statistics</h2>
 
                         <p>
-                            Select a journal to view its download statistics.
+                            Select an issue, then choose an article to view its download statistics.
                         </p>
                     </div>
 
@@ -78,17 +78,13 @@
 
                 <div class="journal-selector">
 
-                    <label for="journalSelect">
-                        Select Journal
-                    </label>
+                    <span class="journal-selector-label">Select Article</span>
 
-                    <select id="journalSelect">
-
-                        <option value="all">
-                            All Journals
-                        </option>
-
-                    </select>
+                    <div class="issue-menu" id="issueMenu">
+                        <button type="button" class="issue-menu-trigger" data-journal-id="all">
+                            All Issues
+                        </button>
+                    </div>
 
                 </div>
 
