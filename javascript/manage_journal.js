@@ -476,11 +476,33 @@ function loadArticle(index) {
   renderAuthors();
   renderArticleTabs();
 
-  if (deleteButton) {
+  /*if (deleteButton) {
     deleteButton.style.visibility = index === 0 ? "hidden" : "visible";
+  }*/
+
+  if (deleteButton) {
+    /*
+     * Allow the trash button on Article 1 as well.
+     *
+     * The only case where the button is hidden is when
+     * this is the only unsaved article form.
+     */
+    const articleCount = articles.length;
+    const isUnsaved = !article.journalID;
+
+    const canRemove = articleCount > 1 || !isUnsaved;
+
+    deleteButton.style.visibility = canRemove ? "visible" : "hidden";
   }
 
   resetPdfInput();
+
+  const undoButton = document.getElementById("articlePdfUndo");
+
+  if (undoButton) {
+    undoButton.hidden = !article.pdf;
+  }
+
   setupPdfUpload();
 }
 
@@ -518,7 +540,7 @@ function addArticle() {
   loadArticle(currentArticleIndex);
 }
 
-function requestDeleteArticle() {
+/*function requestDeleteArticle() {
   if (currentArticleIndex === 0) return;
 
   articleDeleteIndex = currentArticleIndex;
@@ -536,9 +558,43 @@ function requestDeleteArticle() {
   if (confirmationModal) {
     confirmationModal.classList.add("active");
   }
+}*/
+
+function requestDeleteArticle() {
+  if (!Array.isArray(articles) || !articles[currentArticleIndex]) {
+    return;
+  }
+
+  /*
+   * If there is only one article form and it is unsaved,
+   * keep the form available for a new journal.
+   */
+  if (articles.length === 1 && !articles[currentArticleIndex].journalID) {
+    alert("At least one article form is required.");
+    return;
+  }
+
+  articleDeleteIndex = currentArticleIndex;
+
+  const confirmationModal = document.getElementById("confirmationModal");
+  const confirmationMessage = document.getElementById("confirmationMessage");
+
+  if (confirmationMessage) {
+    confirmationMessage.textContent = `Are you sure you want to remove Article ${currentArticleIndex + 1}?`;
+  }
+
+  const confirmDeleteButton = document.getElementById("confirmDeleteButton");
+
+  if (confirmDeleteButton) {
+    confirmDeleteButton.onclick = deleteArticle;
+  }
+
+  if (confirmationModal) {
+    confirmationModal.classList.add("active");
+  }
 }
 
-function deleteArticle() {
+/*function deleteArticle() {
   saveCurrentArticle();
   if (articleDeleteIndex !== null && articleDeleteIndex < articles.length) {
     articles.splice(articleDeleteIndex, 1);
@@ -551,6 +607,107 @@ function deleteArticle() {
 
   renderArticleTabs();
   loadArticle(currentArticleIndex);
+}*/
+async function deleteArticle() {
+  if (articleDeleteIndex === null || !articles[articleDeleteIndex]) {
+    closeConfirmationModal();
+    return;
+  }
+
+  const deleteIndex = articleDeleteIndex;
+  const article = articles[deleteIndex];
+
+  /*
+   * Save the current form values before deciding
+   * whether this is a saved or unsaved article.
+   */
+  if (deleteIndex === currentArticleIndex) {
+    saveCurrentArticle();
+  }
+
+  /*
+   * --------------------------------------------------
+   * SAVED ARTICLE
+   * --------------------------------------------------
+   *
+   * A journalID means the article already exists
+   * in the database.
+   */
+  if (article.journalID) {
+    try {
+      const formData = new FormData();
+
+      formData.append("action", "deleteArticle");
+      formData.append("journalID", String(article.journalID));
+
+      const response = await fetch("manage_journal_api.php", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Unable to remove article.");
+      }
+    } catch (error) {
+      console.error(error);
+
+      closeConfirmationModal();
+
+      alert(error.message || "Unable to remove article.");
+
+      return;
+    }
+  }
+
+  /*
+   * --------------------------------------------------
+   * REMOVE THE ARTICLE FROM THE CURRENT FORM
+   * --------------------------------------------------
+   *
+   * For a saved article, the database deletion has
+   * already happened above.
+   *
+   * For an unsaved article, no API request was made.
+   * It is simply removed from the articles array.
+   */
+  articles.splice(deleteIndex, 1);
+
+  /*
+   * If there are no article forms left, create a new
+   * blank form so the article section still has a form
+   * available for adding another article.
+   */
+  if (articles.length === 0) {
+    articles.push(createArticle());
+  }
+
+  /*
+   * Move to a valid article index.
+   */
+  if (deleteIndex < currentArticleIndex) {
+    currentArticleIndex -= 1;
+  }
+
+  currentArticleIndex = Math.max(
+    0,
+    Math.min(currentArticleIndex, articles.length - 1),
+  );
+
+  closeConfirmationModal();
+
+  renderArticleTabs();
+  loadArticle(currentArticleIndex);
+
+  /*
+   * If the deletion happened to a saved article from
+   * the database, refresh the issue lists so the
+   * article count/list is immediately updated.
+   */
+  if (article.journalID) {
+    await loadJournals();
+  }
 }
 
 function renderAuthors() {
@@ -749,11 +906,13 @@ function setupPdfUpload() {
     event.preventDefault();
     uploadBox.classList.add("dragover");
   };
+
   uploadBox.ondragleave = function (event) {
     if (!uploadBox.contains(event.relatedTarget)) {
       uploadBox.classList.remove("dragover");
     }
   };
+
   uploadBox.ondrop = function (event) {
     event.preventDefault();
     uploadBox.classList.remove("dragover");
@@ -767,7 +926,7 @@ function setupPdfUpload() {
 
   if (undoButton) {
     undoButton.onclick = function () {
-      resetPdfInput();
+      undoPdfFile();
     };
   }
 }
@@ -803,7 +962,7 @@ function handlePdfFile(file) {
   if (input) input.files = dataTransfer.files;
 }
 
-function resetPdfInput() {
+/*function resetPdfInput() {
   const input = document.getElementById("pdfFile");
   if (input) input.value = "";
 
@@ -815,6 +974,38 @@ function resetPdfInput() {
 
   if (articles[currentArticleIndex]) {
     articles[currentArticleIndex].pdf = null;
+  }
+}*/
+
+function resetPdfInput() {
+  const input = document.getElementById("pdfFile");
+
+  if (input) {
+    input.value = "";
+  }
+}
+
+function undoPdfFile() {
+  if (articles[currentArticleIndex]) {
+    articles[currentArticleIndex].pdf = null;
+  }
+
+  const input = document.getElementById("pdfFile");
+
+  if (input) {
+    input.value = "";
+  }
+
+  const pdfName = document.getElementById("pdfFileName");
+
+  if (pdfName) {
+    pdfName.textContent = "No file selected";
+  }
+
+  const undoButton = document.getElementById("articlePdfUndo");
+
+  if (undoButton) {
+    undoButton.hidden = true;
   }
 }
 

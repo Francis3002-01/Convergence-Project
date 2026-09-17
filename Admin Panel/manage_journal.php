@@ -115,18 +115,9 @@
                         <div class="form-group">
                             <label>Publication Issue PDF</label>
 
+                            <div class="pdf-upload-box" id="publicationPdfUploadBox">
 
-                            <div
-                                class="pdf-upload-box"
-                                id="publicationPdfUploadBox">
-
-                                <input
-                                    type="file"
-                                    id="publicationPDF"
-                                    name="publicationPDF"
-                                    accept="application/pdf,.pdf"
-                                    hidden>
-
+                                <input type="file" id="publicationPDF" name="publicationPDF" accept="application/pdf,.pdf"hidden>
 
                                 <div class="pdf-upload-inner">
 
@@ -135,9 +126,7 @@
                                         class="pdf-upload-label">
 
                                         <div class="upload-icon">
-
                                             <i class="fa-solid fa-file-pdf"></i>
-
                                         </div>
 
 
@@ -146,11 +135,7 @@
                                         </span>
 
 
-                                        <span
-                                            class="upload-file-name"
-                                            id="publicationPdfFileName">
-                                            No file selected
-                                        </span>
+                                        <span class="upload-file-name" id="publicationPdfFileName"> No file selected</span>
 
                                     </label>
 
@@ -477,7 +462,7 @@
 
 
     <!-- REMOVE ARTICLE CONFIRMATION MODAL -->
-    <div class="confirmation-modal" id="confirmationModal" style="display: none;">
+    <div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-overlay"></div>
 
         <div class="confirmation-dialog">

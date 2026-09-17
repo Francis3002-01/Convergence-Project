@@ -2,52 +2,63 @@
 
 require_once __DIR__ . '/PublicationIssue.php';
 
-class JournalArticle{
+class JournalArticle
+{
     private int $journalID;
     private int $publicationID;
     private string $title;
     private string $journalPDF;
 
-    public function __construct(int $journalID = 0, string $title = '', string $journalPDF = '', int $publicationID = 0) {
+    public function __construct(int $journalID = 0, string $title = '', string $journalPDF = '', int $publicationID = 0)
+    {
         $this->journalID = $journalID;
         $this->publicationID = $publicationID;
         $this->title = $title;
         $this->journalPDF = $journalPDF;
     }
 
-    public function getJournalID(): int{
+    public function getJournalID(): int
+    {
         return $this->journalID;
     }
 
-    public function getPublicationID(): int{
+    public function getPublicationID(): int
+    {
         return $this->publicationID;
     }
 
-    public function getTitle(): string{
+    public function getTitle(): string
+    {
         return $this->title;
     }
 
-    public function getJournalPDF(): string{
+    public function getJournalPDF(): string
+    {
         return $this->journalPDF;
     }
 
-    public function setJournalID(int $journalID): void{
+    public function setJournalID(int $journalID): void
+    {
         $this->journalID = $journalID;
     }
 
-    public function setPublicationID(int $publicationID): void{
+    public function setPublicationID(int $publicationID): void
+    {
         $this->publicationID = $publicationID;
     }
 
-    public function setTitle(string $title): void{
+    public function setTitle(string $title): void
+    {
         $this->title = $title;
     }
 
-    public function setJournalPDF(string $journalPDF): void{
+    public function setJournalPDF(string $journalPDF): void
+    {
         $this->journalPDF = $journalPDF;
     }
 
-    public function addJournal(PDO $pdo,int $year,int $volume,int $number,string $publicationPDF,array $articles,bool $isDraft = true): int {
+    public function addJournal(PDO $pdo, int $year, int $volume, int $number, string $publicationPDF, array $articles, bool $isDraft = true): int
+    {
         if ($year <= 0) {
             throw new InvalidArgumentException('Invalid publication year.');
         }
@@ -67,7 +78,7 @@ class JournalArticle{
         }
 
         foreach ($articles as $article) {
-            if (empty($article['title']) ||!isset($article['authors']) ||!is_array($article['authors']) ||empty($article['authors'])) {
+            if (empty($article['title']) || !isset($article['authors']) || !is_array($article['authors']) || empty($article['authors'])) {
                 throw new InvalidArgumentException('Each article must have a title and at least one author.');
             }
         }
@@ -131,10 +142,7 @@ class JournalArticle{
             $pdo->commit();
 
             return $publicationID;
-
-        } 
-        
-        catch (Throwable $e) {
+        } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
@@ -143,7 +151,8 @@ class JournalArticle{
         }
     }
 
-    public function updateJournal(PDO $pdo,int $journalID,int $year,int $volume,int $number,string $title,?string $journalPDF = null,?string $publicationPDF = null,?array $authors = null): bool {
+    public function updateJournal(PDO $pdo, int $journalID, int $year, int $volume, int $number, string $title, ?string $journalPDF = null, ?string $publicationPDF = null, ?array $authors = null): bool
+    {
         if ($journalID <= 0) {
             throw new InvalidArgumentException(
                 'Invalid journal ID.'
@@ -259,7 +268,6 @@ class JournalArticle{
             $pdo->commit();
 
             return true;
-
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
@@ -270,14 +278,14 @@ class JournalArticle{
     }
 
     /*Remove Journal Article*/
-    public function removeJournal(PDO $pdo,int $journalID): bool {
+    /*public function removeJournal(PDO $pdo,int $journalID): bool {
         if ($journalID <= 0) {
             throw new InvalidArgumentException(
                 'Invalid journal ID.'
             );
         }
 
-        /*Get article and publication information.*/
+        
         $stmt = $pdo->prepare(
             'SELECT
                 ja."journalID",
@@ -303,7 +311,7 @@ class JournalArticle{
         try {
             $pdo->beginTransaction();
 
-            /*Remove author relationships first*/
+           
             $stmt = $pdo->prepare(
                 'DELETE FROM "ArticleAuthor"
                  WHERE "journalID" = :journalID'
@@ -313,7 +321,7 @@ class JournalArticle{
                 ':journalID' => $journalID
             ]);
 
-            /*Remove the article.*/
+           
             $stmt = $pdo->prepare(
                 'DELETE FROM "JournalArticle"
                  WHERE "journalID" = :journalID'
@@ -323,8 +331,7 @@ class JournalArticle{
                 ':journalID' => $journalID
             ]);
 
-            /*If this was the last article in the publication issue,
-              remove the issue details as well.*/
+            
             $stmt = $pdo->prepare(
                 'SELECT COUNT(*)
                  FROM "JournalArticle"
@@ -357,10 +364,95 @@ class JournalArticle{
 
             throw $e;
         }
+    }*/
+
+    public function removeJournal(PDO $pdo, int $journalID): bool
+    {
+        if ($journalID <= 0) {
+            throw new InvalidArgumentException('Invalid journal ID.');
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT "journalID"
+         FROM "JournalArticle"
+         WHERE "journalID" = :journalID'
+        );
+
+        $stmt->execute([
+            ':journalID' => $journalID
+        ]);
+
+        $article = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$article) {
+            throw new RuntimeException('Journal article not found.');
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            /*
+         * 1. Remove the article-author relationships first.
+         */
+            $stmt = $pdo->prepare(
+                'DELETE FROM "ArticleAuthor"
+             WHERE "journalID" = :journalID'
+            );
+
+            $stmt->execute([
+                ':journalID' => $journalID
+            ]);
+
+            /*
+         * 2. Remove download records for this article.
+         *
+         * This must happen BEFORE deleting JournalArticle
+         * because Download.journalID references JournalArticle.journalID.
+         */
+            $stmt = $pdo->prepare(
+                'DELETE FROM "Download"
+             WHERE "journalID" = :journalID'
+            );
+
+            $stmt->execute([
+                ':journalID' => $journalID
+            ]);
+
+            /*
+         * 3. Remove the journal article itself.
+         */
+            $stmt = $pdo->prepare(
+                'DELETE FROM "JournalArticle"
+             WHERE "journalID" = :journalID'
+            );
+
+            $stmt->execute([
+                ':journalID' => $journalID
+            ]);
+
+            /*
+         * IMPORTANT:
+         * Do NOT delete the PublicationIssue here.
+         *
+         * An issue is allowed to exist with zero articles.
+         */
+
+            $pdo->commit();
+
+            return true;
+        } catch (Throwable $e) {
+
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            throw $e;
+        }
     }
 
     /*View Journal Article*/
-    public function viewJournal(PDO $pdo,int $journalID): ?array {
+    public function viewJournal(PDO $pdo, int $journalID): ?array
+    {
         $stmt = $pdo->prepare(
             'SELECT
                 ja."journalID",
@@ -411,7 +503,8 @@ class JournalArticle{
         return $article;
     }
 
-    public function readJournal(PDO $pdo,int $journalID): ?string {
+    public function readJournal(PDO $pdo, int $journalID): ?string
+    {
         $stmt = $pdo->prepare(
             'SELECT "journalPDF"
              FROM "JournalArticle"
@@ -431,7 +524,8 @@ class JournalArticle{
         return (string) $journalPDF;
     }
 
-    public function downloadPDF(PDO $pdo,int $journalID): ?string {
+    public function downloadPDF(PDO $pdo, int $journalID): ?string
+    {
         $stmt = $pdo->prepare(
             'SELECT "journalPDF"
              FROM "JournalArticle"
@@ -452,7 +546,8 @@ class JournalArticle{
     }
 
     /*Search Journal Articles*/
-    public function searchJournal(PDO $pdo,string $keyword): array {
+    public function searchJournal(PDO $pdo, string $keyword): array
+    {
         $keyword = trim($keyword);
 
         if ($keyword === '') {
@@ -487,7 +582,8 @@ class JournalArticle{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function generateCitation(array $article,array $publication,array $authors): string {
+    public function generateCitation(array $article, array $publication, array $authors): string
+    {
         $authorNames = [];
 
         foreach ($authors as $author) {
@@ -512,18 +608,12 @@ class JournalArticle{
 
         if (empty($authorNames)) {
             $authorText = '';
-        } 
-        
-        elseif (count($authorNames) === 1) {
+        } elseif (count($authorNames) === 1) {
             $authorText = $authorNames[0];
-        } 
-        
-        elseif (count($authorNames) === 2) {
+        } elseif (count($authorNames) === 2) {
             $authorText =
                 $authorNames[0] . ', & ' . $authorNames[1];
-        } 
-        
-        else {
+        } else {
             $lastAuthor = array_pop($authorNames);
 
             $authorText =
@@ -563,7 +653,8 @@ class JournalArticle{
         return trim($citation);
     }
 
-    public function listJournals(PDO $pdo): array {
+    public function listJournals(PDO $pdo): array
+    {
         $stmt = $pdo->query(
             'SELECT
                 ja."journalID",
@@ -589,7 +680,8 @@ class JournalArticle{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    private function saveAuthors(PDO $pdo,int $journalID,array $authors): void {
+    private function saveAuthors(PDO $pdo, int $journalID, array $authors): void
+    {
 
         $stmt = $pdo->prepare(
             'DELETE FROM "ArticleAuthor"
@@ -652,7 +744,7 @@ class JournalArticle{
         }
     }
 
-    private function findAuthor(PDO $pdo, string $firstName,string $lastName): ?int 
+    private function findAuthor(PDO $pdo, string $firstName, string $lastName): ?int
     {
         $stmt = $pdo->prepare(
             'SELECT "authorID"
@@ -677,7 +769,8 @@ class JournalArticle{
         return (int) $authorID;
     }
 
-    private function createAuthor(PDO $pdo, string $firstName, string $lastName): int {
+    private function createAuthor(PDO $pdo, string $firstName, string $lastName): int
+    {
         $stmt = $pdo->prepare(
             'INSERT INTO "Author"
             (

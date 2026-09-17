@@ -5,7 +5,7 @@
             <a href="home.php" class="brand">
 
                 <div class="logo">
-                    <img src="images/logo.png" alt="Convergence Logo">
+                    <img src="images/TEST_LOGO.png" alt="Convergence Logo">
                 </div>
 
                 <div class="brand-text">

@@ -138,7 +138,7 @@ nav a.active::after {
   display: none;
   border: none;
   background: none;
-  color: #7a1f2b;
+  color: white;
   font-size: 22px;
   cursor: pointer;
   padding: 12px;
