@@ -26,8 +26,6 @@ if ($supabaseUrl === '' || $supabaseKey === '') {
     exit;
 }
 
-
-/*JSON response helper*/
 function sendJsonResponse(bool $success,string $message,array $data = [],int $statusCode = 200): void {
     http_response_code($statusCode);
 
@@ -225,9 +223,7 @@ try {
     /*Validate journal ID*/
     if ($journalID === false ||$journalID <= 0) {
 
-        sendJsonResponse(
-            false,
-            'Invalid or missing journal ID.',
+        sendJsonResponse(false,'Invalid or missing journal ID.',
             [
                 'receivedJournalID' => $journalID
             ],
@@ -235,26 +231,10 @@ try {
         );
     }
 
+    /*Get continents from Supabase*/
+    $continents = supabaseRequest('GET','Continent?select=continentID,continentName');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Get continents from Supabase
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    | Do not put double quotes around the table name.
-    |
-    */
-
-    $continents = supabaseRequest(
-        'GET',
-        'Continent?select=continentID,continentName'
-    );
-
-
-    /*
-     * Build continent name => ID map.
-     */
+    /*Build continent name => ID map.*/
     $continentMap = [];
 
     foreach ($continents as $continent) {

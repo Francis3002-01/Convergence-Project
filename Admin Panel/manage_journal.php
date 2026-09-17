@@ -2,6 +2,7 @@
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/manage_journal.css">
 </head>
+
 <body>
 
     <?php include 'components/left_sidebar.php'; ?>
@@ -26,28 +28,28 @@
                 <div class="page-actions" id="pageActions">
                     <!-- SEARCH -->
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search articles..."autocomplete="off">
-                        <button type="button" id="searchButton"aria-label="Search">
+                        <input type="text" id="searchInput" placeholder="Search articles..." autocomplete="off">
+                        <button type="button" id="searchButton" aria-label="Search">
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </button>
                     </div>
 
                     <!-- ADD JOURNAL -->
-                    <button type="button" class="add-button" id="addJournalButton"onclick="showForm()">Add Journal</button>
+                    <button type="button" class="add-button" id="addJournalButton" onclick="showForm()">Add Journal</button>
                 </div>
             </div>
 
             <!-- JOURNAL LIST -->
-            <div class="journal-list-container"id="journalListContainer">
+            <div class="journal-list-container" id="journalListContainer">
                 <div class="journal-tabs">
-                    <button type="button" class="journal-tab active"id="currentTabButton"onclick="showTab('current', this)">Current</button>
-                    <button type="button"class="journal-tab"id="draftTabButton"onclick="showTab('draft', this)">Draft
+                    <button type="button" class="journal-tab active" id="currentTabButton" onclick="showTab('current', this)">Current</button>
+                    <button type="button" class="journal-tab" id="draftTabButton" onclick="showTab('draft', this)">Draft
                         <span class="draft-count" id="draftCount">0</span>
                     </button>
                 </div>
 
                 <!--CURRENT TAB -->
-                <div id="currentJournalContent"class="journal-tab-content">
+                <div id="currentJournalContent" class="journal-tab-content">
                     <div class="journal-list-header">
                         <div>Title</div>
                         <div>Authors</div>
@@ -59,20 +61,20 @@
 
 
                 <!--DRAFT TAB -->
-                <div id="draftJournalContent" class="journal-tab-content"style="display: none;">
+                <div id="draftJournalContent" class="journal-tab-content" style="display: none;">
                     <div class="journal-list-header">
                         <div>Title</div>
                         <div>Authors</div>
                         <div>Actions</div>
                     </div>
 
-                    <div id="draftJournalList"class="journal-list"></div>
+                    <div id="draftJournalList" class="journal-list"></div>
                 </div>
 
             </div>
 
             <!--ADD / EDIT JOURNAL FORM -->
-            <section class="journal-form" id="journalForm"style="display: none;">
+            <section class="journal-form" id="journalForm" style="display: none;">
                 <div class="form-step" id="publicationStep">
                     <div class="form-header">
                         <div>
@@ -91,20 +93,20 @@
                         <div class="publication-fields">
                             <div class="form-group">
                                 <label for="year">Year</label>
-                                <select id="year"name="year"required>
+                                <select id="year" name="year" required>
                                     <option value="">Select year</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label for="volume">Volume</label>
-                                <input type="number" id="volume" name="volume" min="1"placeholder="e.g. 11"required>
+                                <input type="number" id="volume" name="volume" min="1" placeholder="e.g. 11" required>
                             </div>
 
 
                             <div class="form-group">
                                 <label for="number">Number</label>
-                                <input type="number" id="number"name="number"min="1"placeholder="e.g. 1"required>
+                                <input type="number" id="number" name="number" min="1" placeholder="e.g. 1" required>
                             </div>
                         </div>
 
@@ -116,24 +118,21 @@
 
                             <div
                                 class="pdf-upload-box"
-                                id="publicationPdfUploadBox"
-                            >
+                                id="publicationPdfUploadBox">
 
                                 <input
                                     type="file"
                                     id="publicationPDF"
                                     name="publicationPDF"
                                     accept="application/pdf,.pdf"
-                                    hidden
-                                >
+                                    hidden>
 
 
                                 <div class="pdf-upload-inner">
 
                                     <label
                                         for="publicationPDF"
-                                        class="pdf-upload-label"
-                                    >
+                                        class="pdf-upload-label">
 
                                         <div class="upload-icon">
 
@@ -149,8 +148,7 @@
 
                                         <span
                                             class="upload-file-name"
-                                            id="publicationPdfFileName"
-                                        >
+                                            id="publicationPdfFileName">
                                             No file selected
                                         </span>
 
@@ -161,8 +159,7 @@
                                         type="button"
                                         class="undo-pdf-btn"
                                         id="publicationPdfUndo"
-                                        hidden
-                                    >
+                                        hidden>
 
                                         Undo
 
@@ -180,34 +177,12 @@
                     <!-- PUBLICATION ACTIONS -->
 
                     <div class="form-actions">
-
-                        <button
-                            type="button"
-                            class="cancel-btn"
-                            onclick="hideForm()"
-                        >
-
-                            Cancel
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="next-btn"
-                            onclick="goToArticles()"
-                        >
-
-                            Next
-
+                        <button type="button" class="cancel-btn" onclick="hideForm()">Cancel</button>
+                        <button type="button" class="next-btn" onclick="goToArticles()">Next
                             <i class="fa-solid fa-arrow-right"></i>
-
                         </button>
-
                     </div>
-
                 </div>
-
 
                 <!-- =================================================
                      ARTICLE STEP
@@ -216,8 +191,7 @@
                 <div
                     class="form-step"
                     id="articleStep"
-                    style="display: none;"
-                >
+                    style="display: none;">
 
                     <!-- BACK TO PUBLICATION -->
 
@@ -226,8 +200,7 @@
                         <button
                             type="button"
                             class="back-to-publication"
-                            onclick="goToPublication()"
-                        >
+                            onclick="goToPublication()">
 
                             <i class="fa-solid fa-arrow-left"></i>
 
@@ -289,15 +262,13 @@
 
                         <div
                             class="article-tabs"
-                            id="articleTabs"
-                        ></div>
+                            id="articleTabs"></div>
 
 
                         <button
                             type="button"
                             class="add-article-btn"
-                            onclick="addArticle()"
-                        >
+                            onclick="addArticle()">
 
                             <i class="fa-solid fa-plus"></i>
                             Add Article
@@ -331,8 +302,7 @@
                                 class="delete-article-button"
                                 id="deleteArticleButton"
                                 onclick="requestDeleteArticle()"
-                                title="Remove article"
-                            >
+                                title="Remove article">
 
                                 <i class="fa-solid fa-trash"></i>
                                 Remove Article
@@ -354,8 +324,7 @@
                                 type="text"
                                 id="articleTitle"
                                 placeholder="Enter article title"
-                                required
-                            >
+                                required>
 
                         </div>
 
@@ -371,23 +340,20 @@
 
                             <div
                                 class="pdf-upload-box"
-                                id="articlePdfUploadBox"
-                            >
+                                id="articlePdfUploadBox">
 
                                 <input
                                     type="file"
                                     id="pdfFile"
                                     accept="application/pdf,.pdf"
-                                    hidden
-                                >
+                                    hidden>
 
 
                                 <div class="pdf-upload-inner">
 
                                     <label
                                         for="pdfFile"
-                                        class="pdf-upload-label"
-                                    >
+                                        class="pdf-upload-label">
 
                                         <div class="upload-icon">
 
@@ -403,8 +369,7 @@
 
                                         <span
                                             class="upload-file-name"
-                                            id="pdfFileName"
-                                        >
+                                            id="pdfFileName">
                                             No file selected
                                         </span>
 
@@ -415,8 +380,7 @@
                                         type="button"
                                         class="undo-pdf-btn"
                                         id="articlePdfUndo"
-                                        hidden
-                                    >
+                                        hidden>
 
                                         Undo
 
@@ -443,8 +407,7 @@
                                 <button
                                     type="button"
                                     class="add-author-button"
-                                    onclick="addAuthor()"
-                                >
+                                    onclick="addAuthor()">
 
                                     <i class="fa-solid fa-plus"></i>
                                     Add Author
@@ -456,8 +419,7 @@
 
                             <div
                                 id="authors"
-                                class="authors-container"
-                            ></div>
+                                class="authors-container"></div>
 
                         </div>
 
@@ -469,8 +431,7 @@
                         <button
                             type="button"
                             class="cancel-btn"
-                            onclick="hideForm()"
-                        >
+                            onclick="hideForm()">
 
                             Cancel
 
@@ -483,8 +444,7 @@
                             type="button"
                             class="save-draft-btn"
                             id="saveDraftButton"
-                            onclick="savePublication('draft')"
-                        >
+                            onclick="savePublication('draft')">
 
                             <i class="fa-solid fa-file-pen"></i>
                             Save as Draft
@@ -498,8 +458,7 @@
                             type="button"
                             class="publish-btn"
                             id="publishButton"
-                            onclick="savePublication('publish')"
-                        >
+                            onclick="savePublication('publish')">
 
                             <i class="fa-solid fa-upload"></i>
                             Publish
@@ -531,9 +490,9 @@
 
             <div class="confirmation-actions">
 
-                <button type="button" class="modal-cancel-btn"onclick="closeConfirmationModal()">Cancel</button>
+                <button type="button" class="modal-cancel-btn" onclick="closeConfirmationModal()">Cancel</button>
 
-                <button type="button" class="modal-confirm-btn"id="confirmDeleteButton">
+                <button type="button" class="modal-confirm-btn" id="confirmDeleteButton">
                     Remove Article
                 </button>
 
@@ -544,4 +503,5 @@
     </div>
     <script src="../javascript/manage_journal.js"></script>
 </body>
+
 </html>

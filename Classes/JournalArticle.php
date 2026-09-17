@@ -47,12 +47,6 @@ class JournalArticle{
         $this->journalPDF = $journalPDF;
     }
 
-    /*
-     * Add Journal Article / Publication Issue
-     *
-     * This method handles database records only.
-     * PDF uploading is handled by manage_journal_api.php.
-     */
     public function addJournal(PDO $pdo,int $year,int $volume,int $number,string $publicationPDF,array $articles,bool $isDraft = true): int {
         if ($year <= 0) {
             throw new InvalidArgumentException('Invalid publication year.');
@@ -138,7 +132,9 @@ class JournalArticle{
 
             return $publicationID;
 
-        } catch (Throwable $e) {
+        } 
+        
+        catch (Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
@@ -147,7 +143,6 @@ class JournalArticle{
         }
     }
 
-    /*Update Journal Article*/
     public function updateJournal(PDO $pdo,int $journalID,int $year,int $volume,int $number,string $title,?string $journalPDF = null,?string $publicationPDF = null,?array $authors = null): bool {
         if ($journalID <= 0) {
             throw new InvalidArgumentException(
@@ -187,7 +182,7 @@ class JournalArticle{
         }
 
         /*
-         * Only draft articles can be edited.
+         * Only draft articles can be edited
          *
          * NOTE: This still restricts editing to draft issues only.
          * If current-issue editing is required, this check should
@@ -274,12 +269,7 @@ class JournalArticle{
         }
     }
 
-    /*
-     * Remove Journal Article
-     *
-     * Allowed on articles belonging to both current and draft
-     * publication issues (per spec requirement).
-     */
+    /*Remove Journal Article*/
     public function removeJournal(PDO $pdo,int $journalID): bool {
         if ($journalID <= 0) {
             throw new InvalidArgumentException(
@@ -573,9 +563,6 @@ class JournalArticle{
         return trim($citation);
     }
 
-    /*
-     * List Journals
-     */
     public function listJournals(PDO $pdo): array {
         $stmt = $pdo->query(
             'SELECT

@@ -9,6 +9,7 @@
     <!--External CSS-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="includes_css/header.css">
+    <link rel="stylesheet" href="css/transition.css">
     <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="stylesheet" href="css/about_page.css">
 
@@ -17,13 +18,12 @@
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <!-- CONTACT PAGE CONTENT -->
-    <h1>Contact Page</h1>
+    <section class="about-intro">
+        <div class="about-intro-content">
+            <h1>Contact Us</h1>
 
-    <p>lorem
-    </p>
-
-
+        </div>
+    </section>
 
     <?php include 'includes/footer.php'; ?>
 </body>

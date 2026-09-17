@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="includes_css/header.css">
+    <link rel="stylesheet" href="css/transition.css">
     <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="stylesheet" href="css/archive_page.css">
 </head>

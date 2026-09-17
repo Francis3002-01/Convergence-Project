@@ -974,14 +974,7 @@ async function publishDraftIssue(publicationID) {
   }
 }
 
-/*
- * Edit Issue
- *
- * Opens the full add/edit form (issue details + all articles)
- * for a publication issue. Works for both the current tab and
- * the draft tab — searches both data sets since editing is no
- * longer restricted to drafts only.
- */
+/*Edit Issue*/
 function editIssue(publicationID) {
   const issue = currentIssueData
     .concat(draftIssueData)
@@ -1001,10 +994,7 @@ function viewJournal(id) {
   window.location.href = `journal_details.php?journalID=${encodeURIComponent(id)}`;
 }
 
-/*
- * Remove a single article (works on both current and draft
- * issues, per spec — see JournalArticle::removeJournal()).
- */
+/*Remove a single article (works on both current and draft issues, per spec — see JournalArticle::removeJournal()).*/
 async function deleteJournalArticle(journalID) {
   const confirmed = confirm("Remove this article? This cannot be undone.");
   if (!confirmed) return;

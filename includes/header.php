@@ -35,7 +35,7 @@
                 <div class="nav-links">
                     <a href="home.php">Home</a>
                     <a href="about.php">About</a>
-                    <a href="journal.php">Journals</a>
+                    <a href="journal.php">Journal</a>
                     <a href="archive.php">Archive</a>
                     <a href="contact.php">Contact</a>
                 </div>

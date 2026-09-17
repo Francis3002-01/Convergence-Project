@@ -21,27 +21,17 @@ if ($supabaseKey === '') {
     sendResponse(false,'SUPABASE_SECRET_KEY is not configured',[],500);
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| JSON response
-|--------------------------------------------------------------------------
-*/
-
-function sendResponse(bool $success,string $message = '',array $data = [],int $status = 200
-): never {
+/*JSON response*/
+function sendResponse(bool $success,string $message = '',array $data = [],int $status = 200): never {
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
-
     echo json_encode([
         'success' => $success,
         'message' => $message,
         ...$data
     ]);
-
     exit;
 }
-
 
 /*Supabase REST request*/
 function supabaseRequest(string $endpoint): array {
@@ -55,9 +45,7 @@ function supabaseRequest(string $endpoint): array {
         $ch,
         [
             CURLOPT_RETURNTRANSFER => true,
-
             CURLOPT_HTTPGET => true,
-
             CURLOPT_HTTPHEADER => [
                 'apikey: ' . $supabaseKey,
                 'Authorization: Bearer ' . $supabaseKey,
@@ -65,7 +53,6 @@ function supabaseRequest(string $endpoint): array {
             ],
 
             CURLOPT_CONNECTTIMEOUT => 10,
-
             CURLOPT_TIMEOUT => 60
         ]
     );
@@ -88,12 +75,7 @@ function supabaseRequest(string $endpoint): array {
         throw new Exception('Supabase returned an invalid response.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Supabase HTTP error
-    |--------------------------------------------------------------------------
-    */
-
+    /*Supabase HTTP error*/
     if ($httpCode < 200 ||$httpCode >= 300) {
 
         $message =
@@ -113,18 +95,10 @@ function supabaseRequest(string $endpoint): array {
     return $data;
 }
 
-/*
-|--------------------------------------------------------------------------
-| Get dashboard statistics
-|--------------------------------------------------------------------------
-*/
+/*Get dashboard statistics*/
 try {
 
-    $journalID = filter_input(
-        INPUT_GET,
-        'journalID',
-        FILTER_VALIDATE_INT
-    );
+    $journalID = filter_input(INPUT_GET,'journalID',FILTER_VALIDATE_INT);
 
     if ($journalID !== null && ($journalID === false || $journalID <= 0)) {
         sendResponse(false, 'Invalid journal ID.', [], 400);
@@ -140,25 +114,13 @@ try {
     |
     */
 
-    $continents = supabaseRequest(
-        'Continent?select=continentID,continentName&order=continentID.asc'
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Create continent lookup
-    |--------------------------------------------------------------------------
-    */
-
+    $continents = supabaseRequest('Continent?select=continentID,continentName&order=continentID.asc');
+    
+    /*Create continent lookup*/
     $continentCounts = [];
-
     foreach ($continents as $continent) {
 
-        $continentID = (int) (
-            $continent['continentID'] ?? 0
-        );
-
+        $continentID = (int) ($continent['continentID'] ?? 0);
         $continentName = trim((string) ($continent['continentName'] ?? ''));
 
         if ($continentID <= 0 ||$continentName === '') {
@@ -173,18 +135,7 @@ try {
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Get all downloads
-    |--------------------------------------------------------------------------
-    |
-    | Download now contains:
-    |
-    | downloadID
-    | continentID
-    | journalID
-    |
-    */
+    /*Get all downloads*/
     $downloadEndpoint =
         'Download?select=downloadID,continentID,journalID';
 
@@ -194,12 +145,7 @@ try {
 
     $downloads = supabaseRequest($downloadEndpoint);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Get issues and their articles for the selector
-    |--------------------------------------------------------------------------
-    */
-
+    /*Get issues and their articles for the selector*/
     $issues = supabaseRequest('PublicationIssue?select=publicationID,year,volume,number&order=year.desc,volume.desc,number.desc');
     $articles = supabaseRequest('JournalArticle?select=journalID,title,publicationID&order=journalID.asc');
 
@@ -263,32 +209,17 @@ try {
     */
     $totalDownloads = count($downloads);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Re-index continent array
-    |--------------------------------------------------------------------------
-    */
-
+    /*Re-index continent array*/
     $continentData = array_values($continentCounts);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Calculate identified downloads
-    |--------------------------------------------------------------------------
-    */
-
+    /*Calculate identified downloads*/
     $identifiedDownloads = 0;
-
+    
     foreach ($continentData as $continent) {
         $identifiedDownloads += $continent['downloads'];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Calculate percentages
-    |--------------------------------------------------------------------------
-    */
-
+    /*Calculate percentages*/
     foreach ($continentData as &$continent) {
 
         if ($identifiedDownloads > 0) {
@@ -329,12 +260,7 @@ try {
     );
 
 
-} catch (Throwable $e) {
-
-    sendResponse(
-        false,
-        $e->getMessage(),
-        [],
-        500
-    );
+} 
+catch (Throwable $e) {
+    sendResponse(false,$e->getMessage(),[],500);
 }

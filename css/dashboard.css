@@ -2,47 +2,6 @@
     margin-bottom: 30px;
 }
 
-.total-download-card {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    background: #ffffff;
-    border: 1px solid #e1e1e1;
-    border-radius: 6px;
-    padding: 24px 28px;
-    min-height: 130px;
-}
-
-.total-download-icon {
-    width: 58px;
-    height: 58px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #a42821;
-    color: #ffffff;
-    border-radius: 6px;
-    font-size: 22px;
-}
-
-.total-download-info {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.stat-label {
-    font-size: 14px;
-    color: #666666;
-}
-
-.total-download-info strong {
-    font-size: 32px;
-    line-height: 1;
-
-    color: #222222;
-}
-
 .section-header {
     margin-bottom: 15px;
 }
@@ -60,8 +19,8 @@
     color: #777777;
 }
 
-
 .journal-selector {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -77,18 +36,19 @@
     color: #333333;
 }
 
-.issue-menu {
+.selector-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
 }
 
-.issue-menu-item {
-    position: relative;
+.selector-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555555;
 }
 
-.issue-menu-trigger,
-.article-menu-item {
+.dashboard-select {
     width: 100%;
     padding: 11px 13px;
     border: 1px solid #cccccc;
@@ -99,113 +59,124 @@
     color: #333333;
     cursor: pointer;
     outline: none;
-    text-align: left;
 }
 
-.issue-menu-trigger:hover,
-.issue-menu-trigger:focus,
-.article-menu-item:hover,
-.article-menu-item:focus {
+.dashboard-select:hover,
+.dashboard-select:focus {
     border-color: #a42821;
 }
 
-.article-menu {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: calc(100% + 6px);
-    z-index: 10;
-    width: min(360px, 45vw);
-    padding: 6px;
-    background: #ffffff;
-    border: 1px solid #e1e1e1;
-    border-radius: 4px;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+.dashboard-select:disabled {
+    background: #f5f5f5;
+    color: #999999;
+    cursor: not-allowed;
 }
 
-.issue-menu-item:hover .article-menu,
-.issue-menu-item:focus-within .article-menu {
+.selection-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 5px;
+    padding: 12px 14px;
+    background: #f7f7f7;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+}
+
+.selection-display span {
+    font-size: 12px;
+    color: #777777;
+}
+
+.selection-display strong {
+    font-size: 14px;
+    color: #222222;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 135px;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+}
+
+.stat-icon {
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #a42821;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 22px;
+}
+
+.stat-info {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.article-menu-item {
-    border: none;
-    background: #ffffff;
-}
-
-.continent-card {
-    background: #ffffff;
-
-    border: 1px solid #e1e1e1;
-    border-radius: 6px;
-
-    overflow: hidden;
-}
-
-.continent-list-header,
-.continent-row {
-    display: grid;
-
-    grid-template-columns: 1fr 150px;
-
-    align-items: center;
-}
-
-.continent-list-header {
-    padding: 14px 20px;
-
-    background: #f7f7f7;
-
-    border-bottom: 1px solid #e1e1e1;
-
-    font-size: 13px;
-    font-weight: 600;
-
-    color: #555555;
-}
-
-.continent-list-header span:last-child,
-.continent-row strong {
-    text-align: right;
-}
-
-.continent-row {
-    padding: 15px 20px;
-
-    border-bottom: 1px solid #eeeeee;
-
+.stat-label {
     font-size: 14px;
-
-    color: #333333;
+    color: #666666;
 }
 
-.continent-row:last-child {
-    border-bottom: none;
-}
-
-.continent-row strong {
-    font-weight: 600;
+.stat-info strong {
+    font-size: 32px;
+    line-height: 1;
     color: #222222;
+}
+
+.stat-context {
+    font-size: 13px;
+    color: #888888;
+}
+
+.analytics-selector-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.analytics-selector-layout .journal-selector {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.analytics-selector-layout .stat-card {
+    width: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
 }
 
 .chart-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 50px;
+    gap: 70px;
+    min-height: 420px;
+    padding: 35px;
     background: #ffffff;
     border: 1px solid #e1e1e1;
     border-radius: 6px;
-    padding: 30px;
 }
 
 .chart-container {
+    position: relative;
     width: 360px;
     height: 360px;
-    position: relative;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .chart-container canvas {
@@ -213,29 +184,98 @@
     height: 100% !important;
 }
 
-.chart-legend {
-    min-width: 220px;
+.chart-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    text-align: center;
+}
+
+.chart-center-text strong {
+    font-size: 32px;
+    line-height: 1.1;
+    font-weight: 700;
+    color: #222222;
+}
+
+.chart-center-text span {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #777777;
+}
+
+.chart-empty-state {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    background: #ffffff;
+    color: #777777;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.chart-legend {
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
 .legend-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 30px;
+    gap: 35px;
     font-size: 14px;
     color: #444444;
 }
 
-.legend-item strong {
-    font-weight: 600;
+.legend-name-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
 
+.legend-name {
+    white-space: nowrap;
+}
+
+.legend-item strong {
+    min-width: 55px;
+    font-weight: 600;
     color: #222222;
+    text-align: right;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #cccccc;
 }
 
 @media (max-width: 800px) {
+    .analytics-selector-layout {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 900px) {
 
     .article-menu {
         top: calc(100% + 6px);
@@ -245,11 +285,13 @@
 
     .chart-card {
         flex-direction: column;
-        gap: 30px;
+        gap: 35px;
+        align-items: center;
     }
 
     .chart-legend {
         width: 100%;
+        max-width: 360px;
     }
 
 }
@@ -257,29 +299,36 @@
 
 @media (max-width: 600px) {
 
-    .total-download-card {
+    .stat-card {
         padding: 20px;
     }
 
-    .total-download-icon {
+    .stat-icon {
         width: 50px;
         height: 50px;
-
         font-size: 18px;
     }
 
-    .total-download-info strong {
+    .stat-info strong {
         font-size: 27px;
     }
 
-    .continent-list-header,
-    .continent-row {
-        grid-template-columns: 1fr 100px;
+    .chart-card {
+        padding: 25px 20px;
     }
 
     .chart-container {
         width: 280px;
+
         height: 280px;
+    }
+
+    .chart-center-text strong {
+        font-size: 27px;
+    }
+
+    .legend-item {
+        gap: 15px;
     }
 
 }
