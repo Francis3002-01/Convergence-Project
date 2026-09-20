@@ -1,6 +1,7 @@
 <?php
+// Front-end only: add your own sign-in handling where marked below.
 $email = htmlspecialchars(trim($_POST['email'] ?? ''), ENT_QUOTES, 'UTF-8');
-$error = '';
+$error = ''; // set this in your login code to show a message under the button
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,11 +17,19 @@ $error = '';
 </head>
 <body>
 
-<header class="top">
-  <div class="top-in">
-    <a class="brand" href="#">
-      <div class="logo"><span>LOGO</span></div>
-      <div><h1>CONVERGENCE</h1><p>A Multidisciplinary Journal</p></div>
+<header>
+  <div class="header-container">
+    <a href="../home.php" class="brand">
+
+      <div class="logo">
+        <img src="../Images/Convergence Logo.jpg" alt="Convergence Logo">
+      </div>
+
+      <div class="brand-text">
+        <h1>CONVERGENCE</h1>
+
+        <p>A Multidisciplinary Journal</p>
+      </div>
     </a>
   </div>
 </header>

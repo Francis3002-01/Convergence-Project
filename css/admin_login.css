@@ -46,12 +46,12 @@ a {
 }
 
 /* Header */
-.top {
+header {
   background: #a52422;
   color: #fff;
 }
 
-.top-in {
+.header-container {
   padding: 0 24px;
   display: flex;
   align-items: center;
@@ -78,15 +78,11 @@ a {
   flex: none;
 }
 
-.logo span {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: #666;
-  color: #fff;
-  font-size: 10px;
-  display: grid;
-  place-items: center;
+.logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .brand h1 {
@@ -315,7 +311,7 @@ input[aria-invalid=true] {
     font-size: 1.6rem;
   }
 
-  .top-in {
+  .header-container {
     padding-top: 14px;
     padding-bottom: 14px;
   }
