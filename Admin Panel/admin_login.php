@@ -74,7 +74,6 @@ $error = '';
   </main>
 
   <script>
-
     (function() {
       var f = document.getElementById('f'),
         em = document.getElementById('email'),
@@ -107,7 +106,6 @@ $error = '';
         }
       });
     })();
-
   </script>
 </body>
 
