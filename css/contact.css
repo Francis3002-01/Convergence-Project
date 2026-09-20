@@ -1,1 +1,99 @@
-/*Contact.css code*/
+/* Full-height column: header, red title banner, contact content, footer */
+body {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh;
+  min-height: 100dvh; /* accounts for the mobile browser address bar */
+  background: #f5f4f0;
+}
+
+/* Content area: grows so the footer stays at the bottom */
+.contact-page {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 24px 20px 80px; /* space between the red banner and the email card */
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #33415c;
+}
+
+/* Intro line inside the red banner: about_page.css styles the text */
+.contact-intro {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Email card */
+.contact-card {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 34px 32px 30px;
+  background: #fbfaf8;
+  border: 1px solid #dcdad3;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.contact-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #9c2321;
+  color: #ffffff;
+  font-size: 1.6rem;
+}
+
+.contact-card h2 {
+  margin: 0 0 6px;
+  color: #13233f;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.contact-card a {
+  color: #a52422;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere; /* lets the email wrap on narrow screens */
+}
+
+.contact-card a:hover {
+  text-decoration: underline;
+}
+
+.contact-card hr {
+  margin: 24px 0 20px;
+  border: 0;
+  border-top: 1px solid #dcdad3;
+}
+
+.contact-note {
+  max-width: 340px;
+  margin: 0 auto;
+  color: #5a6b85;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 560px) {
+  .contact-page {
+    padding: 40px 16px 56px;
+  }
+
+  .contact-card {
+    padding: 26px 20px 24px;
+  }
+
+  .contact-card a {
+    font-size: 1.15rem;
+  }
+}
