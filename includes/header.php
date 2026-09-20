@@ -16,12 +16,13 @@
             </a>
 
             <!-- Search -->
-            <form class="search-box">
-                <input type="text" placeholder="Search for articles..." aria-label="Search journals">
+            <form class="search-box" action="search.php" method="GET">
+                <input type="text" name="q" placeholder="Search for articles..." aria-label="Search articles" autocomplete="off">
                 <button type="submit" aria-label="Search">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
             </form>
+
         </div>
 
         <!-- Navigation -->

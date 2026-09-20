@@ -14,17 +14,17 @@
     <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="stylesheet" href="css/transition.css">
     <link rel="stylesheet" href="css/archive_page.css">
+    <link rel="icon" type="image/jpeg" href="Images/Convergence Logo.png">
 </head>
 
 <body>
 
     <?php include 'includes/header.php'; ?>
 
-    <!-- Red Background Title Header Banner -->
-    <section class="page-header-banner">
-        <div class="banner-content">
+     <section class="about-intro">
+        <div class="about-intro-content">
             <h1>Archive</h1>
-            <p>A record of past issues, academic conversations, and enduring contributions to knowledge.</p>
+            <p>A record of past issues, academic conversations, and enduring contributions to knowledge</p>
         </div>
     </section>
 

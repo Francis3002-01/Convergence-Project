@@ -44,6 +44,7 @@ $current_issue = isset($issue_data[$issue_id]) ? $issue_data[$issue_id] : $issue
     <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="stylesheet" href="css/transition.css">
     <link rel="stylesheet" href="css/archive_detailspage.css">
+    <link rel="icon" type="image/jpeg" href="Images/Convergence Logo.png">
 </head>
 
 <body>

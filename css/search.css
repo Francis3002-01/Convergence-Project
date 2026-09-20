@@ -1,0 +1,180 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #fff;
+    color: #222;
+    line-height: 1.6;
+}
+
+/* Search page */
+.search-page {
+    background: #f8f7f3;
+    min-height: 60vh;
+    padding: 80px 24px 100px;
+}
+
+.search-results {
+    max-width: 1050px;
+    margin: 0 auto;
+}
+
+/* Page heading */
+
+.search-results h1 {
+    margin: 0;
+    color: #17243a;
+    font-family: inherit;
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+.search-summary {
+    margin: 14px 0 55px;
+    color: #667085;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.search-summary strong {
+    color: #17243a;
+    font-weight: 600;
+}
+
+/* Results */
+
+.search-result-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-result {
+    padding: 30px 0;
+    border-top: 1px solid #d9d8d3;
+}
+
+.search-result:last-child {
+    border-bottom: 1px solid #d9d8d3;
+}
+
+/* Issue type */
+
+.issue-type {
+    display: inline-block;
+    margin-bottom: 13px;
+    color: #667085;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+/* Article title */
+
+.search-result h2 {
+    margin: 0 0 10px;
+}
+
+.search-result h2 a {
+    color: #17243a;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 27px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.search-result h2 a:hover {
+    color: #a42821;
+}
+
+/* Authors */
+
+.search-authors {
+    margin-bottom: 12px;
+    color: #475467;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* Issue information */
+
+.search-issue {
+    color: #667085;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Empty state */
+
+.no-results {
+    padding: 55px 0;
+    border-top: 1px solid #d9d8d3;
+    border-bottom: 1px solid #d9d8d3;
+}
+
+.no-results h2 {
+    margin: 0 0 10px;
+    color: #17243a;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.no-results p {
+    margin: 0;
+    color: #667085;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+/* Tablet */
+
+@media (max-width: 768px) {
+    .search-page {
+        padding: 55px 20px 70px;
+    }
+
+    .search-results h1 {
+        font-size: 38px;
+    }
+
+    .search-summary {
+        margin-bottom: 40px;
+    }
+
+    .search-result {
+        padding: 25px 0;
+    }
+
+    .search-result h2 a {
+        font-size: 23px;
+    }
+
+    .search-authors {
+        font-size: 14px;
+    }
+
+    .search-issue {
+        font-size: 12px;
+    }
+}
+
+/* Mobile */
+
+@media (max-width: 480px) {
+    .search-results h1 {
+        font-size: 32px;
+    }
+
+    .search-result h2 a {
+        font-size: 21px;
+    }
+
+    .issue-type {
+        font-size: 10px;
+    }
+}

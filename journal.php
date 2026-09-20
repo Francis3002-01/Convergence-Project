@@ -2,15 +2,9 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/classes/PublicationIssue.php';
 
 use Dotenv\Dotenv;
-
-
-/*
-|--------------------------------------------------------------------------
-| Supabase PDF Helpers
-|--------------------------------------------------------------------------
-*/
 
 function normalizeIssuePdfPath(string $storagePath): string
 {
@@ -57,15 +51,9 @@ function normalizeIssuePdfPath(string $storagePath): string
     );
 
     if ($bucketName !== '') {
-
         $bucketPrefix = $bucketName . '/';
-
         if (str_starts_with($storagePath, $bucketPrefix)) {
-
-            $storagePath = substr(
-                $storagePath,
-                strlen($bucketPrefix)
-            );
+            $storagePath = substr($storagePath,strlen($bucketPrefix));
         }
     }
 
@@ -81,15 +69,11 @@ function normalizeIssuePdfPath(string $storagePath): string
     return $storagePath;
 }
 
+function createPublicIssuePdfUrl(string $storagePath): string
+{
+    $supabaseUrl = trim((string) ($_ENV['SUPABASE_URL'] ?? ''));
 
-function createPublicIssuePdfUrl(string $storagePath): string{
-    $supabaseUrl = trim(
-        (string) ($_ENV['SUPABASE_URL'] ?? '')
-    );
-
-    $bucketName = trim(
-        (string) ($_ENV['SUPABASE_BUCKET'] ?? '')
-    );
+    $bucketName = trim((string) ($_ENV['SUPABASE_BUCKET'] ?? ''));
 
     if ($storagePath === '') {
         return '';
@@ -103,15 +87,10 @@ function createPublicIssuePdfUrl(string $storagePath): string{
         return $storagePath;
     }
 
-    $normalizedPath =
-        normalizeIssuePdfPath($storagePath);
-
+    $normalizedPath =normalizeIssuePdfPath($storagePath);
     $encodedPath = implode(
         '/',
-        array_map(
-            'rawurlencode',
-            explode('/', $normalizedPath)
-        )
+        array_map('rawurlencode',explode('/', $normalizedPath))
     );
 
     return rtrim($supabaseUrl, '/')
@@ -121,39 +100,22 @@ function createPublicIssuePdfUrl(string $storagePath): string{
         . $encodedPath;
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| Load Environment Variables
-|--------------------------------------------------------------------------
-*/
-
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
-
-
-/*
-|--------------------------------------------------------------------------
-| Database Connection
-|--------------------------------------------------------------------------
-*/
 
 $database = new Database();
 $pdo = $database->getConnection();
 
+$publicationID = filter_input(INPUT_GET, 'publicationID', FILTER_VALIDATE_INT);
 
-/*
-|--------------------------------------------------------------------------
-| Get Publication ID
-|--------------------------------------------------------------------------
-*/
-
-$publicationID = filter_input(
-    INPUT_GET,
-    'publicationID',
-    FILTER_VALIDATE_INT
-);
-
+// Handle editorial note download
+if (isset($_GET['download']) &&$_GET['download'] === 'editorial' &&isset($_GET['publicationID']) &&ctype_digit($_GET['publicationID'])) {
+    $publicationIssue = new PublicationIssue();
+    $publicationIssue->downloadEditorNote(
+        $pdo,
+        (int) $_GET['publicationID']
+    );
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -161,7 +123,6 @@ $publicationID = filter_input(
 | retrieve the current published issue
 |--------------------------------------------------------------------------
 */
-
 if (!$publicationID || $publicationID <= 0) {
 
     $issueStmt = $pdo->query(
@@ -182,31 +143,12 @@ if (!$publicationID || $publicationID <= 0) {
         : 0;
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| Initialize
-|--------------------------------------------------------------------------
-*/
-
 $issue = null;
 $articles = [];
 
-
-/*
-|--------------------------------------------------------------------------
-| Retrieve Issue and Articles
-|--------------------------------------------------------------------------
-*/
-
 if ($publicationID && $publicationID > 0) {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Get Publication Issue
-    |--------------------------------------------------------------------------
-    */
-
+    /*Get Publication Issue*/
     $issueStmt = $pdo->prepare(
         'SELECT *
          FROM "PublicationIssue"
@@ -221,12 +163,7 @@ if ($publicationID && $publicationID > 0) {
     $issue = $issueStmt->fetch();
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Create Editorial Note URL
-    |--------------------------------------------------------------------------
-    */
-
+    /*Create Editorial Note URL*/
     if ($issue && !empty($issue['publicationPDF'])) {
 
         $issue['publicationPDF'] =
@@ -234,7 +171,6 @@ if ($publicationID && $publicationID > 0) {
                 (string) $issue['publicationPDF']
             );
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -278,7 +214,6 @@ if ($publicationID && $publicationID > 0) {
     | Group Authors by Article
     |--------------------------------------------------------------------------
     */
-
     foreach ($rows as $row) {
 
         $journalID = (int) $row['journalID'];
@@ -294,24 +229,11 @@ if ($publicationID && $publicationID > 0) {
         }
 
 
-        $firstName = trim(
-            (string) ($row['firstName'] ?? '')
-        );
+        $firstName = trim((string) ($row['firstName'] ?? ''));
+        $lastName = trim((string) ($row['lastName'] ?? ''));
 
-        $lastName = trim(
-            (string) ($row['lastName'] ?? '')
-        );
-
-
-        if (
-            $firstName !== '' ||
-            $lastName !== ''
-        ) {
-
-            $authorName = trim(
-                $firstName . ' ' . $lastName
-            );
-
+        if ($firstName !== '' || $lastName !== '') {
+            $authorName = trim($firstName . ' ' . $lastName);
             $articles[$journalID]['authors'][] =
                 $authorName;
         }
@@ -338,6 +260,7 @@ if ($publicationID && $publicationID > 0) {
     <link rel="stylesheet" href="css/transition.css">
     <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="stylesheet" href="css/journal_page.css">
+    <link rel="icon" type="image/jpeg" href="Images/Convergence Logo.png">
 </head>
 
 <body class="journal-page">
@@ -347,7 +270,7 @@ if ($publicationID && $publicationID > 0) {
     <section class="about-intro">
         <div class="about-intro-content">
             <h1>Journal</h1>
-            <p>The current issue</p>
+            <p>Explore the latest articles and scholarly contributions from Convergence</p>
         </div>
     </section>
 
@@ -430,53 +353,25 @@ if ($publicationID && $publicationID > 0) {
 
 
                         <!-- Download -->
-
-                        <a
-                            href="<?= htmlspecialchars(
-                                        (string) $issue['publicationPDF']
-                                    ) ?>"
-                            download
+                        <a href="journal.php?publicationID=<?= (int) $issue['publicationID'] ?>&download=editorial"
                             class="editorial-button download-button">
                             <i class="fa-solid fa-download"></i>
-
-                            <span>
-                                Download Editorial Note
-                            </span>
+                            <span>Download Editorial Note</span>
                         </a>
-
 
                     </div>
 
                 <?php endif; ?>
-
-
             </section>
-
 
             <!-- =====================================================
              LIST OF ARTICLES
         ====================================================== -->
-
-            <section
-                class="articles-section"
-                aria-labelledby="articles-heading">
-
-
+            <section class="articles-section" aria-labelledby="articles-heading">
                 <div class="articles-heading">
-
-
-                    <h2 id="articles-heading">
-                        List of Articles
-                    </h2>
-
-
-                    <p>
-                        Click the article title to view details
-                    </p>
-
-
+                    <h2 id="articles-heading">List of Articles</h2>
+                    <p>Click the article title to view details</p>
                 </div>
-
 
                 <?php if (!empty($articles)): ?>
 

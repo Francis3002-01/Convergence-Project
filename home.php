@@ -47,6 +47,7 @@ catch (PDOException $e) {
     <link rel="stylesheet" href="css/transition.css">
     <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="includes_css/footer.css">
+    <link rel="icon" type="image/jpeg" href="Images/Convergence Logo.png">
 </head>
 
 <body>
