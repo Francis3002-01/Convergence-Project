@@ -1,7 +1,6 @@
 <?php
-// Front-end only: add your own sign-in handling where marked below.
 $email = htmlspecialchars(trim($_POST['email'] ?? ''), ENT_QUOTES, 'UTF-8');
-$error = ''; // set this in your login code to show a message under the button
+$error = ''; 
 ?>
 <!DOCTYPE html>
 <html lang="en">
