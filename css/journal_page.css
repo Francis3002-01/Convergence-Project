@@ -9,6 +9,42 @@ body.journal-page {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+.about-intro {
+    position: relative;
+    width: 100%;
+    background: #A42821;
+    color: #ffffff;
+    margin-bottom: 55px;
+    overflow: hidden;
+    text-align: center;
+}
+
+.about-intro-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.about-intro h1 {
+    margin: 0;
+    color: #ffffff;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 44px;
+    font-weight: normal;
+    line-height: 1.2;
+}
+
+.about-intro p {
+    max-width: 850px;
+    margin: 0 auto;
+    color: #f7e9eb;
+    font-size: 17px;
+    line-height: 1.8;
+}
+
+
 .journal-content {
     width: 100%;
     max-width: 1050px;

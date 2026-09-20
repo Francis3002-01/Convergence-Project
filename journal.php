@@ -82,8 +82,7 @@ function normalizeIssuePdfPath(string $storagePath): string
 }
 
 
-function createPublicIssuePdfUrl(string $storagePath): string
-{
+function createPublicIssuePdfUrl(string $storagePath): string{
     $supabaseUrl = trim(
         (string) ($_ENV['SUPABASE_URL'] ?? '')
     );
@@ -344,6 +343,13 @@ if ($publicationID && $publicationID > 0) {
 <body class="journal-page">
 
     <?php include 'includes/header.php'; ?>
+
+    <section class="about-intro">
+        <div class="about-intro-content">
+            <h1>Journal</h1>
+            <p>The current issue</p>
+        </div>
+    </section>
 
 
     <!-- =========================================================
