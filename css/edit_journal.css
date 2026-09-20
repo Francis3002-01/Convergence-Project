@@ -164,6 +164,58 @@ legend {
 }
 
 /*AUTHORS */
+.articles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.article-card {
+  background: #fffaf9;
+  border: 1px solid #f0d9d9;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(139, 0, 0, 0.04);
+}
+
+.article-card label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.article-title-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d7c1c1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #333333;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.article-title-input:focus {
+  border-color: #8b0000;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+}
+
 .authors-container {
   display: flex;
   flex-direction: column;
@@ -214,6 +266,23 @@ legend {
   background: #f5cccc;
 }
 
+.article-card .authors-container {
+  margin-top: 4px;
+}
+
+.article-card .add-author-button {
+  border: 1px solid #8b0000;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #8b0000;
+  font-size: 12px;
+  padding: 7px 12px;
+}
+
+.article-card .add-author-button:hover {
+  background: #8b0000;
+  color: #ffffff;
+}
 
 .add-author-button {
   display: inline-flex;
@@ -329,12 +398,15 @@ legend {
   text-align: center;
   gap: 10px;
   box-sizing: border-box;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s ease;
+  cursor: pointer;
 }
 
-.pdf-upload-box:hover {
+.pdf-upload-box:hover,
+.pdf-upload-box.drag-over {
   border-color: #8b0000;
   background: #fff8f8;
+  transform: translateY(-1px);
 }
 
 .pdf-upload-box input[type="file"] {
@@ -410,6 +482,10 @@ legend {
 .pdf-upload-box.has-file {
   border-color: #8b0000;
   background: #fff8f8;
+}
+
+.article-pdf-upload-box {
+  margin-top: 8px;
 }
 
 .pdf-upload-box.has-file .pdf-upload-text span {
@@ -517,6 +593,24 @@ legend {
 
   .edit-section {
     padding: 20px;
+  }
+
+  .article-card {
+    padding: 16px;
+  }
+
+  .field-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .author-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .remove-author-button {
+    align-self: flex-end;
   }
 
   .current-file {

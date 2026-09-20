@@ -34,6 +34,10 @@
   outline: none;
 }
 
+.search-box input:focus {
+  border-color: #800000;
+}
+
 .search-box button {
   width: 44px;
   height: 40px;
@@ -62,6 +66,12 @@
   background: #660000;
 }
 
+.add-button:disabled {
+  background: #ccc;
+  color: #777;
+  cursor: not-allowed;
+}
+
 .journal-list-container {
   width: 100%;
   background: #fff;
@@ -76,18 +86,14 @@
 
 .journal-list-header {
   display: grid;
-  grid-template-columns: 2fr 1.5fr 100px;
+  grid-template-columns: minmax(220px, 2fr) minmax(180px, 1.5fr) 100px;
   align-items: center;
-
   min-height: 52px;
-  padding: 0 28px;
-
+  padding: 0 20px;
   background: #f5f5f5;
   border-bottom: 1px solid #ddd;
-
   box-sizing: border-box;
-
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   color: #444;
 }
@@ -96,78 +102,57 @@
   padding: 0 8px;
 }
 
-/* =========================
-   Article Rows
-========================= */
-
-.issue-articles {
-  width: 100%;
-}
-
-.article-item {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 100px;
+.journal-tabs {
+  display: flex;
   align-items: center;
-
-  min-height: 72px;
-  padding: 12px 28px;
-
-  box-sizing: border-box;
-  border-bottom: 1px solid #eee;
-}
-
-.article-item:last-child {
-  border-bottom: none;
-}
-
-.article-item > div {
-  padding: 0 8px;
-}
-
-.article-info {
-  min-width: 0;
-}
-
-.article-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #222;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-
-.article-authors {
-  font-size: 13px;
-  color: #666;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-
-/* =========================
-   Publication Issue
-========================= */
-
-.publication-issue {
-  width: 100%;
+  gap: 0;
+  padding: 0 28px;
+  background: #fff;
   border-bottom: 1px solid #ddd;
 }
 
-.publication-issue:last-child {
-  border-bottom: none;
+.journal-tab {
+  position: relative;
+  padding: 15px 20px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.issue-details {
-  display: flex;
-  align-items: center;
-  min-height: 48px;
-  padding: 0 28px;
-  background: #fafafa;
-  border-bottom: 1px solid #eee;
-  box-sizing: border-box;
-
-  font-size: 13px;
-  font-weight: 600;
+.journal-tab:hover {
   color: #800000;
+}
+
+.journal-tab.active {
+  color: #800000;
+}
+
+.journal-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: #800000;
+}
+
+.draft-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #800000;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .issue-articles {
@@ -211,7 +196,50 @@
   overflow-wrap: anywhere;
 }
 
-.actions {
+.publication-issue {
+  width: 100%;
+  border-bottom: 1px solid #ddd;
+}
+
+.publication-issue:last-child {
+  border-bottom: none;
+}
+
+.issue-details {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) minmax(180px, 1.5fr) 100px;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 20px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  box-sizing: border-box;
+  font-size: 13px;
+  color: #555;
+}
+
+.issue-details span {
+  font-weight: 500;
+  color: #777;
+}
+
+.issue-details strong {
+  margin-right: 18px;
+  font-weight: 700;
+  color: #800000;
+}
+
+.issue-actions {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
+.article-item-actions {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -245,6 +273,27 @@
 
 .delete-btn:hover {
   background: #f5cccc;
+}
+
+.view-btn {
+  background: #f0f0f0;
+  color: #444;
+}
+
+.view-btn:hover {
+  background: #ddd;
+}
+
+.publish-btn {
+  width: auto;
+  min-width: 90px;
+  padding: 0 14px;
+  background: #800000;
+  color: #fff;
+}
+
+.publish-btn:hover {
+  background: #660000;
 }
 
 .empty-message {
@@ -302,7 +351,10 @@
   margin-top: 25px;
 }
 
+.next-btn,
 .save-btn,
+.save-draft-btn,
+.publish-btn,
 .cancel-btn {
   padding: 10px 18px;
   border-radius: 6px;
@@ -310,13 +362,19 @@
   cursor: pointer;
 }
 
-.save-btn {
+.next-btn,
+.save-btn,
+.save-draft-btn,
+.publish-btn {
   border: none;
   background: #800000;
   color: #fff;
 }
 
-.save-btn:hover {
+.next-btn:hover,
+.save-btn:hover,
+.save-draft-btn:hover,
+.publish-btn:hover {
   background: #660000;
 }
 
@@ -330,11 +388,24 @@
   background: #f5f5f5;
 }
 
+.back-to-publication,
+.delete-article-button,
+.add-author-button,
+.add-article-btn,
+.add-author-btn,
+.delete-author-btn,
+.delete-article-btn,
+.undo-pdf-btn,
+.choose-pdf {
+  transition: all 0.2s ease;
+}
+
 #articleStep {
   display: none;
 }
 
-.article-sticky {
+.article-sticky,
+.article-step-top {
   position: sticky;
   top: 0;
   z-index: 10;
@@ -343,7 +414,8 @@
   border-bottom: 1px solid #ddd;
 }
 
-.back-publication {
+.back-publication,
+.back-to-publication {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -356,7 +428,8 @@
   cursor: pointer;
 }
 
-.back-publication:hover {
+.back-publication:hover,
+.back-to-publication:hover {
   color: #660000;
 }
 
@@ -364,34 +437,40 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
-  margin-bottom: 20px;
+  margin: 20px 0;
+  padding: 0 30px;
 }
 
-.publication-detail {
+.publication-detail,
+.publication-summary > div {
   padding: 12px 15px;
   border: 1px solid #ddd;
   border-radius: 6px;
   background: #f8f8f8;
 }
 
-.publication-detail span {
+.publication-detail span,
+.summary-label {
   display: block;
   margin-bottom: 4px;
   font-size: 12px;
   color: #777;
 }
 
-.publication-detail strong {
+.publication-detail strong,
+.publication-summary strong {
   font-size: 15px;
   color: #222;
 }
 
-.article-tabs-row {
+.article-tabs-row,
+.article-tabs-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 15px;
   margin-bottom: 20px;
+  padding: 0 30px;
 }
 
 .article-tabs {
@@ -423,7 +502,9 @@
   color: #fff;
 }
 
-.add-article-btn {
+.add-article-btn,
+.add-author-btn,
+.add-author-button {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -437,55 +518,66 @@
   white-space: nowrap;
 }
 
-.add-article-btn:hover {
+.add-article-btn:hover,
+.add-author-btn:hover,
+.add-author-button:hover {
   background: #800000;
   color: #fff;
 }
 
-.article-heading {
+.article-heading,
+.article-heading-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 15px;
 }
 
-.article-heading h2 {
+.article-heading h2,
+.article-heading-row h3,
+#articleHeading {
   margin: 0;
   font-size: 21px;
   color: #222;
 }
 
-.delete-article-btn {
-  width: 36px;
-  height: 36px;
+.delete-article-btn,
+.delete-article-button {
+  width: auto;
+  min-height: 36px;
+  padding: 0 12px;
   border: none;
   border-radius: 5px;
   background: #fce8e8;
   color: #a00000;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.delete-article-btn:hover {
+.delete-article-btn:hover,
+.delete-article-button:hover {
   background: #f5cccc;
 }
 
-.article-content {
+.article-content,
+.article-form-card {
   padding: 30px;
 }
 
 .pdf-upload-box {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 15px;
   min-height: 100px;
   padding: 20px;
   border: 2px dashed #ccc;
   border-radius: 8px;
   background: #fafafa;
+  box-sizing: border-box;
   transition:
     border-color 0.2s,
     background 0.2s;
+  cursor: pointer;
 }
 
 .pdf-upload-box:hover,
@@ -494,12 +586,33 @@
   background: #fff8f8;
 }
 
+.pdf-upload-inner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+
+.pdf-upload-label {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
 .pdf-upload-box input[type="file"] {
   position: absolute;
   width: 1px;
   height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
   opacity: 0;
-  pointer-events: none;
 }
 
 .pdf-upload-icon {
@@ -558,11 +671,33 @@
   color: #fff;
 }
 
-.authors-section {
+.undo-pdf-btn {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.undo-pdf-btn:hover {
+  border-color: #800000;
+  color: #800000;
+}
+
+.undo-pdf-btn[hidden] {
+  display: none;
+}
+
+.authors-section,
+.form-group.authors-block {
   margin-top: 30px;
 }
 
-.authors-section h3 {
+.authors-section h3,
+.field-label-row label {
   margin: 0 0 15px;
   font-size: 18px;
   color: #222;
@@ -601,22 +736,25 @@
   background: #f5cccc;
 }
 
-.add-author-btn {
-  display: inline-flex;
+.field-label-row {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 14px;
-  border: 1px solid #800000;
-  border-radius: 6px;
-  background: #fff;
-  color: #800000;
-  font-size: 14px;
-  cursor: pointer;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-.add-author-btn:hover {
-  background: #800000;
-  color: #fff;
+.article-label,
+.summary-label {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#articleHeading {
+  font-size: 26px;
 }
 
 .article-actions {
@@ -750,6 +888,104 @@
   .choose-pdf {
     margin-left: 60px;
   }
+}
+
+/* ================================
+   CONFIRMATION MODAL
+   ================================ */
+
+.confirmation-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirmation-modal.active {
+  display: flex;
+}
+
+/* Dark background */
+.confirmation-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+/* Modal box */
+.confirmation-dialog {
+  position: relative;
+  z-index: 1;
+  width: 420px;
+  max-width: calc(100% - 40px);
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Warning icon */
+.confirmation-icon {
+  width: 55px;
+  height: 55px;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f8e5e3;
+  color: #a42821;
+  font-size: 24px;
+}
+
+.confirmation-dialog h3 {
+  margin: 0 0 10px;
+  font-size: 21px;
+  color: #222222;
+}
+
+.confirmation-dialog p {
+  margin: 0 0 25px;
+  color: #666666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.confirmation-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.modal-cancel-btn,
+.modal-confirm-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-cancel-btn {
+  background: #eeeeee;
+  color: #333333;
+}
+
+.modal-confirm-btn {
+  background: #a42821;
+  color: #ffffff;
+}
+
+.modal-cancel-btn:hover {
+  background: #dddddd;
+}
+
+.modal-confirm-btn:hover {
+  background: #8c211c;
 }
 
 @media (max-width: 500px) {

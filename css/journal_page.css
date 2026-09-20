@@ -1,0 +1,380 @@
+* {
+    box-sizing: border-box;
+}
+
+body.journal-page {
+    margin: 0;
+    background: #f7f7f5;
+    color: #242424;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.journal-content {
+    width: 100%;
+    max-width: 1050px;
+    margin: 0 auto;
+    padding: 65px 30px 80px;
+}
+
+.current-issue {
+    background: #ffffff;
+    border-left: 6px solid #A42821;
+    padding: 38px 42px 40px;
+    margin-bottom: 55px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+.issue-label {
+    margin-bottom: 10px;
+    color: #A42821;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+}
+
+.current-issue h1 {
+    margin: 0;
+    color: #222222;
+    font-family: Georgia, "Times New Roman",serif;
+    font-size: 38px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.issue-information {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 17px;
+    color: #555555;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+
+.issue-divider {
+    margin: 0 10px;
+    color: #b8b8b8;
+}
+
+.editorial-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.editorial-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+
+.read-button {
+    background: #A42821;
+    border: 1px solid #A42821;
+    color: #ffffff;
+}
+
+
+.read-button:hover {
+    background: #851f1a;
+    border-color: #851f1a;
+}
+
+/* Download Editorial Note */
+.download-button {
+    background: #ffffff;
+    border: 1px solid #A42821;
+    color: #A42821;
+}
+
+
+.download-button:hover {
+    background: #A42821;
+    color: #ffffff;
+}
+
+.articles-section {
+    width: 100%;
+}
+
+.articles-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 22px;
+}
+
+.articles-heading h2 {
+    margin: 0;
+    color: #222222;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 30px;
+    font-weight: 600;
+}
+
+.articles-heading p {
+    margin: 0 0 3px;
+    color: #777777;
+    font-size: 13px;
+    text-align: right;
+}
+
+.article-list {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+}
+
+
+.article-item {
+    padding: 27px 30px;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+
+.article-item:last-child {
+    border-bottom: none;
+}
+
+.article-number {
+    margin-bottom: 8px;
+
+    color: #A42821;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 1.2px;
+
+    text-transform: uppercase;
+}
+
+.article-title {
+    margin: 0;
+
+    font-family: 'Inter', sans-serif;
+
+    font-size: 21px;
+
+    line-height: 1.45;
+
+    font-weight: 600;
+}
+
+
+.article-title a {
+    color: #242424;
+
+    text-decoration: none;
+
+    transition:
+        color 0.2s ease,
+        text-decoration 0.2s ease;
+}
+
+.article-title a:hover {
+    color: #A42821;
+
+    text-decoration: underline;
+
+    text-underline-offset: 4px;
+}
+
+
+.article-title a:focus-visible {
+    outline: 2px solid #A42821;
+
+    outline-offset: 4px;
+}
+
+.article-authors {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    margin-top: 10px;
+
+    color: #666666;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+
+.author:not(:last-child)::after {
+    content: ",";
+
+    margin-right: 5px;
+}
+
+
+.empty-state {
+    background: #ffffff;
+
+    border: 1px solid #dddddd;
+
+    padding: 45px 30px;
+
+    text-align: center;
+}
+
+
+.empty-state h3 {
+    margin: 0 0 8px;
+
+    color: #333333;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 21px;
+}
+
+
+.empty-state p {
+    margin: 0;
+
+    color: #777777;
+
+    font-size: 14px;
+}
+
+.empty-issue {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    padding: 65px 30px;
+    text-align: center;
+}
+
+
+.empty-issue-icon {
+    margin-bottom: 15px;
+    color: #A42821;
+    font-size: 30px;
+}
+
+
+.empty-issue h2 {
+    margin: 0 0 10px;
+    color: #333333;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+}
+
+.empty-issue p {
+    margin: 0;
+    color: #777777;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+
+    .journal-content {
+        padding: 45px 20px 60px;
+    }
+
+
+    .current-issue {
+        padding: 30px 28px 32px;
+
+        margin-bottom: 42px;
+    }
+
+
+    .current-issue h1 {
+        font-size: 32px;
+    }
+
+
+    .issue-information {
+        font-size: 15px;
+    }
+
+    .articles-heading {
+        display: block;
+    }
+
+    .articles-heading p {
+        margin-top: 8px;
+
+        text-align: left;
+    }
+
+    .article-item {
+        padding: 24px 25px;
+    }
+
+    .article-title {
+        font-size: 19px;
+    }
+
+}
+
+
+@media (max-width: 520px) {
+
+    .journal-content {
+        padding: 35px 15px 50px;
+    }
+
+    .current-issue {
+        padding: 25px 22px 28px;
+
+        border-left-width: 4px;
+    }
+
+    .current-issue h1 {
+        font-size: 28px;
+    }
+
+    .issue-information {
+        display: block;
+
+        line-height: 1.8;
+    }
+
+    .issue-divider {
+        margin: 0 5px;
+    }
+
+    .editorial-actions {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .editorial-button {
+        width: 100%;
+    }
+
+    .articles-heading h2 {
+        font-size: 26px;
+    }
+
+    .article-item {
+        padding: 22px 20px;
+    }
+
+    .article-title {
+        font-size: 18px;
+    }
+
+    .article-authors {
+        font-size: 13px;
+    }
+
+}

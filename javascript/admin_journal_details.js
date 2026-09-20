@@ -2,7 +2,7 @@
 const params = new URLSearchParams(window.location.search);
 const journalID = params.get("journalID");
 
-/*GET HTML ELEMENT */
+/*GET HTML ELEMENTS*/
 const loading = document.getElementById("loading");
 const error = document.getElementById("error");
 const errorMessage = document.getElementById("errorMessage");
@@ -18,123 +18,176 @@ const downloadPdf = document.getElementById("downloadPdf");
 const pdfViewer = document.getElementById("pdfViewer");
 const pdfViewerContainer = document.getElementById("pdfViewerContainer");
 
+/*SHOW ERROR */
 function showError(message) {
-  loading.style.display = "none";
-  detailsCard.style.display = "none";
-  errorMessage.textContent = message;
-  error.style.display = "block";
-}
-
-function displayJournal(data) {
-  const article = data.article || {};
-  const publication = data.publication || null;
-  const articleAuthors = data.authors || [];
-
-  articleTitle.textContent = article.title || "Untitled Article";
-
-  if (publication) {
-    const year = publication.year ?? "";
-    const volume = publication.volume ?? "";
-    const number = publication.number ?? "";
-    publicationInfo.textContent = `Volume ${volume}, Number ${number}, ${year}`;
-  } 
-  
-  else 
-    publicationInfo.textContent = "Publication information unavailable.";
-
-  authors.innerHTML = "";
-
-  if (articleAuthors.length === 0) {
-    const authorItem = document.createElement("div");
-    authorItem.className = "author-item";
-    authorItem.textContent = "Unknown Author";
-    authors.appendChild(authorItem);
-  } 
-  
-  else {
-    articleAuthors.forEach((author) => {
-      const authorItem = document.createElement("div");
-      authorItem.className = "author-item";
-      const firstName = author.firstName || "";
-      const lastName = author.lastName || "";
-      authorItem.textContent = `${firstName} ${lastName}`.trim();
-      authors.appendChild(authorItem);
-    });
+  if (loading) {
+    loading.style.display = "none";
   }
 
-  citation.textContent = data.citation || "Citation unavailable.";
+  if (detailsCard) {
+    detailsCard.style.display = "none";
+  }
 
-  if (data.pdfUrl && typeof data.pdfUrl === "string") {
-    const pdfUrl = data.pdfUrl.trim();
+  if (errorMessage) {
+    errorMessage.textContent = message;
+  }
 
-    if (pdfUrl !== "") {
-      /* -----------------------------
-                       DOWNLOAD PDF
-                    ----------------------------- */
-      downloadPdf.href = pdfUrl.includes("?")
-        ? `${pdfUrl}&download`
-        : `${pdfUrl}?download`;
+  if (error) {
+    error.style.display = "block";
+  }
+}
 
-      /*READ ONLINE */
-      readOnline.onclick = function () {
-        /*
-         * IMPORTANT:
-         *
-         * The API returns a PUBLIC
-         * Supabase Storage URL.
-         *
-         * We load that URL directly
-         * into the iframe.
-         */
+/* DISPLAY JOURNAL DETAILS*/
+function displayJournal(data) {
+  const article = data.article || {};
+  const publication = data.publication || {};
+  const articleAuthors = Array.isArray(data.authors) ? data.authors : [];
 
-        pdfViewer.src = pdfUrl;
+  if (articleTitle) {
+    articleTitle.textContent = article.title || "Untitled Article";
+  }
+
+  if (publicationInfo) {
+    const year =
+      publication.year !== undefined &&
+      publication.year !== null &&
+      publication.year !== 0
+        ? publication.year
+        : "";
+
+    const volume =
+      publication.volume !== undefined &&
+      publication.volume !== null &&
+      publication.volume !== 0
+        ? publication.volume
+        : "";
+
+    const number =
+      publication.number !== undefined &&
+      publication.number !== null &&
+      publication.number !== 0
+        ? publication.number
+        : "";
+
+    let publicationText = "";
+
+    if (volume !== "") {
+      publicationText += `Volume ${volume}`;
+    }
+
+    if (number !== "") {
+      if (publicationText !== "") {
+        publicationText += ", ";
+      }
+
+      publicationText += `Number ${number}`;
+    }
+
+    if (year !== "") {
+      if (publicationText !== "") {
+        publicationText += ", ";
+      }
+
+      publicationText += year;
+    }
+
+    publicationInfo.textContent =
+      publicationText || "Publication information unavailable.";
+  }
+
+  if (authors) {
+    authors.innerHTML = "";
+
+    if (articleAuthors.length === 0) {
+      const authorItem = document.createElement("div");
+      authorItem.className = "author-item";
+      authorItem.textContent = "Unknown Author";
+      authors.appendChild(authorItem);
+    } 
+    
+    else {
+      articleAuthors.forEach((author) => {
+        const authorItem = document.createElement("div");
+        authorItem.className = "author-item";
+        const firstName = (author.firstName || "").trim();
+        const lastName = (author.lastName || "").trim();
+
+        authorItem.textContent =
+          `${firstName} ${lastName}`.trim() || "Unknown Author";
+
+        authors.appendChild(authorItem);
+      });
+    }
+  }
+
+  if (citation) {
+    citation.textContent = data.citation || "Citation unavailable.";
+  }
+
+  const pdfUrl = typeof data.pdfUrl === "string" ? data.pdfUrl.trim() : "";
+
+  if (pdfUrl !== "" && downloadPdf && readOnline && pdfSection) {
+    downloadPdf.href = pdfUrl.includes("?")
+      ? `${pdfUrl}&download`
+      : `${pdfUrl}?download`;
+
+    downloadPdf.target = "_blank";
+    downloadPdf.rel = "noopener";
+    readOnline.onclick = function () {
+      if (!pdfViewer) {
+        return;
+      }
+
+      pdfViewer.src = pdfUrl;
+
+      if (pdfViewerContainer) {
         pdfViewerContainer.style.display = "block";
-
-        /*
-         * Scroll to PDF viewer.
-         */
 
         pdfViewerContainer.scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
-      };
+      }
+    };
 
-      /* -----------------------------
-                       SHOW PDF SECTION
-                    ----------------------------- */
-      pdfSection.style.display = "block";
-    } else {
+    pdfSection.style.display = "block";
+  } 
+  
+  else {
+    if (pdfSection) {
       pdfSection.style.display = "none";
     }
-  } else {
-    pdfSection.style.display = "none";
+
+    if (pdfViewer) {
+      pdfViewer.src = "";
+    }
+
+    if (pdfViewerContainer) {
+      pdfViewerContainer.style.display = "none";
+    }
   }
 
-  /* =====================================
-               SHOW DETAILS
-            ====================================== */
-  loading.style.display = "none";
-  error.style.display = "none";
-  detailsCard.style.display = "block";
+  if (loading) {
+    loading.style.display = "none";
+  }
+
+  if (error) {
+    error.style.display = "none";
+  }
+
+  if (detailsCard) {
+    detailsCard.style.display = "block";
+  }
 }
 
-/* =========================================
-           LOAD JOURNAL DETAILS
-        ========================================= */
 async function loadJournalDetails() {
-  /* -------------------------------------
-               CHECK JOURNAL ID
-            ------------------------------------- */
   if (!journalID) {
     showError("No journal article was specified.");
+
     return;
   }
 
   try {
-    /* ---------------------------------
-                   REQUEST API
-                --------------------------------- */
     const response = await fetch(
       `manage_journal_api.php?action=view&journalID=${encodeURIComponent(journalID)}`,
       {
@@ -146,97 +199,84 @@ async function loadJournalDetails() {
       },
     );
 
-    /* ---------------------------------
-                   CHECK HTTP RESPONSE
-                --------------------------------- */
     if (!response.ok) {
       throw new Error(`Server returned HTTP ${response.status}.`);
     }
 
-    /* ---------------------------------
-                   CHECK CONTENT TYPE
-                --------------------------------- */
     const contentType = response.headers.get("content-type") || "";
 
     if (!contentType.includes("application/json")) {
       throw new Error("The server returned an invalid response.");
     }
 
-    /* ---------------------------------
-                   READ JSON
-                --------------------------------- */
-    const data = await response.json();
-    /* ---------------------------------
-                   DEBUG
-                --------------------------------- */
-    console.log("Journal API response:", data);
+    const result = await response.json();
+    console.log("Journal API response:", result);
 
-    /* ---------------------------------
-                   CHECK API RESULT
-                --------------------------------- */
-    if (!data.success) {
-      throw new Error(data.message || "Unable to load journal details.");
+  
+    if (!result.success) {
+      throw new Error(result.message || "Unable to load journal details.");
     }
 
-    /* ---------------------------------
-                   DISPLAY JOURNAL
-                --------------------------------- */
-    displayJournal(data);
-  } catch (err) {
+    displayJournal(result.data || {});
+  } 
+  
+  catch (err) {
     console.error("Journal details error:", err);
 
     showError(err.message || "An error occurred while loading the journal.");
   }
 }
 
-/* =========================================
-           COPY APA CITATION
-        ========================================= */
+if (copyCitation) {
+  copyCitation.addEventListener("click", async function () {
+    const citationText = citation ? citation.textContent.trim() : "";
 
-copyCitation.addEventListener("click", async function () {
-  const citationText = citation.textContent.trim();
-
-  if (!citationText) {
-    return;
-  }
-
-  /* ---------------------------------
-                   TRY MODERN CLIPBOARD API
-                --------------------------------- */
-  try {
-    await navigator.clipboard.writeText(citationText);
-    const originalText = copyCitation.textContent;
-    copyCitation.textContent = "Copied!";
-
-    setTimeout(() => {
-      copyCitation.textContent = originalText;
-    }, 1500);
-  } catch (err) {
-    console.error("Copy citation error:", err);
-
-    /* FALLBACK*/
-    const textArea = document.createElement("textarea");
-    textArea.value = citationText;
-    textArea.style.position = "fixed";
-    textArea.style.opacity = "0";
-    document.body.appendChild(textArea);
-    textArea.select();
+    if (!citationText) {
+      return;
+    }
 
     try {
-      document.execCommand("copy");
+      await navigator.clipboard.writeText(citationText);
       const originalText = copyCitation.textContent;
       copyCitation.textContent = "Copied!";
-
       setTimeout(() => {
         copyCitation.textContent = originalText;
       }, 1500);
-    } catch (fallbackError) {
-      console.error("Fallback copy failed:", fallbackError);
-      alert("Unable to copy the citation.");
-    } finally {
-      document.body.removeChild(textArea);
+    } 
+    
+    catch (err) {
+      console.error("Copy citation error:", err);
+
+      const textArea = document.createElement("textarea");
+      textArea.value = citationText;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      textArea.style.pointerEvents = "none";
+      document.body.appendChild(textArea);
+      textArea.select();
+
+      try {
+        document.execCommand("copy");
+        const originalText = copyCitation.textContent;
+        copyCitation.textContent = "Copied!";
+
+        setTimeout(() => {
+          copyCitation.textContent = originalText;
+        }, 1500);
+      } 
+      
+      catch (fallbackError) {
+        console.error("Fallback copy failed:", fallbackError);
+        alert("Unable to copy the citation.");
+      } 
+      
+      finally {
+        document.body.removeChild(textArea);
+      }
     }
-  }
-});
+
+  });
+
+}
 
 loadJournalDetails();

@@ -1,8 +1,22 @@
 <?php
-//GET JOURNAL ID
+require_once __DIR__ . '/../config/database.php';
+
+$publicationID = filter_input(INPUT_GET, 'publicationID', FILTER_VALIDATE_INT);
 $journalID = filter_input(INPUT_GET, 'journalID', FILTER_VALIDATE_INT);
 
-if (!$journalID || $journalID <= 0) {
+if (($publicationID === false || $publicationID === null || $publicationID <= 0) && ($journalID === false || $journalID === null || $journalID <= 0)) {
+    header('Location: manage_journal.php');
+    exit;
+}
+
+if ($publicationID === false || $publicationID === null || $publicationID <= 0) {
+    $pdo = (new Database())->getConnection();
+    $stmt = $pdo->prepare('SELECT "publicationID" FROM "JournalArticle" WHERE "journalID" = :journalID LIMIT 1');
+    $stmt->execute([':journalID' => $journalID]);
+    $publicationID = (int) ($stmt->fetchColumn() ?: 0);
+}
+
+if (!$publicationID || $publicationID <= 0) {
     header('Location: manage_journal.php');
     exit;
 }
@@ -43,52 +57,19 @@ if (!$journalID || $journalID <= 0) {
             <div id="errorMessage" class="status-message error-message" role="alert" aria-live="assertive" style="display: none;"> </div>
 
             <!-- EDIT FORM -->
-            <form id="editForm" data-journal-id="<?= $journalID ?>" enctype="multipart/form-data" style="display: none;">
-                <!-- HIDDEN JOURNAL ID -->
-                <input type="hidden" id="journalID" name="journalID" value="<?= htmlspecialchars((string) $journalID) ?>">
+            <form id="editForm" data-publication-id="<?= htmlspecialchars((string) $publicationID) ?>" enctype="multipart/form-data" style="display: none;">
+                <input type="hidden" id="publicationID" name="publicationID" value="<?= htmlspecialchars((string) $publicationID) ?>">
 
-                <!-- ARTICLE INFORMATION  -->
                 <section class="edit-section" aria-labelledby="article-information-heading">
                     <header class="section-header">
                         <div class="section-icon" aria-hidden="true"> <i class="fa-solid fa-file-lines"></i> </div>
                         <div>
-                            <h2 id="article-information-heading"> Article Information </h2>
-                            <p> Edit the article details and authors. </p>
+                            <h2 id="article-information-heading"> Articles </h2>
+                            <p> Edit every article in this publication issue. </p>
                         </div>
                     </header>
 
-                    <!-- ARTICLE TITLE -->
-                    <div class="form-group">
-                        <label for="title"> Article Title <span class="required" aria-hidden="true">*</span></label>
-                        <input type="text" id="title" name="title" maxlength="500" required placeholder="Enter article title">
-                    </div>
-
-                    <!-- AUTHORS -->
-                    <fieldset class="form-group">
-                        <legend class="label-row"> <span> Authors <span class="required" aria-hidden="true">*</span> </span> <button type="button" id="addAuthorButton" class="add-author-button"> <i class="fa-solid fa-plus"></i> Add Author </button> </legend>
-                        <div id="authorsContainer" class="authors-container"> </div> <small class="form-help"> Edit the author's name, add another author, or remove an author. </small>
-                    </fieldset>
-
-                    <!-- CURRENT ARTICLE PDF -->
-                    <div class="form-group">
-                        <label for="currentPdf"> Current Article PDF </label>
-                        <div class="current-file">
-                            <div class="file-icon" aria-hidden="true">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-                            <div class="file-information"> <span class="file-label"> Current PDF </span>
-                                <div id="currentPdf"> Loading... </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- REPLACE ARTICLE PDF -->
-                    <div class="form-group"> <label for="journalPDF"> Replace Article PDF </label>
-                        <div class="pdf-upload-box" id="articlePdfUploadBox">
-                            <div class="pdf-upload-icon" aria-hidden="true"> <i class="fa-solid fa-file-pdf"></i> </div>
-                            <div class="pdf-upload-text"> <strong> Select a new article PDF </strong> <span id="articlePdfFileName"> No file selected </span> </div> <button type="button" class="choose-pdf" onclick="document.getElementById('journalPDF').click()"> <i class="fa-solid fa-folder-open"></i> Choose File </button> <input type="file" id="journalPDF" name="journalPDF" accept="application/pdf">
-                        </div> <small class="form-help"> Optional. Leave empty to keep the current PDF. </small>
-                    </div>
+                    <div id="articlesContainer" class="articles-container"></div>
                 </section>
 
                 <!-- PUBLICATION ISSUE -->
@@ -170,7 +151,7 @@ if (!$journalID || $journalID <= 0) {
                 <!-- FORM ACTIONS -->
                 <footer class="form-actions">
                     <button type="button" class="cancel-button" onclick="goBack()"> Cancel </button>
-                    <button type="submit" class="save-button" id="saveButton"> Save Changes </button>
+                    <button type="submit" class="save-button" id="saveButton"> Confirm Changes </button>
                 </footer>
 
             </form>
