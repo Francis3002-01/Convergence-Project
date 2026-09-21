@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/manage_journal.css">
+    <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
 </head>
 
 <body>
@@ -182,15 +183,9 @@
 
                     <div class="article-step-top">
 
-                        <button
-                            type="button"
-                            class="back-to-publication"
-                            onclick="goToPublication()">
-
+                        <button type="button" class="back-to-publication" onclick="goToPublication()">
                             <i class="fa-solid fa-arrow-left"></i>
-
                             Back to Publication Issue
-
                         </button>
 
                     </div>
@@ -282,18 +277,10 @@
                             </div>
 
 
-                            <button
-                                type="button"
-                                class="delete-article-button"
-                                id="deleteArticleButton"
-                                onclick="requestDeleteArticle()"
-                                title="Remove article">
-
+                            <button type="button" class="delete-article-button" id="deleteArticleButton" onclick="requestDeleteArticle()" title="Remove article">
                                 <i class="fa-solid fa-trash"></i>
                                 Remove Article
-
                             </button>
-
                         </div>
 
 
@@ -305,17 +292,11 @@
                                 Article Title
                             </label>
 
-                            <input
-                                type="text"
-                                id="articleTitle"
-                                placeholder="Enter article title"
-                                required>
-
+                            <input type="text" id="articleTitle" placeholder="Enter article title"required>
                         </div>
 
 
                         <!-- ARTICLE PDF -->
-
                         <div class="form-group">
 
                             <label>
@@ -323,9 +304,7 @@
                             </label>
 
 
-                            <div
-                                class="pdf-upload-box"
-                                id="articlePdfUploadBox">
+                            <div class="pdf-upload-box" id="articlePdfUploadBox">
 
                                 <input
                                     type="file"
@@ -388,7 +367,6 @@
                                     Authors
                                 </label>
 
-
                                 <button
                                     type="button"
                                     class="add-author-button"
@@ -396,15 +374,12 @@
 
                                     <i class="fa-solid fa-plus"></i>
                                     Add Author
-
                                 </button>
 
                             </div>
 
 
-                            <div
-                                id="authors"
-                                class="authors-container"></div>
+                            <div id="authors" class="authors-container"></div>
 
                         </div>
 
@@ -422,32 +397,16 @@
 
                         </button>
 
-
                         <!-- SAVE AS DRAFT -->
-
-                        <button
-                            type="button"
-                            class="save-draft-btn"
-                            id="saveDraftButton"
-                            onclick="savePublication('draft')">
-
+                        <button type="button" class="save-draft-btn" id="saveDraftButton"onclick="savePublication('draft')">
                             <i class="fa-solid fa-file-pen"></i>
                             Save as Draft
-
                         </button>
 
-
                         <!-- PUBLISH -->
-
-                        <button
-                            type="button"
-                            class="publish-btn"
-                            id="publishButton"
-                            onclick="savePublication('publish')">
-
+                        <button type="button" class="publish-btn"id="publishButton"onclick="savePublication('publish')">
                             <i class="fa-solid fa-upload"></i>
                             Publish
-
                         </button>
 
                     </div>

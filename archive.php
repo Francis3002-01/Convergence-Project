@@ -1,7 +1,42 @@
+<?php
+
+require_once 'vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+require_once 'config/database.php';
+
+$database = new Database();
+$pdo = $database->getConnection();
+
+/*Get Archive Issues*/
+
+$sql = '
+    SELECT
+        "publicationID",
+        "year",
+        "volume",
+        "number"
+    FROM "PublicationIssue"
+    WHERE "is_current" = FALSE
+      AND "is_draft" = FALSE
+    ORDER BY "year" DESC, "volume" DESC, "number" DESC
+';
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+
+$archiveIssues = $stmt->fetchAll();
+
+?>
+
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive | Convergence</title>
@@ -14,6 +49,7 @@
     <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="stylesheet" href="css/transition.css">
     <link rel="stylesheet" href="css/archive_page.css">
+
     <link rel="icon" type="image/jpeg" href="Images/Convergence Logo.png">
 </head>
 
@@ -21,64 +57,55 @@
 
     <?php include 'includes/header.php'; ?>
 
-     <section class="about-intro">
+
+    <!-- Archive Introduction -->
+
+    <section class="about-intro">
         <div class="about-intro-content">
             <h1>Archive</h1>
-            <p>A record of past issues, academic conversations, and enduring contributions to knowledge</p>
+            <p>A record of past issues, academic conversations,and enduring contributions to knowledge</p>
         </div>
     </section>
 
-    <!-- Main Content Container: List of Issues -->
+    <!-- Main Content Container -->
     <main class="archive-container">
-        <h2 class="section-title">List of Issues</h2>
+        <h2 class="section-title">List of Archive Issues</h2>
 
         <div class="journal-list">
-
-            <!-- Issue Item 01 -->
-            <div class="journal-item">
-                <div class="journal-info">
-                    <a href="archive-detailspage.php?issue_id=1" class="issue-label">2020: Volume 6, Number 1</a>
+            <?php if (empty($archiveIssues)): ?>
+                <div class="no-issues">
+                    <p>No archived issues are currently available.</p>
                 </div>
-                <a href="archive-detailspage.php?issue_id=1" class="view-btn" title="View Issue">
-                    <i class="fa-solid fa-eye"></i>
-                </a>
-            </div>
+            <?php else: ?>
 
-            <!-- Issue Item 02 -->
-            <div class="journal-item">
-                <div class="journal-info">
-                    <a href="archive-detailspage.php?issue_id=2" class="issue-label">2021: Volume 7, Number 1</a>
-                </div>
-                <a href="archive-detailspage.php?issue_id=2" class="view-btn" title="View Issue">
-                    <i class="fa-solid fa-eye"></i>
-                </a>
-            </div>
+                <?php foreach ($archiveIssues as $issue): ?>
 
-            <!-- Issue Item 03 -->
-            <div class="journal-item">
-                <div class="journal-info">
-                    <a href="archive-detailspage.php?issue_id=3" class="issue-label">2022: Volume 8, Number 1</a>
-                </div>
-                <a href="archive-detailspage.php?issue_id=3" class="view-btn" title="View Issue">
-                    <i class="fa-solid fa-eye"></i>
-                </a>
-            </div>
+                    <div class="journal-item">
 
-            <!-- Issue Item 04 -->
-            <div class="journal-item">
-                <div class="journal-info">
-                    <a href="archive-detailspage.php?issue_id=4" class="issue-label">2023: Volume 9, Number 1</a>
-                </div>
-                <a href="archive-detailspage.php?issue_id=4" class="view-btn" title="View Issue">
-                    <i class="fa-solid fa-eye"></i>
-                </a>
-            </div>
+                        <div class="journal-info">
+
+                            <a href="archive-detailspage.php?issue_id=<?= htmlspecialchars($issue['publicationID']) ?>" class="issue-label">
+                                <?= htmlspecialchars($issue['year']) ?>:
+                                Volume <?= htmlspecialchars($issue['volume']) ?>,
+                                Number <?= htmlspecialchars($issue['number']) ?>
+                            </a>
+
+                        </div>
+
+
+                        <a href="archive-detailspage.php?issue_id=<?= htmlspecialchars($issue['publicationID']) ?>" class="view-btn" title="View Issue">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+
+                    </div>
+
+                <?php endforeach; ?>
+
+            <?php endif; ?>
 
         </div>
+
     </main>
-
     <?php include 'includes/footer.php'; ?>
-
 </body>
-
 </html>

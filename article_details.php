@@ -172,11 +172,9 @@ function generateReaderApaCitation(
 
             $citationAuthors[] =
                 $lastName . ', ' . $initials;
-
         } elseif ($lastName !== '') {
 
             $citationAuthors[] = $lastName;
-
         } else {
 
             $citationAuthors[] = $initials;
@@ -191,7 +189,6 @@ function generateReaderApaCitation(
 
         $authorText =
             $citationAuthors[0] . ' ';
-
     } elseif ($authorCount === 2) {
 
         $authorText =
@@ -199,7 +196,6 @@ function generateReaderApaCitation(
             . ', & '
             . $citationAuthors[1]
             . ' ';
-
     } elseif ($authorCount > 2) {
 
         $lastAuthor = array_pop($citationAuthors);
@@ -247,31 +243,11 @@ function generateReaderApaCitation(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| Load environment variables
-|--------------------------------------------------------------------------
-*/
-
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-
-/*
-|--------------------------------------------------------------------------
-| Database connection
-|--------------------------------------------------------------------------
-*/
-
 $database = new Database();
 $pdo = $database->getConnection();
-
-
-/*
-|--------------------------------------------------------------------------
-| Get journal ID
-|--------------------------------------------------------------------------
-*/
 
 $journalID = filter_input(
     INPUT_GET,
@@ -280,20 +256,12 @@ $journalID = filter_input(
 );
 
 if (!$journalID || $journalID <= 0) {
-
     header('Location: journal.php');
     exit;
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| Default values
-|--------------------------------------------------------------------------
-*/
-
+/*Default values*/
 $article = null;
-
 $authors = [];
 
 $publication = [
@@ -304,15 +272,11 @@ $publication = [
 
 $pdfUrl = '';
 
-$citation = 'Citation unavailable.';
+$citation = 'Citation unavailable';
+$backUrl = 'journal.php';
+$backText = 'Back to Journal';
 
-
-/*
-|--------------------------------------------------------------------------
-| Get article details
-|--------------------------------------------------------------------------
-*/
-
+/*Get article details*/
 $articleStmt = $pdo->prepare(
     'SELECT
         ja."journalID",
@@ -321,7 +285,8 @@ $articleStmt = $pdo->prepare(
         ja."publicationID",
         pi."year",
         pi."volume",
-        pi."number"
+        pi."number",
+        pi."is_current"
      FROM "JournalArticle" ja
      INNER JOIN "PublicationIssue" pi
         ON pi."publicationID" = ja."publicationID"
@@ -336,13 +301,19 @@ $articleStmt->execute([
 $article = $articleStmt->fetch();
 
 
-/*
-|--------------------------------------------------------------------------
-| Get authors and publication information
-|--------------------------------------------------------------------------
-*/
-
+/*Get authors and publication information*/
 if ($article) {
+
+    if (!empty($article['is_current'])) {
+        $backUrl = 'journal.php';
+        $backText = 'Back to Current Issue';
+    } 
+    
+    else {
+        $backUrl = 'archive-detailspage.php?issue_id='
+            . urlencode($article['publicationID']);
+        $backText = 'Back to Archive Issue';
+    }
 
     $authorStmt = $pdo->prepare(
         'SELECT
@@ -408,38 +379,15 @@ if ($article) {
 <head>
 
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Article Details | Convergence
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="includes_css/header.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="includes_css/footer.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="css/admin_journal_details.css"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Details | Convergence</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="includes_css/header.css">
+    <link rel="stylesheet" href="includes_css/footer.css">
+    <link rel="stylesheet" href="css/admin_journal_details.css">
 
     <style>
-
+        
         body {
             margin: 0;
             background: #f7f7f7;
@@ -474,7 +422,6 @@ if ($article) {
                 padding-top: 55px;
             }
         }
-
     </style>
 
 </head>
@@ -487,22 +434,15 @@ if ($article) {
 
         <div class="details-container">
 
-            <a
-                href="journal.php"
-                class="back-button"
-            >
+            <a href="<?= htmlspecialchars($backUrl) ?>" class="back-button">
                 <span class="back-arrow">←</span>
-                Back to Journal
+                <?= htmlspecialchars($backText) ?>
             </a>
 
             <?php if (!$article): ?>
 
                 <div class="details-card">
-
-                    <h2>
-                        Article not found.
-                    </h2>
-
+                    <h2>Article not found</h2>
                 </div>
 
             <?php else: ?>
@@ -564,7 +504,7 @@ if ($article) {
                                 ', ',
                                 $publicationParts
                             )
-                            ?: 'Publication information unavailable.'
+                                ?: 'Publication information unavailable.'
                         ) ?>
 
                     </div>
@@ -610,79 +550,27 @@ if ($article) {
 
 
                     <div class="details-section">
-
                         <h2>APA Citation</h2>
-
                         <div class="citation-box">
-
-                            <p id="citation">
-                                <?= htmlspecialchars($citation) ?>
-                            </p>
-
-                            <button
-                                type="button"
-                                id="copyCitation"
-                                class="copy-button"
-                            >
-                                Copy Citation
-                            </button>
-
+                            <p id="citation"><?= htmlspecialchars($citation) ?></p>
+                            <button type="button" id="copyCitation" class="copy-button"> Copy Citation</button>
                         </div>
-
                     </div>
 
-
                     <?php if ($pdfUrl !== ''): ?>
-
-                        <div
-                            id="pdfSection"
-                            class="pdf-section"
-                        >
-
+                        <div id="pdfSection" class="pdf-section">
                             <div class="pdf-actions">
-
-                                <button
-                                    id="readOnline"
-                                    type="button"
-                                    class="action-button"
-                                >
-                                    Read Online
-                                </button>
-
-                                <a
-                                    id="downloadPdf"
-                                    class="action-button secondary"
-                                    href="<?= htmlspecialchars($pdfUrl) ?>?download"
-                                    download
-                                >
-                                    Download PDF
-                                </a>
-
+                                <button id="readOnline" type="button" class="action-button">Read Online</button>
+                                <a id="downloadPdf" class="action-button secondary" href="<?= htmlspecialchars($pdfUrl) ?>?download"download>Download PDF</a>
                             </div>
 
-
-                            <div
-                                id="pdfViewerContainer"
-                                class="pdf-viewer-container"
-                                style="display: none;"
-                            >
-
-                                <iframe
-                                    id="pdfViewer"
-                                    class="pdf-viewer"
-                                    title="Journal PDF Viewer"
-                                ></iframe>
-
+                            <div id="pdfViewerContainer" class="pdf-viewer-container" style="display: none;">
+                                <iframe id="pdfViewer" class="pdf-viewer" title="Journal PDF Viewer"></iframe>
                             </div>
-
                         </div>
-
                     <?php endif; ?>
-
                 </div>
-
             <?php endif; ?>
-
         </div>
 
     </main>
@@ -692,311 +580,114 @@ if ($article) {
 
     <script>
 
-        const pdfUrl = <?= json_encode(
-            $pdfUrl,
-            JSON_HEX_TAG |
-            JSON_HEX_AMP |
-            JSON_HEX_APOS |
-            JSON_HEX_QUOT
-        ) ?>;
-
-        const readOnline =
-            document.getElementById('readOnline');
-
-        const downloadPdf =
-            document.getElementById('downloadPdf');
-
-        const pdfViewer =
-            document.getElementById('pdfViewer');
-
-        const pdfViewerContainer =
-            document.getElementById('pdfViewerContainer');
-
-        const copyCitation =
-            document.getElementById('copyCitation');
-
-        const citation =
-            document.getElementById('citation');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | PDF actions
-        |--------------------------------------------------------------------------
-        */
+        const pdfUrl = <?= json_encode($pdfUrl,JSON_HEX_TAG |JSON_HEX_AMP |JSON_HEX_APOS |JSON_HEX_QUOT) ?>;
+        const readOnline = document.getElementById('readOnline');
+        const downloadPdf = document.getElementById('downloadPdf');
+        const pdfViewer = document.getElementById('pdfViewer');
+        const pdfViewerContainer = document.getElementById('pdfViewerContainer');
+        const copyCitation =document.getElementById('copyCitation');
+        const citation = document.getElementById('citation');
 
         if (pdfUrl) {
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Download PDF
-            |--------------------------------------------------------------------------
-            */
-
             if (downloadPdf) {
 
-                const journalId =
-                    <?= (int) ($article['journalID'] ?? 0) ?>;
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Make sure the PDF URL contains the download parameter.
-                |--------------------------------------------------------------------------
-                */
-
-                downloadPdf.href =
-                    pdfUrl.includes('?')
-                        ? `${pdfUrl}&download`
-                        : `${pdfUrl}?download`;
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Track download when user clicks Download PDF
-                |--------------------------------------------------------------------------
-                */
-
-                downloadPdf.addEventListener(
-                    'click',
-                    function (event) {
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Prevent normal link navigation temporarily.
-                        |--------------------------------------------------------------------------
-                        */
+                const journalId = <?= (int) ($article['journalID'] ?? 0) ?>;
+                downloadPdf.href = pdfUrl.includes('?') ?`${pdfUrl}&download` :`${pdfUrl}?download`;
+                
+                downloadPdf.addEventListener('click',function(event) {
 
                         event.preventDefault();
-
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Open the PDF immediately.
-                        |--------------------------------------------------------------------------
-                        */
-
-                        const pdfWindow =
-                            window.open(
-                                downloadPdf.href,
-                                '_blank'
-                            );
-
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Validate journal ID.
-                        |--------------------------------------------------------------------------
-                        */
+                        const pdfWindow = window.open( downloadPdf.href,'_blank');
 
                         if (!journalId || journalId <= 0) {
 
-                            console.error(
-                                'Download tracking failed: invalid journal ID.'
-                            );
-
+                            console.error('Download tracking failed: invalid journal ID.');
 
                             if (!pdfWindow) {
-
-                                window.location.href =
-                                    downloadPdf.href;
+                                window.location.href =downloadPdf.href;
                             }
 
                             return;
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Prepare request
-                        |--------------------------------------------------------------------------
-                        */
-
-                        const payload =
-                            JSON.stringify({
-                                journalID: journalId
-                            });
-
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Send tracking request
-                        |--------------------------------------------------------------------------
-                        */
+                        const payload = JSON.stringify({journalID: journalId});
 
                         fetch(
-                            'track_download.php',
-                            {
-                                method: 'POST',
-
-                                credentials:
-                                    'same-origin',
-
-                                keepalive: true,
-
-                                headers: {
-                                    'Content-Type':
-                                        'application/json',
-
-                                    'Accept':
-                                        'application/json'
-                                },
-
-                                body: payload
-                            }
-                        )
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Read raw response first
-                        |--------------------------------------------------------------------------
-                        */
-
-                        .then(
-                            async function (response) {
-
-                                const responseText =
-                                    await response.text();
-
-
-                                console.log(
-                                    'track_download.php status:',
-                                    response.status
-                                );
-
-
-                                console.log(
-                                    'track_download.php response:',
-                                    responseText
-                                );
-
-
-                                let data;
-
-
-                                try {
-
-                                    data =
-                                        JSON.parse(
-                                            responseText
-                                        );
-
-                                } catch (jsonError) {
-
-                                    console.error(
-                                        'track_download.php did not return valid JSON.'
-                                    );
-
-                                    console.error(
-                                        'Raw response:',
-                                        responseText
-                                    );
-
-                                    return null;
+                                'track_download.php', {
+                                    method: 'POST',
+                                    credentials: 'same-origin',
+                                    keepalive: true,
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: payload
                                 }
+                            )
 
+                            .then(
+                                async function(response) {
+                                    const responseText = await response.text();
 
-                                return data;
-                            }
-                        )
+                                    console.log('track_download.php status:',response.status);
+                                    console.log('track_download.php response:',responseText);
 
+                                    let data;
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Process tracking result
-                        |--------------------------------------------------------------------------
-                        */
+                                    try {
+                                        data = JSON.parse(responseText);
+                                    } 
+                                    
+                                    catch (jsonError) {
 
-                        .then(
-                            function (data) {
+                                        console.error('track_download.php did not return valid JSON.');
+                                        console.error('Raw response:', responseText);
 
-                                if (!data) {
-                                    return;
+                                        return null;
+                                    }
+
+                                    return data;
                                 }
+                            )
 
+                            .then(
+                                function(data) {
 
-                                if (!data.success) {
+                                    if (!data) {
+                                        return;
+                                    }
 
-                                    console.error(
-                                        'Download tracking failed:',
-                                        data
-                                    );
-
-
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | IMPORTANT:
-                                    | This should show the actual PHP/Supabase error.
-                                    |--------------------------------------------------------------------------
-                                    */
-
-                                    console.error(
-                                        'Backend error:',
-                                        data.data?.error ||
-                                        'No error details returned.'
-                                    );
-
-                                } else {
-
-                                    console.log(
-                                        'Download recorded successfully:',
-                                        data
-                                    );
+                                    if (!data.success) {
+                                        console.error('Download tracking failed:',data);
+                                        console.error('Backend error:', data.data?.error || 'No error details returned.');
+                                    } 
+                                    
+                                    else {
+                                        console.log('Download recorded successfully:',data);
+                                    }
                                 }
-                            }
-                        )
+                            )
 
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Request error
-                        |--------------------------------------------------------------------------
-                        */
-
-                        .catch(
-                            function (error) {
-
-                                console.error(
-                                    'Download tracking request failed:',
-                                    error
-                                );
-                            }
-                        );
-
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Popup blocker fallback
-                        |--------------------------------------------------------------------------
-                        */
+                            .catch(
+                                function(error) {
+                                    console.error('Download tracking request failed:',error);
+                                }
+                            );
 
                         if (!pdfWindow) {
-
-                            window.location.href =
-                                downloadPdf.href;
+                            window.location.href = downloadPdf.href;
                         }
 
                     }
                 );
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Read Online
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                readOnline &&
-                pdfViewer &&
-                pdfViewerContainer
-            ) {
+            if (readOnline && pdfViewer && pdfViewerContainer) {
 
                 readOnline.addEventListener(
                     'click',
-                    function () {
+                    function() {
 
                         pdfViewer.src = pdfUrl;
 
@@ -1024,7 +715,7 @@ if ($article) {
 
             copyCitation.addEventListener(
                 'click',
-                async function () {
+                async function() {
 
                     const citationText =
                         citation.textContent.trim();
@@ -1114,7 +805,6 @@ if ($article) {
 
                             setTimeout(
                                 () => {
-
                                     copyCitation.textContent =
                                         originalText;
 
@@ -1123,30 +813,21 @@ if ($article) {
                             );
 
 
-                        } catch (fallbackError) {
+                        } 
+                        
+                        catch (fallbackError) {
+                            console.error('Fallback copy failed:',fallbackError);
+                            alert('Unable to copy the citation.');
 
-                            console.error(
-                                'Fallback copy failed:',
-                                fallbackError
-                            );
-
-
-                            alert(
-                                'Unable to copy the citation.'
-                            );
-
-
-                        } finally {
-
-                            document.body.removeChild(
-                                textArea
-                            );
+                        } 
+                        
+                        finally {
+                            document.body.removeChild(textArea);
                         }
                     }
                 }
             );
         }
-
     </script>
 
 </body>

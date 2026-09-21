@@ -53,7 +53,7 @@ function normalizeIssuePdfPath(string $storagePath): string
     if ($bucketName !== '') {
         $bucketPrefix = $bucketName . '/';
         if (str_starts_with($storagePath, $bucketPrefix)) {
-            $storagePath = substr($storagePath,strlen($bucketPrefix));
+            $storagePath = substr($storagePath, strlen($bucketPrefix));
         }
     }
 
@@ -87,10 +87,10 @@ function createPublicIssuePdfUrl(string $storagePath): string
         return $storagePath;
     }
 
-    $normalizedPath =normalizeIssuePdfPath($storagePath);
+    $normalizedPath = normalizeIssuePdfPath($storagePath);
     $encodedPath = implode(
         '/',
-        array_map('rawurlencode',explode('/', $normalizedPath))
+        array_map('rawurlencode', explode('/', $normalizedPath))
     );
 
     return rtrim($supabaseUrl, '/')
@@ -109,7 +109,7 @@ $pdo = $database->getConnection();
 $publicationID = filter_input(INPUT_GET, 'publicationID', FILTER_VALIDATE_INT);
 
 // Handle editorial note download
-if (isset($_GET['download']) &&$_GET['download'] === 'editorial' &&isset($_GET['publicationID']) &&ctype_digit($_GET['publicationID'])) {
+if (isset($_GET['download']) && $_GET['download'] === 'editorial' && isset($_GET['publicationID']) && ctype_digit($_GET['publicationID'])) {
     $publicationIssue = new PublicationIssue();
     $publicationIssue->downloadEditorNote(
         $pdo,
@@ -274,83 +274,36 @@ if ($publicationID && $publicationID > 0) {
         </div>
     </section>
 
-
-    <!-- =========================================================
-     PAGE CONTENT
-========================================================= -->
-
     <main class="journal-content">
-
 
         <?php if ($issue): ?>
 
-
-            <!-- =====================================================
-             CURRENT ISSUE
-        ====================================================== -->
-
-            <section
-                class="current-issue"
-                aria-labelledby="current-issue-heading">
+            <section class="current-issue" aria-labelledby="current-issue-heading">
 
                 <div class="issue-label">
                     CONVERGENCE JOURNAL
                 </div>
 
-
                 <h1 id="current-issue-heading">Current Issue</h1>
-
 
                 <!-- Year | Volume | Number -->
                 <div class="issue-information">
-                    <span>
-                        <?= htmlspecialchars(
-                            (string) ($issue['year'] ?? '')
-                        ) ?>
-                    </span>
-
-                    <span class="issue-divider">
-                        |
-                    </span>
-
-                    <span>Volume<?= htmlspecialchars((string) ($issue['volume'] ?? '')) ?></span>
-
+                    <span><?= htmlspecialchars((string) ($issue['year'] ?? '')) ?></span>
                     <span class="issue-divider">|</span>
-
-                    <span>
-                        Number
-                        <?= htmlspecialchars(
-                            (string) ($issue['number'] ?? '')
-                        ) ?>
-                    </span>
-
+                    <span>Volume <?= htmlspecialchars((string) ($issue['volume'] ?? '')) ?></span>
+                    <span class="issue-divider">|</span>
+                    <span>Number <?= htmlspecialchars((string) ($issue['number'] ?? '')) ?></span>
                 </div>
-
-
-                <!-- =================================================
-                 EDITORIAL NOTE BUTTONS
-            ================================================== -->
 
                 <?php if (!empty($issue['publicationPDF'])): ?>
 
                     <div class="editorial-actions">
 
-
                         <!-- Read -->
-
-                        <a href="<?= htmlspecialchars(
-                                        (string) $issue['publicationPDF']
-                                    ) ?>"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="editorial-button read-button">
+                        <a href="<?= htmlspecialchars((string) $issue['publicationPDF']) ?>"target="_blank"rel="noopener noreferrer"class="editorial-button read-button">
                             <i class="fa-solid fa-book-open"></i>
-
-                            <span>
-                                Read Editorial Note
-                            </span>
+                            <span>Read Editorial Note</span>
                         </a>
-
 
                         <!-- Download -->
                         <a href="journal.php?publicationID=<?= (int) $issue['publicationID'] ?>&download=editorial"
@@ -364,9 +317,6 @@ if ($publicationID && $publicationID > 0) {
                 <?php endif; ?>
             </section>
 
-            <!-- =====================================================
-             LIST OF ARTICLES
-        ====================================================== -->
             <section class="articles-section" aria-labelledby="articles-heading">
                 <div class="articles-heading">
                     <h2 id="articles-heading">List of Articles</h2>
@@ -375,54 +325,31 @@ if ($publicationID && $publicationID > 0) {
 
                 <?php if (!empty($articles)): ?>
 
-
                     <div class="article-list">
-
-
                         <?php foreach ($articles as $index => $article): ?>
-
 
                             <article class="article-item">
 
 
-                                <!-- Article Number -->
-
                                 <div class="article-number">
-
                                     Article
                                     <?= sprintf(
                                         '%02d',
                                         $index + 1
                                     ) ?>
-
                                 </div>
-
-
-                                <!-- =================================================
-                                 ARTICLE TITLE
-                                 ONLY THIS IS CLICKABLE
-                            ================================================== -->
 
                                 <h3 class="article-title">
 
-                                    <a
-                                        href="article_details.php?journalID=<?= (int) $article['journalID'] ?>">
-
+                                    <a href="article_details.php?journalID=<?= (int) $article['journalID'] ?>">
                                         <?= htmlspecialchars(
                                             (string) (
                                                 $article['title']
                                                 ?? 'Untitled Article'
                                             )
                                         ) ?>
-
                                     </a>
-
                                 </h3>
-
-
-                                <!-- =================================================
-                                 AUTHORS
-                            ================================================== -->
 
                                 <?php if (!empty($article['authors'])): ?>
 
@@ -433,98 +360,45 @@ if ($publicationID && $publicationID > 0) {
                                             as $authorIndex => $author
                                         ): ?>
 
-                                            <span class="author">
-
-                                                <?= htmlspecialchars(
-                                                    $author
-                                                ) ?>
-
-                                            </span>
-
+                                            <span class="author"><?= htmlspecialchars($author) ?></span>
                                         <?php endforeach; ?>
 
                                     </div>
 
                                 <?php else: ?>
-
                                     <div class="article-authors">
-
-                                        <span class="author">
-                                            Unspecified
-                                        </span>
-
+                                        <span class="author">Unspecified</span>
                                     </div>
-
                                 <?php endif; ?>
 
-
                             </article>
-
-
+                            
                         <?php endforeach; ?>
-
-
                     </div>
-
 
                 <?php else: ?>
 
-
                     <!-- No Articles -->
-
                     <div class="empty-state">
-
-                        <h3>
-                            No Articles Available
-                        </h3>
-
-                        <p>
-                            No articles were found for this issue.
-                        </p>
-
+                        <h3>No Articles Available</h3>
+                        <p>No articles were found for this issue</p>
                     </div>
-
 
                 <?php endif; ?>
 
-
             </section>
 
-
         <?php else: ?>
-
-
-            <!-- =====================================================
-             NO CURRENT ISSUE
-        ====================================================== -->
-
             <section class="empty-issue">
-
                 <div class="empty-issue-icon">
                     <i class="fa-regular fa-file-lines"></i>
                 </div>
-
-                <h2>
-                    No Current Issue Found
-                </h2>
-
-                <p>
-                    The database does not currently have
-                    an active publication issue.
-                </p>
-
+                <h2>No Current Issue Found</h2>
+                <p>The database does not currently have an active publication issue</p>
             </section>
-
-
         <?php endif; ?>
-
-
     </main>
-
-
     <?php include 'includes/footer.php'; ?>
 
-
 </body>
-
 </html>
