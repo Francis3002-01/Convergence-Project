@@ -63,7 +63,6 @@ $error = '';
       </div>
 
       <div class="row">
-        <label><input type="checkbox" name="remember" value="1"> Keep me signed in</label>
         <a href="#">Forgot password?</a>
       </div>
 

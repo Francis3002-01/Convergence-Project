@@ -231,10 +231,8 @@ input[aria-invalid=true] {
 
 .row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
   margin: 4px 0 26px;
   font-size: .95rem;
 }
