@@ -39,7 +39,12 @@ $error = '';
     <h2 id="t">Sign In</h2>
     <p class="lead">Access the Admin Dashboard </p>
 
-    <form id="f" method="post" action="" novalidate>
+    <form id="f" method="post" action="admin_login_process.php" novalidate>
+
+          <?php if (isset($_GET['error']) && $_GET['error'] === 'invalid'): ?>
+          <p class="error-message">Invalid email or password.</p>
+          <?php endif; ?>
+
       <div class="field" id="fe">
         <label for="email">Email address</label>
         <input id="email" name="email" type="email" autocomplete="email" placeholder="you@gmail.com" value="<?= $email ?>" required>
@@ -95,7 +100,8 @@ $error = '';
   }
 
   f.addEventListener('submit', function (e) {
-    var badE = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim()), badP = !pw.value;
+    var badE = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim()), 
+    badP = !pw.value;
     flag('fe', em, badE); flag('fp', pw, badP);
     if (badE || badP) { e.preventDefault(); (badE ? em : pw).focus(); }
   });
