@@ -111,7 +111,7 @@ body {
 
 @media (max-width: 560px) {
   .contact-page {
-    padding: 40px 16px 56px;
+    padding: 0 16px 56px;
   }
 
   .contact-card {

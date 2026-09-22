@@ -3,14 +3,11 @@
         <div class="header-container">
             <!-- Clickable Logo and Brand -->
             <a href="home.php" class="brand">
-
                 <div class="logo">
-                    <img src="Images/Convergence Logo.jpg" alt="Convergence Logo">
+                    <img src="Images/Convergence Logo.png" alt="Convergence Logo">
                 </div>
-
                 <div class="brand-text">
                     <h1>CONVERGENCE</h1>
-
                     <p>A Multidisciplinary Journal</p>
                 </div>
             </a>
@@ -22,7 +19,6 @@
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
             </form>
-
         </div>
 
         <!-- Navigation -->
@@ -48,11 +44,27 @@
     <script>
         const menuToggle = document.querySelector(".menu-toggle");
         const navLinks = document.querySelector(".nav-links");
+        const menuIcon = menuToggle.querySelector("i");
 
         menuToggle.addEventListener("click", function() {
+
             navLinks.classList.toggle("open");
+
             const isOpen = navLinks.classList.contains("open");
+
             menuToggle.setAttribute("aria-expanded", isOpen);
+
+            if (isOpen) {
+                menuIcon.classList.remove("fa-bars");
+                menuIcon.classList.add("fa-xmark");
+                menuToggle.setAttribute("aria-label", "Close navigation menu");
+            } 
+            
+            else {
+                menuIcon.classList.remove("fa-xmark");
+                menuIcon.classList.add("fa-bars");
+                menuToggle.setAttribute("aria-label", "Open navigation menu");
+            }
 
         });
     </script>
