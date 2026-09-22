@@ -36,7 +36,7 @@ $error = '';
 <main>
   <section class="card" aria-labelledby="t">
     <p class="eyebrow">Convergence Journal</p>
-    <h2 id="t">Sign In</h2>
+    <h2 id="t">Log In</h2>
     <p class="lead">Access the Admin Dashboard </p>
 
     <form id="f" method="post" action="admin_login_process.php" novalidate>
@@ -69,7 +69,7 @@ $error = '';
 
       <button class="btn" type="submit">
         <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
-        Sign In
+        Log In
       </button>
 
       <?php if ($error !== ''): ?>

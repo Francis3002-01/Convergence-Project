@@ -319,7 +319,7 @@ if ($publicationID && $publicationID > 0) {
 
             <section class="articles-section" aria-labelledby="articles-heading">
                 <div class="articles-heading">
-                    <h2 id="articles-heading">List of Articles</h2>
+                    <h2 id="articles-heading">List of Current Articles</h2>
                     <p>Click the article title to view details</p>
                 </div>
 

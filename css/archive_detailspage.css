@@ -289,6 +289,21 @@ body.archive-details-page {
     font-size: 14px;
 }
 
+.back-to-archive {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    color: #a42821;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.back-to-archive:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 768px) {
 
     .archive-details-content {

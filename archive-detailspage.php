@@ -314,6 +314,11 @@ if ($publicationID && $publicationID > 0) {
 
         <?php if ($issue): ?>
 
+            <a href="archive.php" class="back-to-archive">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to Archive
+            </a>
+
             <section class="archive-issue" aria-labelledby="archive-issue-heading">
 
                 <div class="issue-label">
@@ -360,7 +365,7 @@ if ($publicationID && $publicationID > 0) {
 
             <section class="articles-section" aria-labelledby="articles-heading">
                 <div class="articles-heading">
-                    <h2 id="articles-heading">List of Articles</h2>
+                    <h2 id="articles-heading">List of Archive Articles</h2>
                     <p>Click the article title to view details</p>
                 </div>
 
@@ -460,4 +465,5 @@ if ($publicationID && $publicationID > 0) {
     </main>
     <?php include 'includes/footer.php'; ?>
 </body>
+
 </html>
