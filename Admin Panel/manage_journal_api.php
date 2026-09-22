@@ -26,7 +26,8 @@ if ($bucket === '') {
 }
 
 
-function sendResponse(bool $success, string $message = '', array $data = [], int $status = 200): never{
+function sendResponse(bool $success, string $message = '', array $data = [], int $status = 200): never
+{
     http_response_code($status);
     header('Content-Type: application/json');
     echo json_encode(
@@ -43,7 +44,8 @@ function sendResponse(bool $success, string $message = '', array $data = [], int
     exit;
 }
 
-function normalizeStoragePath(string $storagePath): string{
+function normalizeStoragePath(string $storagePath): string
+{
     global $bucket;
     $storagePath = trim($storagePath);
 
@@ -1301,16 +1303,15 @@ function saveIssue(PDO $pdo, int $year, int $volume, int $number, array $article
                 ensureOneDraft($pdo);
             }
 
-            $publicationID =
-                createIssueRecord(
-                    $pdo,
-                    $year,
-                    $volume,
-                    $number,
-                    $publicationPDF,
-                    !$isDraft,
-                    $isDraft
-                );
+            $publicationID = createIssueRecord(
+                $pdo,
+                $year,
+                $volume,
+                $number,
+                '',
+                false,
+                $isDraft
+            );
         }
 
         /*UPLOAD PUBLICATION PDF*/
@@ -1508,38 +1509,33 @@ function publishExistingDraft(PDO $pdo, int $publicationID): void
             )->fetchColumn();
 
         if ($current !== false) {
-
             $pdo->prepare(
                 'UPDATE "PublicationIssue"
-                 SET
-                    "is_current" = FALSE,
-                    "is_draft" = FALSE
-                 WHERE
-                    "publicationID" = :publicationID'
+         SET "is_current" = FALSE,
+             "is_draft" = FALSE
+         WHERE "publicationID" = :publicationID'
             )->execute([
-                ':publicationID' =>
-                (int) $current
+                ':publicationID' => (int)$current
             ]);
         }
 
-
         $pdo->prepare(
             'UPDATE "PublicationIssue"
-             SET
-                "is_current" = TRUE,
-                "is_draft" = FALSE
-             WHERE
-                "publicationID" = :publicationID'
+     SET "is_current" = TRUE,
+         "is_draft" = FALSE
+     WHERE "publicationID" = :publicationID'
         )->execute([
-            ':publicationID' =>
-            $publicationID
+            ':publicationID' => $publicationID
         ]);
 
         $pdo->commit();
-    } catch (Throwable $e) {
+    } 
+    
+    catch (Throwable $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
+        
         throw $e;
     }
 }

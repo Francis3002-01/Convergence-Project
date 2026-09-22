@@ -117,51 +117,24 @@
                             <label>Publication Issue PDF</label>
 
                             <div class="pdf-upload-box" id="publicationPdfUploadBox">
-
-                                <input type="file" id="publicationPDF" name="publicationPDF" accept="application/pdf,.pdf"hidden>
-
+                                <input type="file" id="publicationPDF" name="publicationPDF" accept="application/pdf,.pdf" hidden>
                                 <div class="pdf-upload-inner">
-
-                                    <label
-                                        for="publicationPDF"
-                                        class="pdf-upload-label">
-
+                                    <label for="publicationPDF" class="pdf-upload-label">
                                         <div class="upload-icon">
                                             <i class="fa-solid fa-file-pdf"></i>
                                         </div>
 
-
-                                        <span class="upload-title">
-                                            Choose Publication Issue PDF
-                                        </span>
-
-
+                                        <span class="upload-title">Choose Publication Issue PDF</span>
                                         <span class="upload-file-name" id="publicationPdfFileName"> No file selected</span>
-
                                     </label>
 
-
-                                    <button
-                                        type="button"
-                                        class="undo-pdf-btn"
-                                        id="publicationPdfUndo"
-                                        hidden>
-
-                                        Undo
-
-                                    </button>
-
+                                    <button type="button" class="undo-pdf-btn" id="publicationPdfUndo" hidden>Undo</button>
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
 
-
                     <!-- PUBLICATION ACTIONS -->
-
                     <div class="form-actions">
                         <button type="button" class="cancel-btn" onclick="hideForm()">Cancel</button>
                         <button type="button" class="next-btn" onclick="goToArticles()">Next
@@ -170,112 +143,51 @@
                     </div>
                 </div>
 
-                <!-- =================================================
-                     ARTICLE STEP
-                     ================================================= -->
-
-                <div
-                    class="form-step"
-                    id="articleStep"
-                    style="display: none;">
-
+                <!--ARTICLE STEP -->
+                <div class="form-step" id="articleStep" style="display: none;">
                     <!-- BACK TO PUBLICATION -->
-
                     <div class="article-step-top">
-
                         <button type="button" class="back-to-publication" onclick="goToPublication()">
                             <i class="fa-solid fa-arrow-left"></i>
                             Back to Publication Issue
                         </button>
-
                     </div>
 
-
                     <!-- PUBLICATION SUMMARY -->
-
                     <div class="publication-summary">
 
                         <div>
-
-                            <span class="summary-label">
-                                Year
-                            </span>
-
-                            <strong id="displayYear">
-                                —
-                            </strong>
-
+                            <span class="summary-label">Year</span>
+                            <strong id="displayYear"> —</strong>
                         </div>
-
 
                         <div>
-
-                            <span class="summary-label">
-                                Volume
-                            </span>
-
-                            <strong id="displayVolume">
-                                —
-                            </strong>
-
+                            <span class="summary-label">Volume</span>
+                            <strong id="displayVolume">—</strong>
                         </div>
-
 
                         <div>
-
-                            <span class="summary-label">
-                                Number
-                            </span>
-
-                            <strong id="displayNumber">
-                                —
-                            </strong>
-
+                            <span class="summary-label">Number</span>
+                            <strong id="displayNumber">—</strong>
                         </div>
-
                     </div>
-
 
                     <!-- ARTICLE TABS -->
-
                     <div class="article-tabs-wrapper">
+                        <div class="article-tabs" id="articleTabs"></div>
 
-                        <div
-                            class="article-tabs"
-                            id="articleTabs"></div>
-
-
-                        <button
-                            type="button"
-                            class="add-article-btn"
-                            onclick="addArticle()">
-
-                            <i class="fa-solid fa-plus"></i>
-                            Add Article
-
+                        <button type="button" class="add-article-btn" onclick="addArticle()">
+                            <i class="fa-solid fa-plus"></i>Add Article
                         </button>
-
                     </div>
 
-
                     <!-- ARTICLE INFORMATION -->
-
                     <div class="article-form-card">
-
                         <div class="article-heading-row">
-
                             <div>
-
-                                <span class="article-label">
-                                    Article
-                                </span>
-
-                                <h3 id="articleHeading">
-                                    Article 1
-                                </h3>
-
+                                <span class="article-label">Article</span>
+                                <h3 id="articleHeading">Article 1</h3>
                             </div>
-
 
                             <button type="button" class="delete-article-button" id="deleteArticleButton" onclick="requestDeleteArticle()" title="Remove article">
                                 <i class="fa-solid fa-trash"></i>
@@ -285,126 +197,60 @@
 
 
                         <!-- ARTICLE TITLE -->
-
                         <div class="form-group">
-
-                            <label for="articleTitle">
-                                Article Title
-                            </label>
-
-                            <input type="text" id="articleTitle" placeholder="Enter article title"required>
+                            <label for="articleTitle">Article Title</label>
+                            <input type="text" id="articleTitle" placeholder="Enter article title" required>
                         </div>
-
 
                         <!-- ARTICLE PDF -->
                         <div class="form-group">
-
-                            <label>
-                                PDF File
-                            </label>
-
+                            <label>PDF File</label>
 
                             <div class="pdf-upload-box" id="articlePdfUploadBox">
 
-                                <input
-                                    type="file"
-                                    id="pdfFile"
-                                    accept="application/pdf,.pdf"
-                                    hidden>
-
+                                <input type="file" id="pdfFile" accept="application/pdf,.pdf"hidden>
 
                                 <div class="pdf-upload-inner">
 
-                                    <label
-                                        for="pdfFile"
-                                        class="pdf-upload-label">
-
+                                    <label for="pdfFile" class="pdf-upload-label">
                                         <div class="upload-icon">
-
                                             <i class="fa-solid fa-file-pdf"></i>
-
                                         </div>
-
-
-                                        <span class="upload-title">
-                                            Choose Article PDF
-                                        </span>
-
-
-                                        <span
-                                            class="upload-file-name"
-                                            id="pdfFileName">
-                                            No file selected
-                                        </span>
-
+                                        <span class="upload-title">Choose Article PDF</span>
+                                        <span class="upload-file-name"id="pdfFileName">No file selected</span>
                                     </label>
 
-
-                                    <button
-                                        type="button"
-                                        class="undo-pdf-btn"
-                                        id="articlePdfUndo"
-                                        hidden>
-
-                                        Undo
-
-                                    </button>
-
+                                    <button type="button" class="undo-pdf-btn" id="articlePdfUndo" hidden>Undo</button>
                                 </div>
-
                             </div>
-
                         </div>
 
 
                         <!-- AUTHORS -->
-
                         <div class="form-group">
-
                             <div class="field-label-row">
-
-                                <label>
-                                    Authors
-                                </label>
-
-                                <button
-                                    type="button"
-                                    class="add-author-button"
-                                    onclick="addAuthor()">
-
+                                <label>Authors</label>
+                                <button type="button" class="add-author-button"onclick="addAuthor()">
                                     <i class="fa-solid fa-plus"></i>
                                     Add Author
                                 </button>
-
                             </div>
 
-
                             <div id="authors" class="authors-container"></div>
-
                         </div>
-
                     </div>
 
-
                     <div class="form-actions article-actions">
-
-                        <button
-                            type="button"
-                            class="cancel-btn"
-                            onclick="hideForm()">
-
-                            Cancel
-
-                        </button>
+                        <button type="button" class="cancel-btn"onclick="hideForm()">Cancel</button>
 
                         <!-- SAVE AS DRAFT -->
-                        <button type="button" class="save-draft-btn" id="saveDraftButton"onclick="savePublication('draft')">
+                        <button type="button" class="save-draft-btn" id="saveDraftButton" onclick="savePublication('draft')">
                             <i class="fa-solid fa-file-pen"></i>
                             Save as Draft
                         </button>
 
                         <!-- PUBLISH -->
-                        <button type="button" class="publish-btn"id="publishButton"onclick="savePublication('publish')">
+                        <button type="button" class="publish-btn" id="publishButton" onclick="savePublication('publish')">
                             <i class="fa-solid fa-upload"></i>
                             Publish
                         </button>
@@ -433,15 +279,9 @@
             <p id="confirmationMessage">Are you sure you want to remove this article?</p>
 
             <div class="confirmation-actions">
-
                 <button type="button" class="modal-cancel-btn" onclick="closeConfirmationModal()">Cancel</button>
-
-                <button type="button" class="modal-confirm-btn" id="confirmDeleteButton">
-                    Remove Article
-                </button>
-
+                <button type="button" class="modal-confirm-btn" id="confirmDeleteButton">Remove Article</button>
             </div>
-
         </div>
 
     </div>

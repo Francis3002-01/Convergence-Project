@@ -14,7 +14,7 @@ body.archive-details-page {
     width: 100%;
     background: #A42821;
     color: #ffffff;
-    margin-bottom: 55px;
+    margin-bottom: 25px;
     overflow: hidden;
     text-align: center;
 }
@@ -48,7 +48,7 @@ body.archive-details-page {
     width: 100%;
     max-width: 1050px;
     margin: 0 auto;
-    padding: 65px 30px 80px;
+    padding: 25px 30px 80px;
 }
 
 .archive-issue {

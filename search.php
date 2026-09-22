@@ -156,13 +156,7 @@ if ($query !== '') {
 
                                 <!-- Article Title -->
                                 <h2>
-
-                                    <a href="article_details.php?journalID=<?= (int) $result['journalID'] ?>">
-                                        <?= htmlspecialchars(
-                                            $result['title'] ?: 'Untitled Article'
-                                        ) ?>
-                                    </a>
-
+                                    <a href="article_details.php?journalID=<?= (int) $result['journalID'] ?>"><?= htmlspecialchars($result['title'] ?: 'Untitled Article') ?></a>
                                 </h2>
 
                                 <!-- Authors -->
@@ -217,39 +211,22 @@ if ($query !== '') {
                     </div>
 
                 <?php else: ?>
-
                     <div class="no-results">
-
                         <h2>No Articles Found</h2>
-
-                        <p>
-                            No articles matched your search.
-                            Try using different keywords.
-                        </p>
-
+                        <p>No articles matched your search. Try using different keywords.</p>
                     </div>
-
                 <?php endif; ?>
 
             <?php else: ?>
-
                 <div class="no-results">
-
                     <h2>Search for an Article</h2>
-
-                    <p>
-                        Enter an article title or keyword
-                        in the search bar above.
-                    </p>
-
+                    <p>Enter an article title or keyword in the search bar above.</p>
                 </div>
-
             <?php endif; ?>
 
         </section>
 
     </main>
-
     <?php include 'includes/footer.php'; ?>
 
 </body>

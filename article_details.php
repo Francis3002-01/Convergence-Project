@@ -307,9 +307,7 @@ if ($article) {
     if (!empty($article['is_current'])) {
         $backUrl = 'journal.php';
         $backText = 'Back to Current Issue';
-    } 
-    
-    else {
+    } else {
         $backUrl = 'archive-detailspage.php?issue_id='
             . urlencode($article['publicationID']);
         $backText = 'Back to Archive Issue';
@@ -373,9 +371,7 @@ if ($article) {
 ?>
 
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
 
     <meta charset="UTF-8">
@@ -387,7 +383,6 @@ if ($article) {
     <link rel="stylesheet" href="css/admin_journal_details.css">
 
     <style>
-        
         body {
             margin: 0;
             background: #f7f7f7;
@@ -447,28 +442,20 @@ if ($article) {
 
             <?php else: ?>
 
-                <div class="details-card">
-
+                <div class="details-card"
                     <div class="details-header">
-
                         <h1 id="articleTitle">
-
                             <?= htmlspecialchars(
                                 (string) (
                                     $article['title']
                                     ?? 'Untitled Article'
                                 )
                             ) ?>
-
                         </h1>
-
                     </div>
 
-
                     <div class="publication-info">
-
                         <?php
-
                         $publicationParts = [];
 
                         if (!empty($publication['volume'])) {
@@ -558,16 +545,18 @@ if ($article) {
                     </div>
 
                     <?php if ($pdfUrl !== ''): ?>
-                        <div id="pdfSection" class="pdf-section">
+
+                        <div id="pdfSection" class="pdf-section" data-pdf-url="<?= htmlspecialchars($pdfUrl) ?>"data-journal-id="<?= (int) ($article['journalID'] ?? 0) ?>">
                             <div class="pdf-actions">
                                 <button id="readOnline" type="button" class="action-button">Read Online</button>
-                                <a id="downloadPdf" class="action-button secondary" href="<?= htmlspecialchars($pdfUrl) ?>?download"download>Download PDF</a>
+                                <a id="downloadPdf" class="action-button secondary" href="<?= htmlspecialchars($pdfUrl) ?>?download" download>Download PDF</a>
                             </div>
 
                             <div id="pdfViewerContainer" class="pdf-viewer-container" style="display: none;">
                                 <iframe id="pdfViewer" class="pdf-viewer" title="Journal PDF Viewer"></iframe>
                             </div>
                         </div>
+
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
@@ -578,257 +567,7 @@ if ($article) {
     <?php include 'includes/footer.php'; ?>
 
 
-    <script>
-
-        const pdfUrl = <?= json_encode($pdfUrl,JSON_HEX_TAG |JSON_HEX_AMP |JSON_HEX_APOS |JSON_HEX_QUOT) ?>;
-        const readOnline = document.getElementById('readOnline');
-        const downloadPdf = document.getElementById('downloadPdf');
-        const pdfViewer = document.getElementById('pdfViewer');
-        const pdfViewerContainer = document.getElementById('pdfViewerContainer');
-        const copyCitation =document.getElementById('copyCitation');
-        const citation = document.getElementById('citation');
-
-        if (pdfUrl) {
-
-            if (downloadPdf) {
-
-                const journalId = <?= (int) ($article['journalID'] ?? 0) ?>;
-                downloadPdf.href = pdfUrl.includes('?') ?`${pdfUrl}&download` :`${pdfUrl}?download`;
-                
-                downloadPdf.addEventListener('click',function(event) {
-
-                        event.preventDefault();
-                        const pdfWindow = window.open( downloadPdf.href,'_blank');
-
-                        if (!journalId || journalId <= 0) {
-
-                            console.error('Download tracking failed: invalid journal ID.');
-
-                            if (!pdfWindow) {
-                                window.location.href =downloadPdf.href;
-                            }
-
-                            return;
-                        }
-
-                        const payload = JSON.stringify({journalID: journalId});
-
-                        fetch(
-                                'track_download.php', {
-                                    method: 'POST',
-                                    credentials: 'same-origin',
-                                    keepalive: true,
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json'
-                                    },
-                                    body: payload
-                                }
-                            )
-
-                            .then(
-                                async function(response) {
-                                    const responseText = await response.text();
-
-                                    console.log('track_download.php status:',response.status);
-                                    console.log('track_download.php response:',responseText);
-
-                                    let data;
-
-                                    try {
-                                        data = JSON.parse(responseText);
-                                    } 
-                                    
-                                    catch (jsonError) {
-
-                                        console.error('track_download.php did not return valid JSON.');
-                                        console.error('Raw response:', responseText);
-
-                                        return null;
-                                    }
-
-                                    return data;
-                                }
-                            )
-
-                            .then(
-                                function(data) {
-
-                                    if (!data) {
-                                        return;
-                                    }
-
-                                    if (!data.success) {
-                                        console.error('Download tracking failed:',data);
-                                        console.error('Backend error:', data.data?.error || 'No error details returned.');
-                                    } 
-                                    
-                                    else {
-                                        console.log('Download recorded successfully:',data);
-                                    }
-                                }
-                            )
-
-                            .catch(
-                                function(error) {
-                                    console.error('Download tracking request failed:',error);
-                                }
-                            );
-
-                        if (!pdfWindow) {
-                            window.location.href = downloadPdf.href;
-                        }
-
-                    }
-                );
-            }
-
-            if (readOnline && pdfViewer && pdfViewerContainer) {
-
-                readOnline.addEventListener(
-                    'click',
-                    function() {
-
-                        pdfViewer.src = pdfUrl;
-
-                        pdfViewerContainer.style.display =
-                            'block';
-
-                        pdfViewerContainer.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-
-                    }
-                );
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Copy APA citation
-        |--------------------------------------------------------------------------
-        */
-
-        if (copyCitation && citation) {
-
-            copyCitation.addEventListener(
-                'click',
-                async function() {
-
-                    const citationText =
-                        citation.textContent.trim();
-
-
-                    if (!citationText) {
-                        return;
-                    }
-
-
-                    try {
-
-                        await navigator.clipboard.writeText(
-                            citationText
-                        );
-
-
-                        const originalText =
-                            copyCitation.textContent;
-
-
-                        copyCitation.textContent =
-                            'Copied!';
-
-
-                        setTimeout(
-                            () => {
-
-                                copyCitation.textContent =
-                                    originalText;
-
-                            },
-                            1500
-                        );
-
-
-                    } catch (err) {
-
-                        console.error(
-                            'Copy citation error:',
-                            err
-                        );
-
-
-                        const textArea =
-                            document.createElement(
-                                'textarea'
-                            );
-
-
-                        textArea.value =
-                            citationText;
-
-
-                        textArea.style.position =
-                            'fixed';
-
-                        textArea.style.opacity =
-                            '0';
-
-                        textArea.style.pointerEvents =
-                            'none';
-
-
-                        document.body.appendChild(
-                            textArea
-                        );
-
-
-                        textArea.select();
-
-
-                        try {
-
-                            document.execCommand(
-                                'copy'
-                            );
-
-
-                            const originalText =
-                                copyCitation.textContent;
-
-
-                            copyCitation.textContent =
-                                'Copied!';
-
-
-                            setTimeout(
-                                () => {
-                                    copyCitation.textContent =
-                                        originalText;
-
-                                },
-                                1500
-                            );
-
-
-                        } 
-                        
-                        catch (fallbackError) {
-                            console.error('Fallback copy failed:',fallbackError);
-                            alert('Unable to copy the citation.');
-
-                        } 
-                        
-                        finally {
-                            document.body.removeChild(textArea);
-                        }
-                    }
-                }
-            );
-        }
-    </script>
+     <script src="javascript/article_details.js"></script>
 
 </body>
 

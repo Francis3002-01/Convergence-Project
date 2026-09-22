@@ -87,7 +87,7 @@ catch (PDOException $e) {
                 <!-- Journals -->
                 <article class="explore-card">
                     <span class="explore-number">01</span>
-                    <h3>Journals</h3>
+                    <h3>Current</h3>
                     <p>View the current issue and explore individual journal articles</p>
                     <a href="journal.php" class="explore-link">Browse Current Issue →</a>
                 </article>

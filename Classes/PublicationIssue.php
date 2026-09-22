@@ -94,14 +94,8 @@ class PublicationIssue
         }
 
         try {
-            if ($isCurrent) {
-                $stmt = $pdo->prepare(
-                    'UPDATE "PublicationIssue"
-                     SET "is_current" = FALSE
-                     WHERE "is_current" = TRUE'
-                );
-                $stmt->execute();
-            }
+
+
 
             $stmt = $pdo->prepare(
                 'INSERT INTO "PublicationIssue"

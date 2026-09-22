@@ -14,7 +14,7 @@ body.journal-page {
   width: 100%;
   background: #A42821;
   color: #ffffff;
-  margin-bottom: 55px;
+  margin-bottom: 0;
   overflow: hidden;
   text-align: center;
 }
@@ -48,7 +48,7 @@ body.journal-page {
     width: 100%;
     max-width: 1050px;
     margin: 0 auto;
-    padding: 65px 30px 80px;
+    padding: 25px 30px 80px;
 }
 
 .current-issue {
@@ -319,9 +319,8 @@ body.journal-page {
 @media (max-width: 768px) {
 
     .journal-content {
-        padding: 45px 20px 60px;
+        padding: 25px 20px 60px;
     }
-
 
     .current-issue {
         padding: 30px 28px 32px;
@@ -363,7 +362,7 @@ body.journal-page {
 @media (max-width: 520px) {
 
     .journal-content {
-        padding: 35px 15px 50px;
+        padding: 25px 15px 50px;
     }
 
     .current-issue {
