@@ -2,10 +2,11 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/classes/JournalArticle.php';
 
 use Dotenv\Dotenv;
 
-/*Load Environment Variables*/
+// Load Environment Variables
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
@@ -13,94 +14,18 @@ $database = new Database();
 $pdo = $database->getConnection();
 
 $query = trim($_GET['q'] ?? '');
+
 $results = [];
 
-if (mb_strlen($query) < 2) {
-    $query = '';
-}
-
 if ($query !== '') {
-
-    $searchTerm = '%' . $query . '%';
-
-    $stmt = $pdo->prepare(
-        'SELECT
-            ja."journalID",
-            ja."title",
-            pi."year",
-            pi."volume",
-            pi."number",
-            pi."is_current",
-            a."firstName",
-            a."lastName"
-
-        FROM "JournalArticle" ja
-
-        LEFT JOIN "PublicationIssue" pi
-            ON pi."publicationID" = ja."publicationID"
-
-        LEFT JOIN "ArticleAuthor" aa
-            ON aa."journalID" = ja."journalID"
-
-        LEFT JOIN "Author" a
-            ON a."authorID" = aa."authorID"
-
-        WHERE
-            ja."title" ILIKE :search
-            AND pi."is_draft" = FALSE
-
-        ORDER BY
-            pi."is_current" DESC,
-            pi."year" DESC,
-            pi."volume" DESC,
-            pi."number" DESC,
-            ja."journalID" ASC'
-    );
-
-    $stmt->execute([
-        ':search' => $searchTerm
-    ]);
-
-    $rows = $stmt->fetchAll();
-
-    foreach ($rows as $row) {
-
-        $journalID = (int) $row['journalID'];
-
-        if (!isset($results[$journalID])) {
-
-            $results[$journalID] = [
-                'journalID' => $journalID,
-                'title' => $row['title'] ?? '',
-                'year' => $row['year'] ?? '',
-                'volume' => $row['volume'] ?? '',
-                'number' => $row['number'] ?? '',
-                'is_current' => (bool) $row['is_current'],
-                'authors' => []
-            ];
-        }
-
-        $firstName = trim((string) ($row['firstName'] ?? ''));
-        $lastName = trim((string) ($row['lastName'] ?? ''));
-
-        if ($firstName !== '' || $lastName !== '') {
-
-            $authorName = trim($firstName . ' ' . $lastName);
-
-            if (!in_array($authorName,$results[$journalID]['authors'],true)) {
-                $results[$journalID]['authors'][] =
-                    $authorName;
-            }
-        }
-    }
-
-    $results = array_values($results);
+    $journalArticle = new JournalArticle();
+    $results = $journalArticle->searchJournal($pdo,$query);
 }
-
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -108,7 +33,7 @@ if ($query !== '') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="includes_css/header.css">
     <link rel="stylesheet" href="css/search.css">
-    <link rel="stylesheet"href="includes_css/footer.css">
+    <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="icon" type="image/jpeg" href="Images/Convergence Logo.png">
 </head>
 
@@ -230,4 +155,5 @@ if ($query !== '') {
     <?php include 'includes/footer.php'; ?>
 
 </body>
+
 </html>

@@ -25,7 +25,6 @@ try {
     $stmt->execute();
 
     $currentIssue = $stmt->fetch(PDO::FETCH_ASSOC);
-
 } 
 
 catch (PDOException $e) {
@@ -126,5 +125,4 @@ catch (PDOException $e) {
 
     <?php include __DIR__ . '/includes/footer.php'; ?>
 </body>
-
 </html>

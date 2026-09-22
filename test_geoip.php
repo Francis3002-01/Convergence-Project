@@ -30,6 +30,8 @@ try {
 
     $reader->close();
 
-} catch (Exception $e) {
+} 
+
+catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 }

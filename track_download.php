@@ -154,23 +154,17 @@ function supabaseRequest(string $method,string $endpoint,array $payload = []): a
     }
 
 
-    /*
-     * Get HTTP status.
-     */
+    /*Get HTTP status*/
     $httpCode = curl_getinfo($ch,CURLINFO_HTTP_CODE);
 
     curl_close($ch);
 
-    /*
-     * Supabase returned an error.
-     */
+    /*Supabase returned an error*/
     if ($httpCode < 200 ||$httpCode >= 300) {
         throw new RuntimeException('Supabase HTTP ' .$httpCode .': ' .$response);
     }
 
-    /*
-     * Empty successful response.
-     */
+    /*Empty successful response*/
     if (trim($response) === '') {
         return [];
     }
@@ -252,11 +246,7 @@ try {
         $continentMap[$name] = (int) $continent['continentID'];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Determine visitor IP
-    |--------------------------------------------------------------------------
-    */
+    /*Determine visitor IP*/
     $visitorIp = getClientIp();
 
     /*Determine continent*/

@@ -2055,7 +2055,9 @@ try {
             sendResponse(false, 'Invalid action.', [], 400);
             break;
     }
-} catch (Throwable $e) {
+} 
+
+catch (Throwable $e) {
     error_log('Manage Journal API Error: ' . $e->getMessage());
     sendResponse(false, $e->getMessage(), [], 500);
 }

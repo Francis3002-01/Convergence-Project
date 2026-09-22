@@ -461,36 +461,96 @@ class JournalArticle
     {
         $keyword = trim($keyword);
 
-        if ($keyword === '') {
+        // Do not search if the keyword is less than 2 characters.
+        if (mb_strlen($keyword) < 2) {
             return [];
         }
 
         $stmt = $pdo->prepare(
             'SELECT
-                ja."journalID",
-                ja."title",
-                ja."journalPDF",
-                ja."publicationID",
-                pi."year",
-                pi."volume",
-                pi."number"
-             FROM "JournalArticle" ja
-             INNER JOIN "PublicationIssue" pi
-                ON ja."publicationID" = pi."publicationID"
-             WHERE
-                ja."title" ILIKE :keyword
-             ORDER BY
-                pi."year" DESC,
-                pi."volume" DESC,
-                pi."number" DESC,
-                ja."title" ASC'
+            ja."journalID",
+            ja."title",
+            ja."journalPDF",
+            ja."publicationID",
+            pi."year",
+            pi."volume",
+            pi."number",
+            pi."is_current",
+            a."firstName",
+            a."lastName"
+        FROM "JournalArticle" ja
+
+        INNER JOIN "PublicationIssue" pi
+            ON ja."publicationID" = pi."publicationID"
+
+        LEFT JOIN "ArticleAuthor" aa
+            ON aa."journalID" = ja."journalID"
+
+        LEFT JOIN "Author" a
+            ON a."authorID" = aa."authorID"
+
+        WHERE
+            ja."title" ILIKE :keyword
+            AND pi."is_draft" = FALSE
+
+        ORDER BY
+            pi."is_current" DESC,
+            pi."year" DESC,
+            pi."volume" DESC,
+            pi."number" DESC,
+            ja."journalID" ASC'
         );
 
         $stmt->execute([
             ':keyword' => '%' . $keyword . '%'
         ]);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $results = [];
+
+        foreach ($rows as $row) {
+
+            $journalID = (int) $row['journalID'];
+
+            // Create the article result only once.
+            if (!isset($results[$journalID])) {
+                $results[$journalID] = [
+                    'journalID' => $journalID,
+                    'title' => $row['title'] ?? '',
+                    'journalPDF' => $row['journalPDF'] ?? '',
+                    'publicationID' => (int) ($row['publicationID'] ?? 0),
+                    'year' => $row['year'] ?? '',
+                    'volume' => $row['volume'] ?? '',
+                    'number' => $row['number'] ?? '',
+                    'is_current' => (bool) $row['is_current'],
+                    'authors' => []
+                ];
+            }
+
+            // Add the author to the article.
+            $firstName = trim((string) ($row['firstName'] ?? ''));
+            $lastName = trim((string) ($row['lastName'] ?? ''));
+
+            if ($firstName !== '' || $lastName !== '') {
+
+                $authorName = trim(
+                    $firstName . ' ' . $lastName
+                );
+
+                if (
+                    !in_array(
+                        $authorName,
+                        $results[$journalID]['authors'],
+                        true
+                    )
+                ) {
+                    $results[$journalID]['authors'][] = $authorName;
+                }
+            }
+        }
+
+        return array_values($results);
     }
 
     public function generateCitation(array $article, array $publication, array $authors): string

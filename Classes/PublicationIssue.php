@@ -19,63 +19,51 @@ class PublicationIssue
         $this->is_current = $is_current;
     }
 
-    public function getPublicationID(): int
-    {
+    public function getPublicationID(): int{
         return $this->publicationID;
     }
 
-    public function getYear(): int
-    {
+    public function getYear(): int{
         return $this->year;
     }
 
-    public function getVolume(): int
-    {
+    public function getVolume(): int{
         return $this->volume;
     }
 
-    public function getNumber(): int
-    {
+    public function getNumber(): int{
         return $this->number;
     }
 
-    public function getEditorNotePDF(): string
-    {
+    public function getEditorNotePDF(): string{
         return $this->editorNotePDF;
     }
 
-    public function isCurrent(): bool
-    {
+    public function isCurrent(): bool{
         return $this->is_current;
     }
 
-    public function setPublicationID(int $publicationID): void
-    {
+    public function setPublicationID(int $publicationID): void{
         $this->publicationID = $publicationID;
     }
 
-    public function setYear(int $year): void
-    {
+    public function setYear(int $year): void{
         $this->year = $year;
     }
 
-    public function setVolume(int $volume): void
-    {
+    public function setVolume(int $volume): void{
         $this->volume = $volume;
     }
 
-    public function setNumber(int $number): void
-    {
+    public function setNumber(int $number): void{
         $this->number = $number;
     }
 
-    public function setEditorNotePDF(string $editorNotePDF): void
-    {
+    public function setEditorNotePDF(string $editorNotePDF): void{
         $this->editorNotePDF = $editorNotePDF;
     }
 
-    public function setIsCurrent(bool $is_current): void
-    {
+    public function setIsCurrent(bool $is_current): void{
         $this->is_current = $is_current;
     }
 
@@ -94,8 +82,6 @@ class PublicationIssue
         }
 
         try {
-
-
 
             $stmt = $pdo->prepare(
                 'INSERT INTO "PublicationIssue"
@@ -134,7 +120,9 @@ class PublicationIssue
             }
 
             return (int) $publicationID;
-        } catch (Throwable $e) {
+        } 
+        
+        catch (Throwable $e) {
             throw $e;
         }
     }

@@ -7,9 +7,7 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->load();
 
-
 /*Supabase configuration*/
-
 $supabaseUrl = trim($_ENV['SUPABASE_URL'] ?? '');
 $supabaseKey = trim($_ENV['SUPABASE_SECRET_KEY'] ?? '');
 
@@ -233,8 +231,9 @@ try {
                     1
                 );
 
-        } else {
-
+        } 
+        
+        else {
             $continent['percentage'] = 0;
         }
     }
@@ -261,6 +260,7 @@ try {
 
 
 } 
+
 catch (Throwable $e) {
     sendResponse(false,$e->getMessage(),[],500);
 }
