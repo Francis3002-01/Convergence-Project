@@ -151,7 +151,7 @@ class JournalArticle
         }
     }
 
-    public function updateJournal(PDO $pdo, int $journalID, int $year, int $volume, int $number, string $title, ?string $journalPDF = null, ?string $publicationPDF = null, ?array $authors = null): bool
+    /*public function updateJournal(PDO $pdo, int $journalID, int $year, int $volume, int $number, string $title, ?string $journalPDF = null, ?string $publicationPDF = null, ?array $authors = null): bool
     {
         if ($journalID <= 0) {
             throw new InvalidArgumentException(
@@ -159,7 +159,7 @@ class JournalArticle
             );
         }
 
-        /*Get the existing article and publication issue*/
+        
         $stmt = $pdo->prepare(
             'SELECT
                 ja."journalID",
@@ -190,13 +190,6 @@ class JournalArticle
             );
         }
 
-        /*
-         * Only draft articles can be edited
-         *
-         * NOTE: This still restricts editing to draft issues only.
-         * If current-issue editing is required, this check should
-         * be removed to match removeJournal() below.
-         */
         if (!(bool) $existingArticle['is_draft']) {
             throw new RuntimeException(
                 'Only draft articles can be updated.'
@@ -206,10 +199,6 @@ class JournalArticle
         $this->setJournalID($journalID);
         $this->setTitle(trim($title));
 
-        /*
-         * If no new article PDF was supplied,
-         * keep the article's existing PDF.
-         */
         if ($journalPDF === null || $journalPDF === '') {
             $journalPDF = $existingArticle['journalPDF'];
         }
@@ -221,10 +210,7 @@ class JournalArticle
         try {
             $pdo->beginTransaction();
 
-            /*
-             * Update PublicationIssue through the dedicated issue class.
-             * The database column remains "publicationPDF" to avoid renaming the live schema.
-             */
+            
             $publicationIssue = new PublicationIssue();
             $publicationIssue->updateIssue(
                 $pdo,
@@ -235,7 +221,7 @@ class JournalArticle
                 $publicationPDF
             );
 
-            /*Update JournalArticle.*/
+            
             $stmt = $pdo->prepare(
                 'UPDATE "JournalArticle"
                  SET
@@ -250,7 +236,169 @@ class JournalArticle
                 ':journalID' => $this->journalID
             ]);
 
-            /*Update authors only when supplied.*/
+            
+            if ($authors !== null) {
+                if (empty($authors)) {
+                    throw new InvalidArgumentException(
+                        'An article must have at least one author.'
+                    );
+                }
+
+                $this->saveAuthors(
+                    $pdo,
+                    $this->journalID,
+                    $authors
+                );
+            }
+
+            $pdo->commit();
+
+            return true;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            throw $e;
+        }
+    }*/
+
+    public function updateJournal(PDO $pdo,int $journalID,int $year,int $volume,int $number,string $title,?string $journalPDF = null,?string $publicationPDF = null,?array $authors = null): bool {
+        
+        if ($journalID <= 0) {
+            throw new InvalidArgumentException(
+                'Invalid journal ID.'
+            );
+        }
+
+        if ($year <= 0) {
+            throw new InvalidArgumentException(
+                'Invalid publication year.'
+            );
+        }
+
+        if ($volume <= 0) {
+            throw new InvalidArgumentException(
+                'Invalid volume number.'
+            );
+        }
+
+        if ($number <= 0) {
+            throw new InvalidArgumentException(
+                'Invalid issue number.'
+            );
+        }
+
+        $title = trim($title);
+
+        if ($title === '') {
+            throw new InvalidArgumentException(
+                'Article title is required.'
+            );
+        }
+
+        /*
+     * Get the existing article and publication issue.
+     */
+        $stmt = $pdo->prepare(
+            'SELECT
+            ja."journalID",
+            ja."title",
+            ja."journalPDF",
+            ja."publicationID",
+            pi."year",
+            pi."volume",
+            pi."number",
+            pi."publicationPDF",
+            pi."is_current",
+            pi."is_draft"
+         FROM "JournalArticle" ja
+         INNER JOIN "PublicationIssue" pi
+            ON ja."publicationID" = pi."publicationID"
+         WHERE ja."journalID" = :journalID
+         LIMIT 1'
+        );
+
+        $stmt->execute([
+            ':journalID' => $journalID
+        ]);
+
+        $existingArticle = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$existingArticle) {
+            throw new RuntimeException(
+                'Journal article not found.'
+            );
+        }
+
+        /*
+     * Store the existing values when no replacement
+     * PDF or author list is supplied.
+     */
+        if ($journalPDF === null || $journalPDF === '') {
+            $journalPDF = $existingArticle['journalPDF'] ?? '';
+        }
+
+        if ($publicationPDF === null || $publicationPDF === '') {
+            $publicationPDF =
+                $existingArticle['publicationPDF'] ?? '';
+        }
+
+        /*
+     * Update the JournalArticle object.
+     */
+        $this->setJournalID($journalID);
+
+        $this->setPublicationID(
+            (int) $existingArticle['publicationID']
+        );
+
+        $this->setTitle($title);
+
+        $this->setJournalPDF($journalPDF);
+
+        $publicationID =
+            (int) $existingArticle['publicationID'];
+
+        try {
+            $pdo->beginTransaction();
+
+            /*
+         * Update the publication issue through
+         * the dedicated PublicationIssue class.
+         */
+            $publicationIssue = new PublicationIssue();
+
+            $publicationIssue->updateIssue(
+                $pdo,
+                $publicationID,
+                $year,
+                $volume,
+                $number,
+                $publicationPDF
+            );
+
+            /*
+         * Update the article.
+         */
+            $stmt = $pdo->prepare(
+                'UPDATE "JournalArticle"
+             SET
+                "title" = :title,
+                "journalPDF" = :journalPDF
+             WHERE "journalID" = :journalID'
+            );
+
+            $stmt->execute([
+                ':title' => $this->title,
+                ':journalPDF' => $this->journalPDF,
+                ':journalID' => $this->journalID
+            ]);
+
+            /*
+         * Update authors only when an author list
+         * was supplied.
+         */
             if ($authors !== null) {
                 if (empty($authors)) {
                     throw new InvalidArgumentException(

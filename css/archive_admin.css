@@ -58,6 +58,11 @@
     background: #f5f5f5;
 }
 
+
+/* =========================================================
+   ARCHIVE LIST
+   ========================================================= */
+
 .archive-list-container {
     width: 100%;
     background: #fff;
@@ -91,7 +96,6 @@
 .archive-list-header > div {
     padding: 0 8px;
 }
-
 
 .archive-list-row {
     display: grid;
@@ -133,18 +137,26 @@
 }
 
 .view-archive-button {
-    width: 34px;
-    height: 34px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+
+    min-width: 50px;
+    height: 34px;
+
+    padding: 0 12px;
+
     border: none;
     border-radius: 5px;
+
     background: #f0f0f0;
     color: #444;
+
     cursor: pointer;
+
     font-size: 13px;
     text-decoration: none;
+
     transition: background 0.2s ease;
 }
 
@@ -152,6 +164,11 @@
     background: #ddd;
     color: #222;
 }
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
 
 .empty-state {
     padding: 40px 20px;
@@ -170,6 +187,11 @@
     font-size: 14px;
 }
 
+
+/* =========================================================
+   ARCHIVE DETAILS
+   ========================================================= */
+
 .archive-details-page {
     width: 100%;
 }
@@ -182,10 +204,14 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+
     padding: 0;
+
     border: none;
     background: none;
+
     color: #800000;
+
     font-size: 14px;
     text-decoration: none;
     cursor: pointer;
@@ -195,13 +221,22 @@
     color: #660000;
 }
 
+
+/* =========================================================
+   ISSUE CARD
+   ========================================================= */
+
 .archive-issue-card {
     width: 100%;
+
     padding: 25px 30px;
     margin-bottom: 25px;
+
     background: #fff;
+
     border: 1px solid #ddd;
     border-radius: 8px;
+
     box-sizing: border-box;
 }
 
@@ -211,35 +246,45 @@
 
 .archive-label {
     display: block;
+
     margin-bottom: 5px;
+
     font-size: 12px;
     color: #777;
+
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
 .archive-issue-heading h2 {
     margin: 0;
+
     font-size: 24px;
     color: #222;
 }
 
 .archive-publication-summary {
     display: grid;
+
     grid-template-columns: repeat(3, 1fr);
+
     gap: 15px;
 }
 
 .archive-publication-summary > div {
     padding: 12px 15px;
+
     border: 1px solid #ddd;
     border-radius: 6px;
+
     background: #f8f8f8;
 }
 
 .archive-publication-summary span {
     display: block;
+
     margin-bottom: 4px;
+
     font-size: 12px;
     color: #777;
 }
@@ -249,12 +294,21 @@
     color: #222;
 }
 
+
+/* =========================================================
+   ARCHIVE SECTION
+   ========================================================= */
+
 .archive-section {
     width: 100%;
+
     margin-bottom: 25px;
+
     background: #fff;
+
     border: 1px solid #ddd;
     border-radius: 8px;
+
     overflow: hidden;
 }
 
@@ -262,49 +316,71 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+
     padding: 20px 25px;
+
     border-bottom: 1px solid #ddd;
 }
 
 .section-label {
     display: block;
+
     margin-bottom: 4px;
+
     font-size: 12px;
     color: #777;
+
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
 .archive-section-header h3 {
     margin: 0;
+
     font-size: 20px;
     color: #222;
 }
 
+
+/* =========================================================
+   EDITORIAL NOTE
+   ========================================================= */
+
 .editorial-note-card {
     display: flex;
     align-items: center;
+
     gap: 15px;
+
     padding: 20px 25px;
+
+    box-sizing: border-box;
 }
 
 .editorial-note-icon {
     width: 45px;
     height: 45px;
+
     flex-shrink: 0;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border-radius: 6px;
+
     background: #f8e5e3;
     color: #a42821;
+
     font-size: 20px;
 }
 
 .editorial-note-info {
     display: flex;
     flex-direction: column;
+
     gap: 4px;
+
     flex: 1;
     min-width: 0;
 }
@@ -319,36 +395,52 @@
     color: #777;
 }
 
+
+/* =========================================================
+   READ BUTTON
+   ========================================================= */
+
 .read-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
     padding: 9px 14px;
-    border: 1px solid #800000;
+    border: 1px solid #a42821;
     border-radius: 6px;
-    background: #fff;
-    color: #800000;
+    background: #a42821;
+    color: #fff;
     font-size: 13px;
     text-decoration: none;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.2s ease;
+    box-sizing: border-box;
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .read-button:hover {
-    background: #800000;
+    background: #821f1a;
+    border-color: #821f1a;
     color: #fff;
 }
 
 
-.no-pdf {
-    display: inline-flex;
+/* =========================================================
+   EDITORIAL NOTE ACTIONS
+   ========================================================= */
+
+.editorial-note-actions {
+    display: flex;
+
     align-items: center;
-    font-size: 13px;
-    color: #999;
-    white-space: nowrap;
+    justify-content: flex-end;
+
+    flex-shrink: 0;
 }
+
+
+/* =========================================================
+   ARTICLES
+   ========================================================= */
 
 .archive-articles-container {
     width: 100%;
@@ -356,16 +448,24 @@
 
 .archive-articles-header {
     display: grid;
+
     grid-template-columns:
         minmax(220px, 2fr)
         minmax(180px, 1.5fr)
         120px;
+
     align-items: center;
+
     min-height: 52px;
+
     padding: 0 20px;
+
     background: #f5f5f5;
+
     border-bottom: 1px solid #ddd;
+
     box-sizing: border-box;
+
     font-size: 14px;
     font-weight: 700;
     color: #444;
@@ -377,14 +477,20 @@
 
 .archive-article-row {
     display: grid;
+
     grid-template-columns:
         minmax(220px, 2fr)
         minmax(180px, 1.5fr)
         120px;
+
     align-items: center;
+
     min-height: 72px;
+
     padding: 12px 20px;
+
     box-sizing: border-box;
+
     border-bottom: 1px solid #eee;
 }
 
@@ -398,24 +504,39 @@
 
 .article-title {
     min-width: 0;
+
     font-size: 14px;
     font-weight: 600;
+
     color: #222;
+
     line-height: 1.4;
+
     overflow-wrap: anywhere;
 }
 
 .article-authors {
     min-width: 0;
+
     font-size: 13px;
     color: #666;
+
     line-height: 1.4;
+
     overflow-wrap: anywhere;
 }
 
 .article-actions {
     display: flex;
+
     align-items: center;
     justify-content: flex-end;
+
     gap: 7px;
+
+    min-width: 0;
+}
+
+.article-actions .read-button {
+    display: inline-flex;
 }

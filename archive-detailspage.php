@@ -336,31 +336,28 @@ if ($publicationID && $publicationID > 0) {
                     <span>Number <?= htmlspecialchars((string) ($issue['number'] ?? '')) ?></span>
                 </div>
 
-                <?php if (!empty($issue['publicationPDF'])): ?>
-                    <div class="editorial-actions">
+                <div class="editorial-actions">
 
-                        <!-- Read Editorial Note -->
-                        <a href="<?= htmlspecialchars(
-                                        (string)
-                                        $issue['publicationPDF']
-                                    ) ?>"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="editorial-button read-button">
+                    <!-- Read Editorial Note -->
+                    <a
+                        href="#"
+                        class="editorial-button read-button"
+                        onclick="return false;">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Read Editorial Note</span>
+                    </a>
 
-                            <i class="fa-solid fa-book-open"></i>
 
-                            <span>Read Editorial Note</span>
-                        </a>
+                    <!-- Download Editorial Note -->
+                    <a
+                        href="#"
+                        class="editorial-button download-button"
+                        onclick="return false;">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Download Editorial Note</span>
+                    </a>
 
-                        <!-- Download Editorial Note -->
-                        <a href="archive-detailspage.php?issue_id=<?= (int) $issue['publicationID'] ?>&download=editorial" class="editorial-button download-button">
-                            <i class="fa-solid fa-download"></i>
-                            <span>Download Editorial Note</span>
-                        </a>
-
-                    </div>
-                <?php endif; ?>
+                </div>
             </section>
 
             <section class="articles-section" aria-labelledby="articles-heading">

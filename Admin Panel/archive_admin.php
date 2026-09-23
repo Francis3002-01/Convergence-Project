@@ -11,7 +11,12 @@ $dotenv->load();
 $database = new Database();
 $pdo = $database->getConnection();
 
-/*Get selected publication ID*/
+/**
+ * --------------------------------------------------------------------------
+ * Get selected publication ID
+ * --------------------------------------------------------------------------
+ */
+
 $publicationID = filter_input(
     INPUT_GET,
     'publicationID',
@@ -21,7 +26,12 @@ $publicationID = filter_input(
 $selectedIssue = null;
 $articles = [];
 
-/*Get Archive Issues*/
+/**
+ * --------------------------------------------------------------------------
+ * Get Archive Issues
+ * --------------------------------------------------------------------------
+ */
+
 $archiveStmt = $pdo->query(
     'SELECT
         "publicationID",
@@ -40,19 +50,19 @@ $archiveStmt = $pdo->query(
 
 $archiveIssues = $archiveStmt->fetchAll();
 
-/*
-|--------------------------------------------------------------------------
-| If an archive issue was selected, retrieve its details
-|--------------------------------------------------------------------------
-*/
+/**
+ * --------------------------------------------------------------------------
+ * If an archive issue was selected, retrieve its details
+ * --------------------------------------------------------------------------
+ */
 
 if ($publicationID && $publicationID > 0) {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Get selected archive issue
-    |--------------------------------------------------------------------------
-    */
+    /**
+     * ----------------------------------------------------------------------
+     * Get selected archive issue
+     * ----------------------------------------------------------------------
+     */
 
     $issueStmt = $pdo->prepare(
         'SELECT
@@ -74,11 +84,11 @@ if ($publicationID && $publicationID > 0) {
 
     $selectedIssue = $issueStmt->fetch();
 
-    /*
-    |--------------------------------------------------------------------------
-    | Get Articles and Authors
-    |--------------------------------------------------------------------------
-    */
+    /**
+     * ----------------------------------------------------------------------
+     * Get Articles and Authors
+     * ----------------------------------------------------------------------
+     */
 
     if ($selectedIssue) {
 
@@ -107,18 +117,17 @@ if ($publicationID && $publicationID > 0) {
 
         $rows = $articleStmt->fetchAll();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Group Authors by Article
-        |--------------------------------------------------------------------------
-        */
+        /**
+         * ------------------------------------------------------------------
+         * Group Authors by Article
+         * ------------------------------------------------------------------
+         */
 
         foreach ($rows as $row) {
 
             $journalID = (int) $row['journalID'];
 
             if (!isset($articles[$journalID])) {
-
                 $articles[$journalID] = [
                     'journalID' => $journalID,
                     'title' => $row['title'] ?? '',
@@ -153,16 +162,40 @@ if ($publicationID && $publicationID > 0) {
 ?>
 
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
     <title>Archive - Convergence</title>
-    <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet"href="../css/admin.css">
-    <link rel="stylesheet"href="../css/archive_admin.css">
-    <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/admin.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/archive_admin.css">
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="../Images/Convergence Logo.png">
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
 </head>
 
 <body>
@@ -177,25 +210,52 @@ if ($publicationID && $publicationID > 0) {
 
             <?php if (!$selectedIssue): ?>
 
+                <!-- =====================================================
+                     ARCHIVE LIST PAGE
+                     ===================================================== -->
+
                 <section id="archiveListPage">
 
                     <!-- PAGE HEADER -->
 
                     <div class="page-header">
+
                         <div class="page-heading">
+
                             <h1>Archive</h1>
-                            <p>View previously published journal issues</p>
+
+                            <p>
+                                View previously published journal issues
+                            </p>
+
                         </div>
 
                         <!-- SEARCH -->
+
                         <div class="page-actions">
+
                             <div class="search-box">
-                                <input type="text" id="searchInput" placeholder="Search archive issues..." autocomplete="off"aria-label="Search archive issues">
-                                <button type="button" id="searchButton"aria-label="Search">
+
+                                <input
+                                    type="text"
+                                    id="searchInput"
+                                    placeholder="Search archive issues..."
+                                    autocomplete="off"
+                                    aria-label="Search archive issues">
+
+                                <button
+                                    type="button"
+                                    id="searchButton"
+                                    aria-label="Search">
+
                                     <i class="fa-solid fa-magnifying-glass"></i>
+
                                 </button>
+
                             </div>
+
                         </div>
+
                     </div>
 
                     <div class="archive-list-container">
@@ -220,27 +280,29 @@ if ($publicationID && $publicationID > 0) {
 
                         </div>
 
-
                         <!-- DATABASE ARCHIVE ISSUES -->
 
-                        <div id="archiveList class="archive-list">
+                        <div
+                            id="archiveList"
+                            class="archive-list">
+
                             <?php if (!empty($archiveIssues)): ?>
+
                                 <?php foreach ($archiveIssues as $archive): ?>
 
-                                    <div class="archive-list-row" data-search="
-                                            <?= htmlspecialchars(
-                                                strtolower(
-                                                    (string) $archive['year']
-                                                    . ' '
-                                                    . (string) $archive['volume']
-                                                    . ' '
-                                                    . (string) $archive['number']
-                                                ),
-                                                ENT_QUOTES,
-                                                'UTF-8'
-                                            ) ?>
-                                        "
-                                    >
+                                    <div
+                                        class="archive-list-row"
+                                        data-search="<?= htmlspecialchars(
+                                                            strtolower(
+                                                                (string) $archive['year']
+                                                                    . ' '
+                                                                    . (string) $archive['volume']
+                                                                    . ' '
+                                                                    . (string) $archive['number']
+                                                            ),
+                                                            ENT_QUOTES,
+                                                            'UTF-8'
+                                                        ) ?>">
 
                                         <div>
                                             <?= htmlspecialchars(
@@ -261,19 +323,35 @@ if ($publicationID && $publicationID > 0) {
                                         </div>
 
                                         <div>
-                                            <a href="archive_admin.php?publicationID=<?= (int) $archive['publicationID'] ?>" class="view-archive-button" title="View Archive Issue"aria-label="View Archive Issue">
+
+                                            <a
+                                                href="archive_admin.php?publicationID=<?= (int) $archive['publicationID'] ?>"
+                                                class="view-archive-button"
+                                                title="View Archive Issue"
+                                                aria-label="View Archive Issue">
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
+
                                         </div>
+
                                     </div>
 
                                 <?php endforeach; ?>
 
                             <?php else: ?>
+
                                 <div class="empty-state">
-                                    <h3>No Archive Issues</h3>
-                                    <p>No previously published journal issues were found.</p>
+
+                                    <h3>
+                                        No Archive Issues
+                                    </h3>
+
+                                    <p>
+                                        No previously published journal issues were found.
+                                    </p>
+
                                 </div>
+
                             <?php endif; ?>
 
                         </div>
@@ -285,22 +363,45 @@ if ($publicationID && $publicationID > 0) {
 
             <?php else: ?>
 
-                <section id="archiveDetailsPage"class="archive-details-page">
+                <!-- =====================================================
+                     ARCHIVE DETAILS PAGE
+                     ===================================================== -->
+
+                <section
+                    id="archiveDetailsPage"
+                    class="archive-details-page">
+
                     <!-- BACK BUTTON -->
 
                     <div class="archive-details-top">
-                        <a href="archive_admin.php" class="back-to-archives">
+
+                        <a
+                            href="archive_admin.php"
+                            class="back-to-archives">
+
                             <i class="fa-solid fa-arrow-left"></i>
+
                             Back to Archives
+
                         </a>
 
                     </div>
 
+
+                    <!-- =================================================
+                         ISSUE INFORMATION
+                         ================================================= -->
+
                     <div class="archive-issue-card">
+
                         <div class="archive-issue-heading">
-                            <span class="archive-label">Archive Issue</span>
+
+                            <span class="archive-label">
+                                Archive Issue
+                            </span>
 
                             <h2>
+
                                 Volume
                                 <?= htmlspecialchars(
                                     (string) $selectedIssue['volume']
@@ -321,63 +422,115 @@ if ($publicationID && $publicationID > 0) {
                         <div class="archive-publication-summary">
 
                             <div>
-                                <span>Year</span>
-                                <strong><?= htmlspecialchars((string) $selectedIssue['year']) ?></strong>
+
+                                <span>
+                                    Year
+                                </span>
+
+                                <strong>
+
+                                    <?= htmlspecialchars(
+                                        (string) $selectedIssue['year']
+                                    ) ?>
+
+                                </strong>
+
                             </div>
 
                             <div>
-                                <span>Volume</span>
-                                <strong><?= htmlspecialchars((string) $selectedIssue['volume']) ?></strong>
+
+                                <span>
+                                    Volume
+                                </span>
+
+                                <strong>
+
+                                    <?= htmlspecialchars(
+                                        (string) $selectedIssue['volume']
+                                    ) ?>
+
+                                </strong>
+
                             </div>
 
                             <div>
-                                <span>Number</span>
-                                <strong><?= htmlspecialchars((string) $selectedIssue['number']) ?></strong>
+
+                                <span>
+                                    Number
+                                </span>
+
+                                <strong>
+
+                                    <?= htmlspecialchars(
+                                        (string) $selectedIssue['number']
+                                    ) ?>
+
+                                </strong>
+
                             </div>
 
                         </div>
 
                     </div>
 
+
+                    <!-- =================================================
+                         EDITORIAL NOTE
+                         ================================================= -->
+
                     <div class="archive-section">
+
                         <div class="archive-section-header">
+
                             <div>
-                                <span class="section-label">Publication</span>
-                                <h3>Editorial Note</h3>
-                            </div>
-                        </div>
 
-                        <div class="editorial-note-card">
-                            <div class="editorial-note-icon">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </div>
-
-                            <div class="editorial-note-info">
-                                <strong>Editorial Note PDF</strong>
-                                <span>Read the editorial note for this issue</span>
-                            </div>
-
-                            <?php if (!empty($selectedIssue['publicationPDF'])): ?>
-
-                                <a
-                                    href="<?= htmlspecialchars(
-                                        (string) $selectedIssue['publicationPDF']
-                                    ) ?>"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="read-button"
-                                >
-                                    <i class="fa-solid fa-eye"></i>
-                                    Read Editorial Note
-                                </a>
-
-                            <?php else: ?>
-
-                                <span class="no-pdf">
-                                    PDF Unavailable
+                                <span class="section-label">
+                                    Publication
                                 </span>
 
-                            <?php endif; ?>
+                                <h3>
+                                    Editorial Note
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="editorial-note-card">
+
+                            <div class="editorial-note-icon">
+
+                                <i class="fa-solid fa-file-pdf"></i>
+
+                            </div>
+
+
+                            <div class="editorial-note-info">
+
+                                <strong>
+                                    Editorial Note PDF
+                                </strong>
+
+                                <span>
+                                    Read the editorial note for this issue
+                                </span>
+
+                            </div>
+
+
+                            <div class="editorial-note-actions">
+
+                                <!-- READ EDITORIAL NOTE -->
+
+                                <a
+                                    href="#"
+                                    class="read-button"
+                                    title="Read Editorial Note">
+                                    Read
+                                </a>
+
+                            </div>
 
                         </div>
 
@@ -432,14 +585,15 @@ if ($publicationID && $publicationID > 0) {
 
                             <div
                                 id="archiveArticlesList"
-                                class="archive-articles-list"
-                            >
+                                class="archive-articles-list">
 
                                 <?php if (!empty($articles)): ?>
 
                                     <?php foreach ($articles as $article): ?>
 
                                         <div class="archive-article-row">
+
+                                            <!-- ARTICLE TITLE -->
 
                                             <div class="article-title">
 
@@ -452,6 +606,8 @@ if ($publicationID && $publicationID > 0) {
 
                                             </div>
 
+
+                                            <!-- AUTHORS -->
 
                                             <div class="article-authors">
 
@@ -473,30 +629,24 @@ if ($publicationID && $publicationID > 0) {
                                             </div>
 
 
+                                            <!-- ARTICLE ACTIONS -->
+
                                             <div class="article-actions">
 
-                                                <?php if (!empty($article['journalPDF'])): ?>
-
-                                                    <a
-                                                        href="<?= htmlspecialchars(
-                                                            (string) $article['journalPDF']
-                                                        ) ?>"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        class="read-button"
-                                                        title="Read Article"
-                                                    >
-                                                        <i class="fa-solid fa-eye"></i>
-                                                        Read
-                                                    </a>
-
-                                                <?php else: ?>
-
-                                                    <span class="no-pdf">
-                                                        PDF Unavailable
-                                                    </span>
-
-                                                <?php endif; ?>
+                                                <a
+                                                    href="<?= !empty($article['journalPDF'])
+                                                                ? htmlspecialchars(
+                                                                    (string) $article['journalPDF']
+                                                                )
+                                                                : '#'
+                                                            ?>"
+                                                    class="read-button"
+                                                    title="Read Article"
+                                                    <?= !empty($article['journalPDF'])
+                                                        ? 'target="_blank" rel="noopener noreferrer"'
+                                                        : '' ?>>
+                                                    Read
+                                                </a>
 
                                             </div>
 
@@ -535,34 +685,39 @@ if ($publicationID && $publicationID > 0) {
     </div>
 
 
-    <!-- Search -->
+    <!-- =============================================================
+         SEARCH
+         ============================================================= -->
 
     <?php if (!$selectedIssue): ?>
 
         <script>
-
             const searchInput =
                 document.getElementById('searchInput');
 
             const archiveList =
                 document.getElementById('archiveList');
 
+
             function searchArchives() {
 
                 const searchTerm =
                     searchInput.value
-                        .trim()
-                        .toLowerCase();
+                    .trim()
+                    .toLowerCase();
+
 
                 const rows =
                     archiveList.querySelectorAll(
                         '.archive-list-row'
                     );
 
-                rows.forEach(function (row) {
+
+                rows.forEach(function(row) {
 
                     const searchableText =
                         row.dataset.search || '';
+
 
                     if (
                         searchTerm === '' ||
@@ -581,10 +736,12 @@ if ($publicationID && $publicationID > 0) {
 
             }
 
+
             searchInput.addEventListener(
                 'input',
                 searchArchives
             );
+
 
             document
                 .getElementById('searchButton')
@@ -592,7 +749,6 @@ if ($publicationID && $publicationID > 0) {
                     'click',
                     searchArchives
                 );
-
         </script>
 
     <?php endif; ?>
