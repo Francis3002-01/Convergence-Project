@@ -76,6 +76,8 @@ header {
   display: grid;
   place-items: center;
   flex: none;
+  border-radius: 50%;
+  overflow: hidden;
 }
 
 .logo img {
@@ -87,15 +89,20 @@ header {
 
 .brand h1 {
   margin: 0;
+  font-family: var(--serif);
   font-size: 2rem;
   font-weight: 700;
-  letter-spacing: .03em;
+  letter-spacing: .02em;
   line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .brand p {
-  margin: 2px 0 0;
-  font-size: 1.05rem;
+  margin: 3px 0 0;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: .01em;
 }
 
 /* Main */
