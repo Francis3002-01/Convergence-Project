@@ -393,6 +393,47 @@
     background: #8c211c;
 }
 
+/* Editorial Note */
+.editorial-note-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    border-bottom: 1px solid #eee;
+    box-sizing: border-box;
+}
+
+.editorial-note-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    height: 34px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 5px;
+    background: #f0f0f0;
+    color: #444;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.editorial-note-btn i {
+    font-size: 13px;
+    color: #800000;
+}
+
+.editorial-note-btn:hover {
+    background: #ddd;
+}
+
+.editorial-note-btn:active {
+    transform: translateY(1px);
+}
+
 @media (max-width: 1100px) {
 
     .journal-list-container {

@@ -10,13 +10,13 @@ body {
 }
 
 .about-intro {
-  position: relative;
-  width: 100%;
-  background: #A42821;
-  color: #ffffff;
-  margin-bottom: 55px;
-  overflow: hidden;
-  text-align: center;
+    position: relative;
+    width: 100%;
+    background: #A42821;
+    color: #ffffff;
+    margin-bottom: 30px;
+    overflow: hidden;
+    text-align: center;
 }
 
 .about-intro-content {

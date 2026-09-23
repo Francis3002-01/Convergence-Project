@@ -548,7 +548,7 @@ if ($publicationID && $publicationID > 0) {
                             <div>
 
                                 <span class="section-label">
-                                    Published Articles
+                                    Archived Articles
                                 </span>
 
                                 <h3>

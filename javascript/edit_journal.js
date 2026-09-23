@@ -6,1726 +6,1028 @@ let currentArticleIndex = -1;
 let articleReplacementFiles = new Map();
 let publicationReplacementFile = null;
 
-
 /* ==========================================================================
    INITIALIZATION
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
+  const editForm = document.getElementById("editForm");
 
-    const editForm = document.getElementById("editForm");
+  if (!editForm) {
+    console.error("Edit form not found.");
+    return;
+  }
 
-    if (!editForm) {
-        console.error("Edit form not found.");
-        return;
-    }
+  const publicationID =
+    editForm.dataset.publicationId ||
+    document.getElementById("publicationID")?.value ||
+    "";
 
-    const publicationID =
-        editForm.dataset.publicationId ||
-        document.getElementById("publicationID")?.value ||
-        "";
+  if (!publicationID || Number(publicationID) <= 0) {
+    console.error("Invalid publication ID:", publicationID);
+    return;
+  }
 
-    if (!publicationID || Number(publicationID) <= 0) {
-        console.error("Invalid publication ID:", publicationID);
-        return;
-    }
+  const articleSelect = document.getElementById("articleSelect");
 
-    const articleSelect =
-        document.getElementById("articleSelect");
+  if (articleSelect) {
+    articleSelect.addEventListener("change", handleArticleSelection);
+  }
 
-    if (articleSelect) {
-        articleSelect.addEventListener(
-            "change",
-            handleArticleSelection
-        );
-    }
+  setupPublicationPdfUpload();
 
-    setupPublicationPdfUpload();
+  const articlePdfInput = document.getElementById("articlePDF");
 
-    const articlePdfInput =
-        document.getElementById("articlePDF");
+  if (articlePdfInput) {
+    articlePdfInput.addEventListener("change", () => {
+      if (articlePdfInput.files && articlePdfInput.files.length > 0) {
+        const file = articlePdfInput.files[0];
 
-    if (articlePdfInput) {
+        if (!isPdf(file)) {
+          alert("Please upload a PDF file only.");
 
-        articlePdfInput.addEventListener("change", () => {
+          resetArticlePdfInput();
 
-            if (
-                articlePdfInput.files &&
-                articlePdfInput.files.length > 0
-            ) {
+          return;
+        }
 
-                const file =
-                    articlePdfInput.files[0];
+        articleReplacementFiles.set(currentArticleIndex, file);
 
-                if (!isPdf(file)) {
+        updateArticlePdfFileName(file.name);
+      } else {
+        articleReplacementFiles.delete(currentArticleIndex);
 
-                    alert("Please upload a PDF file only.");
+        updateArticlePdfFileName("");
+      }
+    });
+  }
 
-                    resetArticlePdfInput();
+  const articlePdfUndo = document.getElementById("articlePdfUndo");
 
-                    return;
-                }
+  if (articlePdfUndo) {
+    articlePdfUndo.addEventListener("click", undoArticlePdf);
+  }
 
-                articleReplacementFiles.set(
-                    currentArticleIndex,
-                    file
-                );
+  const publicationPdfUndo = document.getElementById("publicationPdfUndo");
 
-                updateArticlePdfFileName(
-                    file.name
-                );
+  if (publicationPdfUndo) {
+    publicationPdfUndo.addEventListener("click", undoPublicationPdf);
+  }
 
-            } else {
+  editForm.addEventListener("submit", saveChanges);
 
-                articleReplacementFiles.delete(
-                    currentArticleIndex
-                );
-
-                updateArticlePdfFileName("");
-            }
-        });
-    }
-
-    const articlePdfUndo =
-        document.getElementById("articlePdfUndo");
-
-    if (articlePdfUndo) {
-        articlePdfUndo.addEventListener(
-            "click",
-            undoArticlePdf
-        );
-    }
-
-    const publicationPdfUndo =
-        document.getElementById("publicationPdfUndo");
-
-    if (publicationPdfUndo) {
-        publicationPdfUndo.addEventListener(
-            "click",
-            undoPublicationPdf
-        );
-    }
-
-    editForm.addEventListener(
-        "submit",
-        saveChanges
-    );
-
-    loadIssue(Number(publicationID));
+  loadIssue(Number(publicationID));
 });
-
 
 /* ==========================================================================
    BACK
    ========================================================================== */
 
 function goBack() {
-    window.location.href = "manage_journal.php";
+  window.location.href = "manage_journal.php";
 }
-
 
 /* ==========================================================================
    PDF VALIDATION
    ========================================================================== */
 
 function isPdf(file) {
+  if (!file) {
+    return false;
+  }
 
-    if (!file) {
-        return false;
-    }
+  if (file.type && file.type.toLowerCase() === "application/pdf") {
+    return true;
+  }
 
-    if (
-        file.type &&
-        file.type.toLowerCase() === "application/pdf"
-    ) {
-        return true;
-    }
-
-    return file.name
-        .toLowerCase()
-        .endsWith(".pdf");
+  return file.name.toLowerCase().endsWith(".pdf");
 }
-
 
 /* ==========================================================================
    AUTHOR ROW
    ========================================================================== */
 
-function createAuthorRow(
-    firstName = "",
-    lastName = ""
-) {
+function createAuthorRow(firstName = "", lastName = "") {
+  const row = document.createElement("div");
 
-    const row =
-        document.createElement("div");
+  row.className = "author-row";
 
-    row.className = "author-row";
+  const firstNameInput = document.createElement("input");
 
-    const firstNameInput =
-        document.createElement("input");
+  firstNameInput.type = "text";
+  firstNameInput.className = "author-first-name";
+  firstNameInput.placeholder = "First name";
+  firstNameInput.value = firstName;
+  firstNameInput.required = true;
 
-    firstNameInput.type = "text";
-    firstNameInput.className =
-        "author-first-name";
-    firstNameInput.placeholder =
-        "First name";
-    firstNameInput.value =
-        firstName;
-    firstNameInput.required = true;
+  const lastNameInput = document.createElement("input");
 
-    const lastNameInput =
-        document.createElement("input");
+  lastNameInput.type = "text";
+  lastNameInput.className = "author-last-name";
+  lastNameInput.placeholder = "Last name";
+  lastNameInput.value = lastName;
+  lastNameInput.required = true;
 
-    lastNameInput.type = "text";
-    lastNameInput.className =
-        "author-last-name";
-    lastNameInput.placeholder =
-        "Last name";
-    lastNameInput.value =
-        lastName;
-    lastNameInput.required = true;
+  const removeButton = document.createElement("button");
 
-    const removeButton =
-        document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "remove-author-button";
 
-    removeButton.type = "button";
-    removeButton.className =
-        "remove-author-button";
+  removeButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
 
-    removeButton.innerHTML =
-        '<i class="fa-solid fa-trash"></i>';
+  removeButton.title = "Remove author";
 
-    removeButton.title =
-        "Remove author";
+  removeButton.setAttribute("aria-label", "Remove author");
 
-    removeButton.setAttribute(
-        "aria-label",
-        "Remove author"
-    );
+  removeButton.addEventListener("click", () => {
+    row.remove();
 
-    removeButton.addEventListener(
-        "click",
-        () => {
+    const parent = row.parentElement;
 
-            row.remove();
+    if (parent && parent.querySelectorAll(".author-row").length === 0) {
+      parent.appendChild(createAuthorRow());
+    }
+  });
 
-            const parent =
-                row.parentElement;
+  row.appendChild(firstNameInput);
 
-            if (
-                parent &&
-                parent.querySelectorAll(
-                    ".author-row"
-                ).length === 0
-            ) {
-                parent.appendChild(
-                    createAuthorRow()
-                );
-            }
-        }
-    );
+  row.appendChild(lastNameInput);
 
-    row.appendChild(
-        firstNameInput
-    );
+  row.appendChild(removeButton);
 
-    row.appendChild(
-        lastNameInput
-    );
-
-    row.appendChild(
-        removeButton
-    );
-
-    return row;
+  return row;
 }
-
 
 /* ==========================================================================
    ADD AUTHOR
    ========================================================================== */
 
 function addAuthor() {
+  const authorsContainer = document.getElementById("authors");
 
-    const authorsContainer =
-        document.getElementById("authors");
+  if (!authorsContainer) {
+    return;
+  }
 
-    if (!authorsContainer) {
-        return;
-    }
+  saveCurrentArticle();
 
-    saveCurrentArticle();
-
-    authorsContainer.appendChild(
-        createAuthorRow()
-    );
+  authorsContainer.appendChild(createAuthorRow());
 }
-
 
 /* ==========================================================================
    COLLECT AUTHORS
    ========================================================================== */
 
 function collectAuthors(container) {
+  if (!container) {
+    return [];
+  }
 
-    if (!container) {
-        return [];
+  const rows = container.querySelectorAll(".author-row");
+
+  const authors = [];
+
+  rows.forEach((row) => {
+    const firstNameInput = row.querySelector(".author-first-name");
+
+    const lastNameInput = row.querySelector(".author-last-name");
+
+    if (!firstNameInput || !lastNameInput) {
+      return;
     }
 
-    const rows =
-        container.querySelectorAll(
-            ".author-row"
-        );
+    const firstName = firstNameInput.value.trim();
 
-    const authors = [];
+    const lastName = lastNameInput.value.trim();
 
-    rows.forEach((row) => {
+    if (firstName !== "" && lastName !== "") {
+      authors.push({
+        firstName,
+        lastName,
+      });
+    }
+  });
 
-        const firstNameInput =
-            row.querySelector(
-                ".author-first-name"
-            );
-
-        const lastNameInput =
-            row.querySelector(
-                ".author-last-name"
-            );
-
-        if (
-            !firstNameInput ||
-            !lastNameInput
-        ) {
-            return;
-        }
-
-        const firstName =
-            firstNameInput.value.trim();
-
-        const lastName =
-            lastNameInput.value.trim();
-
-        if (
-            firstName !== "" &&
-            lastName !== ""
-        ) {
-            authors.push({
-                firstName,
-                lastName
-            });
-        }
-    });
-
-    return authors;
+  return authors;
 }
-
 
 /* ==========================================================================
    SAVE CURRENT ARTICLE TO LOCAL STATE
    ========================================================================== */
 
 function saveCurrentArticle() {
+  if (currentArticleIndex < 0 || !articles[currentArticleIndex]) {
+    return;
+  }
 
-    if (
-        currentArticleIndex < 0 ||
-        !articles[currentArticleIndex]
-    ) {
-        return;
-    }
+  const article = articles[currentArticleIndex];
 
-    const article =
-        articles[currentArticleIndex];
+  const titleInput = document.getElementById("articleTitle");
 
-    const titleInput =
-        document.getElementById(
-            "articleTitle"
-        );
+  const authorsContainer = document.getElementById("authors");
 
-    const authorsContainer =
-        document.getElementById(
-            "authors"
-        );
+  if (titleInput) {
+    article.title = titleInput.value.trim();
+  }
 
-    if (titleInput) {
-
-        article.title =
-            titleInput.value.trim();
-    }
-
-    if (authorsContainer) {
-
-        article.authors =
-            collectAuthors(
-                authorsContainer
-            );
-    }
+  if (authorsContainer) {
+    article.authors = collectAuthors(authorsContainer);
+  }
 }
-
 
 /* ==========================================================================
    POPULATE ARTICLE DROPDOWN
    ========================================================================== */
 
 function populateArticleDropdown() {
+  const articleSelect = document.getElementById("articleSelect");
 
-    const articleSelect =
-        document.getElementById(
-            "articleSelect"
-        );
+  if (!articleSelect) {
+    console.error("Article dropdown (#articleSelect) was not found.");
 
-    if (!articleSelect) {
+    return;
+  }
 
-        console.error(
-            "Article dropdown (#articleSelect) was not found."
-        );
+  articleSelect.innerHTML = "";
 
-        return;
-    }
+  if (articles.length === 0) {
+    const option = document.createElement("option");
 
-    articleSelect.innerHTML = "";
+    option.value = "";
 
-    if (articles.length === 0) {
+    option.textContent = "No articles available";
 
-        const option =
-            document.createElement(
-                "option"
-            );
+    articleSelect.appendChild(option);
 
-        option.value = "";
+    return;
+  }
 
-        option.textContent =
-            "No articles available";
+  articles.forEach((article, index) => {
+    const option = document.createElement("option");
 
-        articleSelect.appendChild(
-            option
-        );
+    option.value = String(index);
 
-        return;
-    }
+    /*
+     * Keep the native dropdown from becoming extremely wide
+     * because of a very long article title.
+     */
+    const title = article.title || "Untitled Article";
 
-    articles.forEach(
-        (article, index) => {
+    const maxTitleLength = 70;
 
-            const option =
-                document.createElement(
-                    "option"
-                );
+    const shortenedTitle =
+      title.length > maxTitleLength
+        ? title.substring(0, maxTitleLength) + "..."
+        : title;
 
-            option.value =
-                String(index);
+    option.textContent = `Article ${index + 1}: ${shortenedTitle}`;
 
-            /*
-             * Keep the native dropdown from becoming extremely wide
-             * because of a very long article title.
-             */
-            const title =
-                article.title ||
-                "Untitled Article";
+    articleSelect.appendChild(option);
+  });
 
-            const maxTitleLength = 70;
-
-            const shortenedTitle =
-                title.length > maxTitleLength
-                    ? title.substring(
-                          0,
-                          maxTitleLength
-                      ) + "..."
-                    : title;
-
-            option.textContent =
-                `Article ${index + 1}: ${shortenedTitle}`;
-
-            articleSelect.appendChild(
-                option
-            );
-        }
-    );
-
-    console.log(
-        "Article dropdown populated:",
-        articles.length,
-        "articles"
-    );
+  console.log("Article dropdown populated:", articles.length, "articles");
 }
-
 
 /* ==========================================================================
    HANDLE ARTICLE DROPDOWN SELECTION
    ========================================================================== */
 
 function handleArticleSelection(event) {
+  const newIndex = Number(event.target.value);
 
-    const newIndex =
-        Number(event.target.value);
+  if (Number.isNaN(newIndex) || newIndex < 0 || newIndex >= articles.length) {
+    return;
+  }
 
-    if (
-        Number.isNaN(newIndex) ||
-        newIndex < 0 ||
-        newIndex >= articles.length
-    ) {
-        return;
-    }
+  saveCurrentArticle();
 
-    saveCurrentArticle();
+  currentArticleIndex = newIndex;
 
-    currentArticleIndex =
-        newIndex;
-
-    displaySelectedArticle();
+  displaySelectedArticle();
 }
-
 
 /* ==========================================================================
    DISPLAY SELECTED ARTICLE
    ========================================================================== */
 
 function displaySelectedArticle() {
+  const editor = document.getElementById("selectedArticleEditor");
+  const heading = document.getElementById("articleHeading");
+  const titleInput = document.getElementById("articleTitle");
+  const authorsContainer = document.getElementById("authors");
 
-    const editor =
-        document.getElementById(
-            "selectedArticleEditor"
-        );
+  if (!editor) {
+    return;
+  }
 
-    const heading =
-        document.getElementById(
-            "articleHeading"
-        );
+  if (currentArticleIndex < 0 || !articles[currentArticleIndex]) {
+    editor.style.display = "none";
 
-    const titleInput =
-        document.getElementById(
-            "articleTitle"
-        );
+    return;
+  }
 
-    const authorsContainer =
-        document.getElementById(
-            "authors"
-        );
+  const article = articles[currentArticleIndex];
+  editor.style.display = "block";
 
-    if (!editor) {
-        return;
-    }
-
-    if (
-        currentArticleIndex < 0 ||
-        !articles[currentArticleIndex]
-    ) {
-
-        editor.style.display =
-            "none";
-
-        return;
-    }
-
-    const article =
-        articles[currentArticleIndex];
-
-    editor.style.display =
-        "block";
-
-
-    /* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
        ARTICLE HEADING
        ---------------------------------------------------------------------- */
 
-    if (heading) {
+  if (heading) {
+    heading.textContent = `Article ${currentArticleIndex + 1}`;
+  }
 
-        heading.textContent =
-            `Article ${currentArticleIndex + 1}`;
-    }
-
-
-    /* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
        ARTICLE TITLE
        ---------------------------------------------------------------------- */
 
-    if (titleInput) {
+  if (titleInput) {
+    titleInput.value = article.title || "";
+  }
 
-        titleInput.value =
-            article.title || "";
-    }
-
-
-    /* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
        AUTHORS
        ---------------------------------------------------------------------- */
 
-    if (authorsContainer) {
+  if (authorsContainer) {
+    authorsContainer.innerHTML = "";
 
-        authorsContainer.innerHTML = "";
-
-        if (
-            Array.isArray(
-                article.authors
-            ) &&
-            article.authors.length > 0
-        ) {
-
-            article.authors.forEach(
-                (author) => {
-
-                    authorsContainer.appendChild(
-                        createAuthorRow(
-                            author.firstName || "",
-                            author.lastName || ""
-                        )
-                    );
-                }
-            );
-
-        } else {
-
-            authorsContainer.appendChild(
-                createAuthorRow()
-            );
-        }
+    if (Array.isArray(article.authors) && article.authors.length > 0) {
+      article.authors.forEach((author) => {
+        authorsContainer.appendChild(createAuthorRow(author.firstName || "", author.lastName || ""),);
+      });
+    } 
+    
+    else {
+      authorsContainer.appendChild(createAuthorRow());
     }
+  }
 
-
-    /* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
        CURRENT ARTICLE PDF
        ---------------------------------------------------------------------- */
 
-    showArticlePdf(
-        article.pdfUrl ||
-        article.journalPDF ||
-        ""
-    );
+  showArticlePdf(article.journalPDF || "");
 
-
-    /* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
        REPLACEMENT PDF
        ---------------------------------------------------------------------- */
 
-    const replacementFile =
-        articleReplacementFiles.get(
-            currentArticleIndex
-        );
+  const replacementFile = articleReplacementFiles.get(currentArticleIndex);
 
-    if (replacementFile) {
-
-        updateArticlePdfFileName(
-            replacementFile.name
-        );
-
-    } else {
-
-        resetArticlePdfInput();
-    }
+  if (replacementFile) {
+    updateArticlePdfFileName(replacementFile.name);
+  } else {
+    resetArticlePdfInput();
+  }
 }
-
 
 /* ==========================================================================
    SHOW CURRENT ARTICLE PDF
    ========================================================================== */
 
-function showArticlePdf(pdfUrl) {
+function showArticlePdf(pdfPath) {
+  const container = document.getElementById("currentArticlePdf");
 
-    const container =
-        document.getElementById(
-            "currentArticlePdf"
-        );
+  if (!container) {
+    return;
+  }
 
-    if (!container) {
-        return;
-    }
+  container.innerHTML = "";
 
-    container.innerHTML = "";
+  if (!pdfPath) {
+    const noFile = document.createElement("span");
 
-    if (!pdfUrl) {
+    noFile.className = "no-file";
 
-        const noFile =
-            document.createElement(
-                "span"
-            );
+    noFile.textContent = "No article PDF available.";
 
-        noFile.className =
-            "no-file";
+    container.appendChild(noFile);
 
-        noFile.textContent =
-            "No article PDF available.";
+    return;
+  }
 
-        container.appendChild(
-            noFile
-        );
+  const link = document.createElement("a");
 
-        return;
-    }
+  link.href = "#";
+  link.className = "pdf-link";
 
-    const link =
-        document.createElement(
-            "a"
-        );
+  link.innerHTML = '<i class="fa-solid fa-eye"></i> View current PDF';
 
-    link.href = pdfUrl;
-    link.target = "_blank";
-    link.rel =
-        "noopener noreferrer";
+  link.addEventListener("click", async (event) => {
+    event.preventDefault();
 
-    link.className =
-        "pdf-link";
+    const originalText = link.innerHTML;
 
     link.innerHTML =
-        '<i class="fa-solid fa-eye"></i> View current PDF';
+      '<i class="fa-solid fa-spinner fa-spin"></i> Opening PDF...';
 
-    container.appendChild(
-        link
-    );
+    link.style.pointerEvents = "none";
+
+    try {
+      const response = await fetch(
+        `${API_URL}?action=pdfUrl&type=article&storagePath=${encodeURIComponent(pdfPath)}`,
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success || !result.pdfUrl) {
+        throw new Error(result.message || "Unable to generate PDF URL.");
+      }
+
+      window.open(result.pdfUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error(error);
+
+      alert(error.message || "Unable to open the PDF.");
+    } finally {
+      link.innerHTML = originalText;
+
+      link.style.pointerEvents = "";
+    }
+  });
+
+  container.appendChild(link);
 }
-
 
 /* ==========================================================================
    ARTICLE PDF DROP ZONE
    ========================================================================== */
 
 function setupArticlePdfDropZone() {
+  const dropZone = document.getElementById("articlePdfUploadBox");
 
-    const dropZone =
-        document.getElementById(
-            "articlePdfUploadBox"
-        );
+  const fileInput = document.getElementById("articlePDF");
 
-    const fileInput =
-        document.getElementById(
-            "articlePDF"
-        );
+  if (!dropZone || !fileInput) {
+    return;
+  }
 
-    if (
-        !dropZone ||
-        !fileInput
-    ) {
-        return;
+  dropZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+
+    dropZone.classList.add("drag-over");
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("drag-over");
+  });
+
+  dropZone.addEventListener("drop", (event) => {
+    event.preventDefault();
+
+    dropZone.classList.remove("drag-over");
+
+    const files = event.dataTransfer.files;
+
+    if (!files || files.length === 0) {
+      return;
     }
 
-    dropZone.addEventListener(
-        "dragover",
-        (event) => {
+    const file = files[0];
 
-            event.preventDefault();
+    if (!isPdf(file)) {
+      alert("Please upload a PDF file only.");
 
-            dropZone.classList.add(
-                "drag-over"
-            );
-        }
-    );
+      return;
+    }
 
-    dropZone.addEventListener(
-        "dragleave",
-        () => {
+    const dataTransfer = new DataTransfer();
 
-            dropZone.classList.remove(
-                "drag-over"
-            );
-        }
-    );
+    dataTransfer.items.add(file);
 
-    dropZone.addEventListener(
-        "drop",
-        (event) => {
+    fileInput.files = dataTransfer.files;
 
-            event.preventDefault();
+    articleReplacementFiles.set(currentArticleIndex, file);
 
-            dropZone.classList.remove(
-                "drag-over"
-            );
-
-            const files =
-                event.dataTransfer.files;
-
-            if (
-                !files ||
-                files.length === 0
-            ) {
-                return;
-            }
-
-            const file =
-                files[0];
-
-            if (!isPdf(file)) {
-
-                alert(
-                    "Please upload a PDF file only."
-                );
-
-                return;
-            }
-
-            const dataTransfer =
-                new DataTransfer();
-
-            dataTransfer.items.add(file);
-
-            fileInput.files =
-                dataTransfer.files;
-
-            articleReplacementFiles.set(
-                currentArticleIndex,
-                file
-            );
-
-            updateArticlePdfFileName(
-                file.name
-            );
-        }
-    );
+    updateArticlePdfFileName(file.name);
+  });
 }
-
 
 /* ==========================================================================
    PUBLICATION PDF DROP ZONE
    ========================================================================== */
 
 function setupPublicationPdfUpload() {
+  const dropZone = document.getElementById("publicationPdfUploadBox");
 
-    const dropZone =
-        document.getElementById(
-            "publicationPdfUploadBox"
-        );
+  const fileInput = document.getElementById("publicationPDF");
 
-    const fileInput =
-        document.getElementById(
-            "publicationPDF"
-        );
+  if (!dropZone || !fileInput) {
+    return;
+  }
 
-    if (
-        !dropZone ||
-        !fileInput
-    ) {
-        return;
+  dropZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+
+    dropZone.classList.add("drag-over");
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("drag-over");
+  });
+
+  dropZone.addEventListener("drop", (event) => {
+    event.preventDefault();
+
+    dropZone.classList.remove("drag-over");
+
+    const files = event.dataTransfer.files;
+
+    if (!files || files.length === 0) {
+      return;
     }
 
-    dropZone.addEventListener(
-        "dragover",
-        (event) => {
+    const file = files[0];
 
-            event.preventDefault();
+    if (!isPdf(file)) {
+      alert("Please upload a PDF file only.");
 
-            dropZone.classList.add(
-                "drag-over"
-            );
-        }
-    );
+      return;
+    }
 
-    dropZone.addEventListener(
-        "dragleave",
-        () => {
+    const dataTransfer = new DataTransfer();
 
-            dropZone.classList.remove(
-                "drag-over"
-            );
-        }
-    );
+    dataTransfer.items.add(file);
 
-    dropZone.addEventListener(
-        "drop",
-        (event) => {
+    fileInput.files = dataTransfer.files;
 
-            event.preventDefault();
+    publicationReplacementFile = file;
 
-            dropZone.classList.remove(
-                "drag-over"
-            );
+    updatePublicationPdfFileName(file.name);
+  });
 
-            const files =
-                event.dataTransfer.files;
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files && fileInput.files.length > 0) {
+      const file = fileInput.files[0];
 
-            if (
-                !files ||
-                files.length === 0
-            ) {
-                return;
-            }
+      if (!isPdf(file)) {
+        alert("Please upload a PDF file only.");
 
-            const file =
-                files[0];
+        resetPublicationPdfInput();
 
-            if (!isPdf(file)) {
+        return;
+      }
 
-                alert(
-                    "Please upload a PDF file only."
-                );
+      publicationReplacementFile = file;
 
-                return;
-            }
-
-            const dataTransfer =
-                new DataTransfer();
-
-            dataTransfer.items.add(file);
-
-            fileInput.files =
-                dataTransfer.files;
-
-            publicationReplacementFile =
-                file;
-
-            updatePublicationPdfFileName(
-                file.name
-            );
-        }
-    );
-
-    fileInput.addEventListener(
-        "change",
-        () => {
-
-            if (
-                fileInput.files &&
-                fileInput.files.length > 0
-            ) {
-
-                const file =
-                    fileInput.files[0];
-
-                if (!isPdf(file)) {
-
-                    alert(
-                        "Please upload a PDF file only."
-                    );
-
-                    resetPublicationPdfInput();
-
-                    return;
-                }
-
-                publicationReplacementFile =
-                    file;
-
-                updatePublicationPdfFileName(
-                    file.name
-                );
-            }
-        }
-    );
+      updatePublicationPdfFileName(file.name);
+    }
+  });
 }
-
 
 /* ==========================================================================
    ARTICLE PDF FILE NAME
    ========================================================================== */
 
 function updateArticlePdfFileName(fileName) {
+  const fileNameElement = document.getElementById("articlePdfFileName");
 
-    const fileNameElement =
-        document.getElementById(
-            "articlePdfFileName"
-        );
+  const undoButton = document.getElementById("articlePdfUndo");
 
-    const undoButton =
-        document.getElementById(
-            "articlePdfUndo"
-        );
+  const uploadBox = document.getElementById("articlePdfUploadBox");
 
-    const uploadBox =
-        document.getElementById(
-            "articlePdfUploadBox"
-        );
+  if (fileNameElement) {
+    fileNameElement.textContent = fileName || "No file selected";
+  }
 
-    if (fileNameElement) {
+  if (undoButton) {
+    undoButton.hidden = !fileName;
+  }
 
-        fileNameElement.textContent =
-            fileName ||
-            "No file selected";
-    }
-
-    if (undoButton) {
-
-        undoButton.hidden =
-            !fileName;
-    }
-
-    if (uploadBox) {
-
-        uploadBox.classList.toggle(
-            "has-file",
-            Boolean(fileName)
-        );
-    }
+  if (uploadBox) {
+    uploadBox.classList.toggle("has-file", Boolean(fileName));
+  }
 }
-
 
 /* ==========================================================================
    PUBLICATION PDF FILE NAME
    ========================================================================== */
 
-function updatePublicationPdfFileName(
-    fileName
-) {
+function updatePublicationPdfFileName(fileName) {
+  const fileNameElement = document.getElementById("publicationPdfFileName");
 
-    const fileNameElement =
-        document.getElementById(
-            "publicationPdfFileName"
-        );
+  const undoButton = document.getElementById("publicationPdfUndo");
 
-    const undoButton =
-        document.getElementById(
-            "publicationPdfUndo"
-        );
+  const uploadBox = document.getElementById("publicationPdfUploadBox");
 
-    const uploadBox =
-        document.getElementById(
-            "publicationPdfUploadBox"
-        );
+  if (fileNameElement) {
+    fileNameElement.textContent = fileName || "No file selected";
+  }
 
-    if (fileNameElement) {
+  if (undoButton) {
+    undoButton.hidden = !fileName;
+  }
 
-        fileNameElement.textContent =
-            fileName ||
-            "No file selected";
-    }
-
-    if (undoButton) {
-
-        undoButton.hidden =
-            !fileName;
-    }
-
-    if (uploadBox) {
-
-        uploadBox.classList.toggle(
-            "has-file",
-            Boolean(fileName)
-        );
-    }
+  if (uploadBox) {
+    uploadBox.classList.toggle("has-file", Boolean(fileName));
+  }
 }
-
 
 /* ==========================================================================
    RESET ARTICLE PDF INPUT
    ========================================================================== */
 
 function resetArticlePdfInput() {
+  const fileInput = document.getElementById("articlePDF");
 
-    const fileInput =
-        document.getElementById(
-            "articlePDF"
-        );
+  if (fileInput) {
+    fileInput.value = "";
+  }
 
-    if (fileInput) {
-
-        fileInput.value = "";
-    }
-
-    updateArticlePdfFileName("");
+  updateArticlePdfFileName("");
 }
-
 
 /* ==========================================================================
    UNDO ARTICLE PDF
    ========================================================================== */
 
 function undoArticlePdf() {
+  articleReplacementFiles.delete(currentArticleIndex);
 
-    articleReplacementFiles.delete(
-        currentArticleIndex
-    );
-
-    resetArticlePdfInput();
+  resetArticlePdfInput();
 }
-
 
 /* ==========================================================================
    RESET PUBLICATION PDF INPUT
    ========================================================================== */
 
 function resetPublicationPdfInput() {
+  const fileInput = document.getElementById("publicationPDF");
 
-    const fileInput =
-        document.getElementById(
-            "publicationPDF"
-        );
+  if (fileInput) {
+    fileInput.value = "";
+  }
 
-    if (fileInput) {
-
-        fileInput.value = "";
-    }
-
-    updatePublicationPdfFileName("");
+  updatePublicationPdfFileName("");
 }
-
 
 /* ==========================================================================
    UNDO PUBLICATION PDF
    ========================================================================== */
 
 function undoPublicationPdf() {
+  publicationReplacementFile = null;
 
-    publicationReplacementFile =
-        null;
-
-    resetPublicationPdfInput();
+  resetPublicationPdfInput();
 }
-
 
 /* ==========================================================================
    LOAD ISSUE
    ========================================================================== */
 
-async function loadIssue(
-    publicationID
-) {
+async function loadIssue(publicationID) {
+  const loading = document.getElementById("loading");
 
-    const loading =
-        document.getElementById(
-            "loading"
-        );
+  const errorMessage = document.getElementById("errorMessage");
 
-    const errorMessage =
-        document.getElementById(
-            "errorMessage"
-        );
+  const editForm = document.getElementById("editForm");
 
-    const editForm =
-        document.getElementById(
-            "editForm"
-        );
+  try {
+    const response = await fetch(`${API_URL}?action=view&publicationID=${encodeURIComponent(publicationID,)}`,);
+    const responseText = await response.text();
+
+    let result;
 
     try {
+      result = JSON.parse(responseText);
+    } 
+    
+    catch {
+      throw new Error("The API did not return valid JSON.");
+    }
 
-        const response =
-            await fetch(
-                `${API_URL}?action=view&publicationID=${encodeURIComponent(
-                    publicationID
-                )}`
-            );
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Unable to load publication issue.");
+    }
 
-        const responseText =
-            await response.text();
+    const issue = result.data || {};
 
-        console.log(
-            "View API:",
-            responseText
-        );
+    if (!issue || !issue.publicationID) {
+      throw new Error("The API returned incomplete issue data.");
+    }
 
-        let result;
+    const publicationIDInput = document.getElementById("publicationID");
 
-        try {
+    if (publicationIDInput) {
+      publicationIDInput.value = issue.publicationID;
+    }
 
-            result =
-                JSON.parse(
-                    responseText
-                );
+    const yearInput = document.getElementById("year");
+    const volumeInput = document.getElementById("volume");
+    const numberInput = document.getElementById("number");
 
-        } catch {
+    if (yearInput) {
+      yearInput.value = issue.year || "";
+    }
 
-            throw new Error(
-                "The API did not return valid JSON."
-            );
-        }
+    if (volumeInput) {
+      volumeInput.value = issue.volume || "";
+    }
 
-        if (
-            !response.ok ||
-            !result.success
-        ) {
+    if (numberInput) {
+      numberInput.value = issue.number || "";
+    }
 
-            throw new Error(
-                result.message ||
-                "Unable to load publication issue."
-            );
-        }
+    const publicationPdfInput = document.getElementById("publicationPDF");
 
-        const issue =
-            result.data || {};
+    if (publicationPdfInput) {
+      publicationPdfInput.value = "";
+    }
 
-        if (
-            !issue ||
-            !issue.publicationID
-        ) {
+    publicationReplacementFile = null;
+    updatePublicationPdfFileName("");
+    showPublicationPdf(issue.publicationPDF || "");
 
-            throw new Error(
-                "The API returned incomplete issue data."
-            );
-        }
 
+    articles = Array.isArray(issue.articles)
+      ? issue.articles.map((article) => ({
+          journalID: article.journalID || null,
 
-        /* ------------------------------------------------------------------
-           PUBLICATION ID
-           ------------------------------------------------------------------ */
+          title: article.title || "",
 
-        const publicationIDInput =
-            document.getElementById(
-                "publicationID"
-            );
+          journalPDF: article.journalPDF || "",
 
-        if (publicationIDInput) {
+          pdfUrl: article.pdfUrl || "",
 
-            publicationIDInput.value =
-                issue.publicationID;
-        }
+          authors: Array.isArray(article.authors)
+            ? article.authors.map((author) => ({
+                firstName: author.firstName || "",
 
+                lastName: author.lastName || "",
+              }))
+            : [],
 
-        /* ------------------------------------------------------------------
-           PUBLICATION INFORMATION
-           ------------------------------------------------------------------ */
+          replacementFile: null,
+        }))
+      : [];
 
-        const yearInput =
-            document.getElementById(
-                "year"
-            );
+    console.log("Loaded articles:", articles);
+    console.log("Article count:", articles.length);
+    currentArticleIndex = -1;
+    articleReplacementFiles.clear();
 
-        const volumeInput =
-            document.getElementById(
-                "volume"
-            );
+    populateArticleDropdown();
 
-        const numberInput =
-            document.getElementById(
-                "number"
-            );
+    const articleSelect = document.getElementById("articleSelect");
 
-        if (yearInput) {
+    if (articles.length > 0) {
 
-            yearInput.value =
-                issue.year || "";
-        }
+      currentArticleIndex = 0;
 
-        if (volumeInput) {
+      if (articleSelect) {
+        articleSelect.value = "0";
+      }
 
-            volumeInput.value =
-                issue.volume || "";
-        }
-
-        if (numberInput) {
-
-            numberInput.value =
-                issue.number || "";
-        }
-
+      displaySelectedArticle();
+    } 
+    
+    else {
+      const editor = document.getElementById("selectedArticleEditor");
+      if (editor) {
+        editor.style.display = "none";
+      }
+    }
 
-        /* ------------------------------------------------------------------
-           PUBLICATION PDF
-           ------------------------------------------------------------------ */
-
-        const publicationPdfInput =
-            document.getElementById(
-                "publicationPDF"
-            );
-
-        if (publicationPdfInput) {
-
-            publicationPdfInput.value = "";
-        }
-
-        publicationReplacementFile =
-            null;
-
-        updatePublicationPdfFileName("");
-
-        showPublicationPdf(
-            issue.publicationPdfUrl ||
-            issue.publicationPDF ||
-            "",
-            issue.publicationPdfUrl ||
-            ""
-        );
-
-
-        /* ------------------------------------------------------------------
-           ARTICLES
-           ------------------------------------------------------------------ */
-
-        articles =
-            Array.isArray(
-                issue.articles
-            )
-                ? issue.articles.map(
-                    (article) => ({
-
-                        journalID:
-                            article.journalID ||
-                            null,
-
-                        title:
-                            article.title ||
-                            "",
-
-                        journalPDF:
-                            article.journalPDF ||
-                            "",
-
-                        pdfUrl:
-                            article.pdfUrl ||
-                            "",
-
-                        authors:
-                            Array.isArray(
-                                article.authors
-                            )
-                                ? article.authors.map(
-                                    (author) => ({
-
-                                        firstName:
-                                            author.firstName ||
-                                            "",
-
-                                        lastName:
-                                            author.lastName ||
-                                            ""
-                                    })
-                                )
-                                : [],
-
-                        replacementFile:
-                            null
-                    })
-                )
-                : [];
-
-        console.log(
-            "Loaded articles:",
-            articles
-        );
-
-        console.log(
-            "Article count:",
-            articles.length
-        );
-
-
-        /* ------------------------------------------------------------------
-           RESET ARTICLE STATE
-           ------------------------------------------------------------------ */
-
-        currentArticleIndex =
-            -1;
-
-        articleReplacementFiles.clear();
-
-
-        /* ------------------------------------------------------------------
-           POPULATE DROPDOWN
-           ------------------------------------------------------------------ */
-
-        populateArticleDropdown();
-
-        const articleSelect =
-            document.getElementById(
-                "articleSelect"
-            );
-
-        if (articles.length > 0) {
-
-            currentArticleIndex =
-                0;
-
-            if (articleSelect) {
-
-                articleSelect.value =
-                    "0";
-            }
-
-            displaySelectedArticle();
-
-        } else {
-
-            const editor =
-                document.getElementById(
-                    "selectedArticleEditor"
-                );
-
-            if (editor) {
-
-                editor.style.display =
-                    "none";
-            }
-        }
-
-
-        /* ------------------------------------------------------------------
+    /* ------------------------------------------------------------------
            SETUP ARTICLE PDF DROP ZONE
            ------------------------------------------------------------------ */
 
-        setupArticlePdfDropZone();
+    setupArticlePdfDropZone();
 
-
-        /* ------------------------------------------------------------------
+    /* ------------------------------------------------------------------
            SHOW FORM
            ------------------------------------------------------------------ */
 
-        if (loading) {
-
-            loading.style.display =
-                "none";
-        }
-
-        if (editForm) {
-
-            editForm.style.display =
-                "block";
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        if (loading) {
-
-            loading.style.display =
-                "none";
-        }
-
-        if (errorMessage) {
-
-            errorMessage.textContent =
-                error.message ||
-                "Unable to load publication issue.";
-
-            errorMessage.style.display =
-                "block";
-        }
+    if (loading) {
+      loading.style.display = "none";
     }
+
+    if (editForm) {
+      editForm.style.display = "block";
+    }
+  } 
+  
+  catch (error) {
+    console.error(error);
+
+    if (loading) {
+      loading.style.display = "none";
+    }
+
+    if (errorMessage) {
+      errorMessage.textContent =
+        error.message || "Unable to load publication issue.";
+
+      errorMessage.style.display = "block";
+    }
+  }
 }
 
+function showPublicationPdf(pdfPath) {
+  const container = document.getElementById("currentPublicationPdf");
 
-function showPublicationPdf(pdfPath,pdfUrl = "") {
+  if (!container) {
+    return;
+  }
 
-    const container =document.getElementById("currentPublicationPdf");
+  container.innerHTML = "";
 
-    if (!container) {
-        return;
+  if (!pdfPath) {
+    const noFile = document.createElement("span");
+    noFile.className = "no-file";
+    noFile.textContent = "No editorial note PDF available.";
+    container.appendChild(noFile);
+    return;
+  }
+
+  const link = document.createElement("a");
+
+  link.href = "#";
+  link.className = "pdf-link";
+  link.innerHTML = '<i class="fa-solid fa-eye"></i> View current PDF';
+  link.addEventListener("click", async (event) => {
+    event.preventDefault();
+    const originalText = link.innerHTML;
+    link.innerHTML =
+      '<i class="fa-solid fa-spinner fa-spin"></i> Opening PDF...';
+    link.style.pointerEvents = "none";
+
+    try {
+      const response = await fetch(
+        `${API_URL}?action=pdfUrl&type=publication&storagePath=${encodeURIComponent(pdfPath)}`,
+      );
+      const result = await response.json();
+
+      if (!response.ok || !result.success || !result.pdfUrl) {
+        throw new Error(result.message || "Unable to generate PDF URL.");
+      }
+
+      window.open(result.pdfUrl, "_blank", "noopener,noreferrer");
+    } 
+    
+    catch (error) {
+      console.error(error);
+      alert(error.message || "Unable to open the PDF.");
+    } 
+    
+    finally {
+      link.innerHTML = originalText;
+      link.style.pointerEvents = "";
     }
 
-    container.innerHTML = "";
+  });
 
-    if (!pdfPath) {
-
-        const noFile =document.createElement("span");
-        noFile.className ="no-file";
-        noFile.textContent ="No editorial note PDF available.";
-        container.appendChild(noFile);
-        return;
-    }
-
-    const finalUrl =pdfUrl || pdfPath;
-    const link =document.createElement("a");
-
-    link.href =finalUrl;
-    link.target ="_blank";
-    link.rel ="noopener noreferrer";
-    link.className ="pdf-link";
-    link.innerHTML ='<i class="fa-solid fa-eye"></i> View current PDF';
-    container.appendChild(link);
+  container.appendChild(link);
 }
 
 async function saveChanges(event) {
+  event.preventDefault();
+  saveCurrentArticle();
+  const saveButton = document.getElementById("saveButton");
+  const form = document.getElementById("editForm");
 
-    event.preventDefault();
+  if (!form) {
+    return;
+  }
 
-    saveCurrentArticle();
+  const publicationID = document.getElementById("publicationID")?.value;
 
-    const saveButton =
-        document.getElementById(
-            "saveButton"
-        );
+  if (!publicationID || Number(publicationID) <= 0) {
+    alert("Invalid publication ID.");
 
-    const form =
-        document.getElementById(
-            "editForm"
-        );
+    return;
+  }
 
-    if (!form) {
-        return;
-    }
-
-    const publicationID =
-        document.getElementById(
-            "publicationID"
-        )?.value;
-
-    if (
-        !publicationID ||
-        Number(publicationID) <= 0
-    ) {
-
-        alert(
-            "Invalid publication ID."
-        );
-
-        return;
-    }
-
-
-    /* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
        VALIDATE PUBLICATION INFORMATION
        ---------------------------------------------------------------------- */
+  const year = document.getElementById("year")?.value.trim();
+  const volume = document.getElementById("volume")?.value.trim();
+  const number = document.getElementById("number")?.value.trim();
 
-    const year =
-        document.getElementById(
-            "year"
-        )?.value.trim();
+  if (!year || !volume || !number) {
+    alert("Year, volume, and number are required.");
+    return;
+  }
 
-    const volume =
-        document.getElementById(
-            "volume"
-        )?.value.trim();
-
-    const number =
-        document.getElementById(
-            "number"
-        )?.value.trim();
-
-    if (
-        !year ||
-        !volume ||
-        !number
-    ) {
-
-        alert(
-            "Year, volume, and number are required."
-        );
-
-        return;
-    }
-
-
-    /* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
        VALIDATE ARTICLES
        ---------------------------------------------------------------------- */
 
-    if (articles.length === 0) {
+  if (articles.length === 0) {
+    alert("At least one article is required.");
+    return;
+  }
 
-        alert(
-            "At least one article is required."
-        );
+  const articlePayload = [];
 
-        return;
+  for (let index = 0; index < articles.length; index++) {
+    const article = articles[index];
+
+    const title = (article.title || "").trim();
+
+    if (!title) {
+      alert(`Title for Article ${index + 1} is required.`);
+      return;
     }
 
-    const articlePayload = [];
+    const authors = Array.isArray(article.authors)
+      ? article.authors.filter((author) => author.firstName && author.lastName)
+      : [];
 
-    for (
-        let index = 0;
-        index < articles.length;
-        index++
-    ) {
-
-        const article =
-            articles[index];
-
-        const title =
-            (article.title || "").trim();
-
-        if (!title) {
-
-            alert(
-                `Title for Article ${index + 1} is required.`
-            );
-
-            return;
-        }
-
-        const authors =
-            Array.isArray(
-                article.authors
-            )
-                ? article.authors.filter(
-                    (author) =>
-                        author.firstName &&
-                        author.lastName
-                )
-                : [];
-
-        if (authors.length === 0) {
-
-            alert(
-                `At least one author is required for Article ${
-                    index + 1
-                }.`
-            );
-
-            return;
-        }
-
-        articlePayload.push({
-
-            journalID:
-                article.journalID
-                    ? Number(
-                        article.journalID
-                    )
-                    : null,
-
-            title,
-
-            authors,
-
-            existingPdf:
-                article.journalPDF || ""
-        });
+    if (authors.length === 0) {
+      alert(`At least one author is required for Article ${index + 1}.`);
+      return;
     }
 
+    articlePayload.push({
+      journalID: article.journalID ? Number(article.journalID) : null,
+      title,
+      authors,
+      existingPdf: article.journalPDF || "",
+    });
+  }
 
-    /* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
        DISABLE SAVE BUTTON
        ---------------------------------------------------------------------- */
 
-    if (saveButton) {
+  if (saveButton) {
+    saveButton.disabled = true;
+    saveButton.innerHTML =
+      '<i class="fa-solid fa-spinner fa-spin"></i> Confirming Changes...';
+  }
 
-        saveButton.disabled =
-            true;
-
-        saveButton.innerHTML =
-            '<i class="fa-solid fa-spinner fa-spin"></i> Confirming Changes...';
-    }
-
-
-    try {
-
-        /* ------------------------------------------------------------------
+  try {
+    /* ------------------------------------------------------------------
            BUILD FORMDATA
            ------------------------------------------------------------------ */
 
-        const formData =
-            new FormData(form);
+    const formData = new FormData(form);
+    formData.set("action", "update");
+    formData.set("mode", "draft");
+    formData.set("publicationID", String(publicationID));
+    formData.set("year", String(year));
+    formData.set("volume", String(volume));
+    formData.set("number", String(number));
+    formData.set("articles", JSON.stringify(articlePayload));
 
-        formData.set(
-            "action",
-            "update"
-        );
-
-        formData.set(
-            "mode",
-            "draft"
-        );
-
-        formData.set(
-            "publicationID",
-            String(publicationID)
-        );
-
-        formData.set(
-            "year",
-            String(year)
-        );
-
-        formData.set(
-            "volume",
-            String(volume)
-        );
-
-        formData.set(
-            "number",
-            String(number)
-        );
-
-        formData.set(
-            "articles",
-            JSON.stringify(
-                articlePayload
-            )
-        );
-
-
-        /* ------------------------------------------------------------------
+    /* ------------------------------------------------------------------
            PUBLICATION PDF
            ------------------------------------------------------------------ */
 
-        if (
-            publicationReplacementFile
-        ) {
+    if (publicationReplacementFile) {
+      formData.set("publicationPDF", publicationReplacementFile);
+    }
 
-            formData.set(
-                "publicationPDF",
-                publicationReplacementFile
-            );
-        }
-
-
-        /* ------------------------------------------------------------------
+    /* ------------------------------------------------------------------
            ARTICLE REPLACEMENT PDFs
            ------------------------------------------------------------------ */
 
-        articles.forEach(
-            (article, index) => {
+    articles.forEach((article, index) => {
+      const file = articleReplacementFiles.get(index);
 
-                const file =
-                    articleReplacementFiles.get(
-                        index
-                    );
+      if (file) {
+        formData.append(`pdf_${index}`, file);
+      }
+    });
 
-                if (file) {
+    /*UPDATE JOURNAL */
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: formData,
+    });
 
-                    formData.append(
-                        `pdf_${index}`,
-                        file
-                    );
-                }
-            }
-        );
+    const responseText = await response.text();
+    console.log("Update API:", responseText);
+    let result;
 
-
-        /* ------------------------------------------------------------------
-           UPDATE JOURNAL
-           ------------------------------------------------------------------ */
-
-        const response =
-            await fetch(
-                API_URL,
-                {
-                    method: "POST",
-                    body: formData
-                }
-            );
-
-        const responseText =
-            await response.text();
-
-        console.log(
-            "Update API:",
-            responseText
-        );
-
-        let result;
-
-        try {
-
-            result =
-                JSON.parse(
-                    responseText
-                );
-
-        } catch {
-
-            throw new Error(
-                "The API did not return valid JSON."
-            );
-        }
-
-        if (!response.ok ||!result.success) {
-            throw new Error(
-                result.message ||
-                "Failed to update journal."
-            );
-        }
-
-
-        /* ------------------------------------------------------------------
-           SUCCESS
-           ------------------------------------------------------------------ */
-
-        alert(
-            result.message ||
-            "Journal updated successfully."
-        );
-
-        window.location.href =
-            "manage_journal.php";
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert(
-            error.message ||
-            "An error occurred while saving."
-        );
-
-        if (saveButton) {
-
-            saveButton.disabled =
-                false;
-
-            saveButton.innerHTML =
-                '<i class="fa-solid fa-check"></i> Confirm Changes';
-        }
+    try {
+      result = JSON.parse(responseText);
+    } 
+    
+    catch {
+      throw new Error("The API did not return valid JSON.");
     }
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Failed to update journal.");
+    }
+
+    /*SUCCESS */
+    alert(result.message || "Journal updated successfully.");
+    window.location.href = "manage_journal.php";
+  } 
+  
+  catch (error) {
+    console.error(error);
+    alert(error.message || "An error occurred while saving.");
+
+    if (saveButton) {
+      saveButton.disabled = false;
+      saveButton.innerHTML =
+        '<i class="fa-solid fa-check"></i> Confirm Changes';
+    }
+  }
 }

@@ -50,16 +50,6 @@
                     <div id="authors" class="authors-list"></div>
                 </div>
 
-                <div class="details-section">
-                    <h2>APA Citation</h2>
-                    <div class="citation-box">
-                        <p id="citation"></p>
-                        <button type="button" id="copyCitation" class="copy-button">
-                            Copy Citation
-                        </button>
-                    </div>
-                </div>
-
                 <div id="pdfSection" class="pdf-section" style="display: none;">
 
                     <!--PDF ACTIONS -->

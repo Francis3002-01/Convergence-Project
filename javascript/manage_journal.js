@@ -1,10 +1,9 @@
 ﻿let currentIssueData = [];
 let draftIssueData = [];
 let archiveIssueData = [];
-
 let activeTab = "current";
 
-/*ESCAPE HTML*/
+/* ESCAPE HTML */
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -22,7 +21,6 @@ function setAddJournalButtonState() {
   const hasDraft = draftIssueData.length > 0;
 
   button.disabled = hasDraft;
-
   button.title = hasDraft
     ? "A draft issue already exists."
     : "Add Journal";
@@ -39,10 +37,17 @@ function updateDraftBadge() {
 function showTab(tabName, buttonElement) {
   activeTab = tabName;
 
-  const currentContent = document.getElementById("currentJournalContent");
-  const draftContent = document.getElementById("draftJournalContent");
-  const currentTabButton = document.getElementById("currentTabButton");
-  const draftTabButton = document.getElementById("draftTabButton");
+  const currentContent =
+    document.getElementById("currentJournalContent");
+
+  const draftContent =
+    document.getElementById("draftJournalContent");
+
+  const currentTabButton =
+    document.getElementById("currentTabButton");
+
+  const draftTabButton =
+    document.getElementById("draftTabButton");
 
   if (currentContent && draftContent) {
     currentContent.style.display =
@@ -117,15 +122,18 @@ function renderIssueLists() {
   setAddJournalButtonState();
 }
 
-
-
-function renderIssueContainer(container,issueList,tabName) {
-
+function renderIssueContainer(
+  container,
+  issueList,
+  tabName
+) {
   if (!container) return;
 
   container.innerHTML = "";
 
-  const cleanedList = (Array.isArray(issueList) ? issueList : []).map(transformIssue);
+  const cleanedList = (
+    Array.isArray(issueList) ? issueList : []
+  ).map(transformIssue);
 
   if (cleanedList.length === 0) {
     container.innerHTML = `
@@ -143,6 +151,50 @@ function renderIssueContainer(container,issueList,tabName) {
 
     issueSection.className =
       "publication-issue";
+
+    /* -----------------------------------------
+       EDITORIAL NOTE
+       ----------------------------------------- */
+
+    let editorialNoteHtml = "";
+
+    if (
+      issue.publicationID &&
+      Number(issue.publicationID) > 0 &&
+      issue.publicationPDF
+    ) {
+      editorialNoteHtml = `
+        <div class="editorial-note-action">
+
+          <button
+            type="button"
+            class="action-btn editorial-note-btn"
+            onclick="viewEditorNote(${Number(
+              issue.publicationID
+            )})"
+            title="Read editorial note"
+            aria-label="Read editorial note"
+          >
+            <i class="fa-solid fa-file-pdf"></i>
+            Read Editorial Note
+          </button>
+
+          <button
+            type="button"
+            class="action-btn editorial-note-btn"
+            onclick="downloadEditorNote(${Number(
+              issue.publicationID
+            )})"
+            title="Download editorial note"
+            aria-label="Download editorial note"
+          >
+            <i class="fa-solid fa-download"></i>
+            Download Editorial Note
+          </button>
+
+        </div>
+      `;
+    }
 
     /* -----------------------------------------
        ARTICLES
@@ -287,16 +339,19 @@ function renderIssueContainer(container,issueList,tabName) {
         <div class="issue-information">
 
           <span>Publication Issue</span>
+
           <strong>
             ${escapeHtml(issue.year || "-")}
           </strong>
 
           <span>Volume</span>
+
           <strong>
             ${escapeHtml(issue.volume || "-")}
           </strong>
 
           <span>Number</span>
+
           <strong>
             ${escapeHtml(issue.number || "-")}
           </strong>
@@ -307,6 +362,8 @@ function renderIssueContainer(container,issueList,tabName) {
 
       </div>
 
+      ${editorialNoteHtml}
+
       <div class="issue-articles">
         ${articleHtml}
       </div>
@@ -316,9 +373,9 @@ function renderIssueContainer(container,issueList,tabName) {
   });
 }
 
-/* =========================================================
+/* -----------------------------------------
    LOAD JOURNALS
-   ========================================================= */
+   ----------------------------------------- */
 
 async function loadJournals() {
   try {
@@ -393,7 +450,10 @@ async function loadJournals() {
   }
 }
 
-/*SEARCH JOURNALS*/
+/* -----------------------------------------
+   SEARCH JOURNALS
+   ----------------------------------------- */
+
 function searchJournals() {
   const searchInput =
     document.getElementById("searchInput");
@@ -435,7 +495,9 @@ function searchJournals() {
         .join(" ")
         .toLowerCase();
 
-      return issueText.includes(searchTerm);
+      return issueText.includes(
+        searchTerm
+      );
     }
   );
 
@@ -457,7 +519,10 @@ function searchJournals() {
   }
 }
 
-/*OPEN ADD JOURNAL PAGE */
+/* -----------------------------------------
+   OPEN ADD JOURNAL PAGE
+   ----------------------------------------- */
+
 function openAddJournalPage() {
   const button =
     document.getElementById(
@@ -472,18 +537,32 @@ function openAddJournalPage() {
     "add_journal.php";
 }
 
-/*PUBLISH DRAFT*/
-async function publishDraftIssue(publicationID)
-{
-  const confirmed = confirm("Publish this draft?");
+/* -----------------------------------------
+   PUBLISH DRAFT
+   ----------------------------------------- */
+
+async function publishDraftIssue(
+  publicationID
+) {
+  const confirmed = confirm(
+    "Publish this draft?"
+  );
 
   if (!confirmed) return;
 
   try {
-    const formData = new FormData();
-    formData.append("action","publish");
+    const formData =
+      new FormData();
 
-    formData.append("publicationID",String(publicationID));
+    formData.append(
+      "action",
+      "publish"
+    );
+
+    formData.append(
+      "publicationID",
+      String(publicationID)
+    );
 
     const response = await fetch(
       "manage_journal_api.php",
@@ -521,6 +600,9 @@ async function publishDraftIssue(publicationID)
   }
 }
 
+/* -----------------------------------------
+   EDIT ISSUE
+   ----------------------------------------- */
 
 function editIssue(publicationID) {
   const issue =
@@ -534,15 +616,26 @@ function editIssue(publicationID) {
 
   if (!issue) return;
 
-  if (!issue.publicationID ||Number(issue.publicationID) <= 0) {
-    alert("Unable to load the publication for editing.");
+  if (
+    !issue.publicationID ||
+    Number(issue.publicationID) <= 0
+  ) {
+    alert(
+      "Unable to load the publication for editing."
+    );
+
     return;
   }
 
-  window.location.href =`edit_journal.php?publicationID=${
-    encodeURIComponent(issue.publicationID)
-  }`;
+  window.location.href =
+    `edit_journal.php?publicationID=${encodeURIComponent(
+      issue.publicationID
+    )}`;
 }
+
+/* -----------------------------------------
+   VIEW ARTICLE
+   ----------------------------------------- */
 
 function viewJournal(id) {
   window.location.href =
@@ -551,21 +644,166 @@ function viewJournal(id) {
     )}`;
 }
 
+/* -----------------------------------------
+   VIEW EDITORIAL NOTE
+   ----------------------------------------- */
+
+async function viewEditorNote(
+  publicationID
+) {
+  if (
+    !publicationID ||
+    Number(publicationID) <= 0
+  ) {
+    alert(
+      "Unable to open the editorial note."
+    );
+
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `manage_journal_api.php?action=pdfUrl&type=publication&publicationID=${encodeURIComponent(
+        publicationID
+      )}`
+    );
+
+    const result =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !result.success ||
+      !result.data?.pdfUrl
+    ) {
+      throw new Error(
+        result.message ||
+          "Unable to open the editorial note."
+      );
+    }
+
+    window.open(
+      result.data.pdfUrl,
+      "_blank"
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      error.message ||
+        "Unable to open the editorial note."
+    );
+  }
+}
+
+/* -----------------------------------------
+   DOWNLOAD EDITORIAL NOTE
+   ----------------------------------------- */
+
+async function downloadEditorNote(publicationID) {
+  if (
+    !publicationID ||
+    Number(publicationID) <= 0
+  ) {
+    alert("Unable to download the editorial note.");
+    return;
+  }
+
+  try {
+    // Get the signed Supabase URL
+    const response = await fetch(
+      `manage_journal_api.php?action=pdfUrl&type=publication&publicationID=${encodeURIComponent(
+        publicationID
+      )}`
+    );
+
+    const result = await response.json();
+
+    if (
+      !response.ok ||
+      !result.success ||
+      !result.data?.pdfUrl
+    ) {
+      throw new Error(
+        result.message ||
+          "Unable to get the editorial note."
+      );
+    }
+
+    // Fetch the actual PDF file
+    const pdfResponse = await fetch(
+      result.data.pdfUrl
+    );
+
+    if (!pdfResponse.ok) {
+      throw new Error(
+        "Unable to download the editorial note PDF."
+      );
+    }
+
+    // Convert PDF response to Blob
+    const pdfBlob = await pdfResponse.blob();
+
+    // Create temporary local URL
+    const blobUrl =
+      window.URL.createObjectURL(pdfBlob);
+
+    // Create download link
+    const link =
+      document.createElement("a");
+
+    link.href = blobUrl;
+    link.download =
+      "Editorial_Note.pdf";
+
+    document.body.appendChild(link);
+
+    // Trigger download
+    link.click();
+
+    // Clean up
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(blobUrl);
+
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      error.message ||
+        "Unable to download the editorial note."
+    );
+  }
+}
+
 /* =========================================================
    DELETE JOURNAL ARTICLE
    ========================================================= */
 
-async function deleteJournalArticle(journalID) {
-
-  const confirmed = confirm("Remove this article? This cannot be undone.");
+async function deleteJournalArticle(
+  journalID
+) {
+  const confirmed = confirm(
+    "Remove this article? This cannot be undone."
+  );
 
   if (!confirmed) return;
 
   try {
+    const formData =
+      new FormData();
 
-    const formData = new FormData();
-    formData.append("action","deleteArticle");
-    formData.append("journalID",String(journalID));
+    formData.append(
+      "action",
+      "deleteArticle"
+    );
+
+    formData.append(
+      "journalID",
+      String(journalID)
+    );
 
     const response = await fetch(
       "manage_journal_api.php",
@@ -597,7 +835,10 @@ async function deleteJournalArticle(journalID) {
   }
 }
 
-/*INITIALIZE MANAGE JOURNAL PAGE */
+/* -----------------------------------------
+   INITIALIZE MANAGE JOURNAL PAGE
+   ----------------------------------------- */
+
 function initializeManageJournalPage() {
   const currentTabButton =
     document.getElementById(
@@ -613,7 +854,6 @@ function initializeManageJournalPage() {
     document.getElementById(
       "addJournalButton"
     );
-
 
   if (currentTabButton) {
     currentTabButton.onclick =
@@ -640,7 +880,10 @@ function initializeManageJournalPage() {
       openAddJournalPage;
   }
 
-  const searchInput =document.getElementById("searchInput");
+  const searchInput =
+    document.getElementById(
+      "searchInput"
+    );
 
   if (searchInput) {
     searchInput.addEventListener(
@@ -650,8 +893,11 @@ function initializeManageJournalPage() {
   }
 
   renderIssueLists();
+
   updateDraftBadge();
+
   setAddJournalButtonState();
+
   loadJournals();
 }
 
