@@ -18,6 +18,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="../css/edit_profile.css">
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 
 <body>
@@ -66,28 +68,36 @@
     <!-- Profile Picture -->
     <div class="profile-picture-section">
 
-      <div class="profile-picture-preview">
-        <span>A</span>
-      </div>
+  <div class="profile-picture-preview">
+    <span>A</span>
+  </div>
 
-      <div class="profile-picture-content">
-        <label for="profile_picture" class="profile-picture-label">
-          Profile Picture
-        </label>
+  <div class="profile-picture-content">
 
-        <p class="profile-picture-help">
-          Upload a new profile picture.
-        </p>
+<span class="profile-picture-label">
+  Profile Picture
+</span>
 
-        <input
-          type="file"
-          id="profile_picture"
-          name="profile_picture"
-          accept="image/*"
-        >
-      </div>
+<p class="profile-picture-help">
+  Upload a new profile picture.
+</p>
 
-    </div>
+<label for="profile_picture" class="upload-button">
+  <i class="fa-solid fa-upload"></i>
+  Choose Picture
+</label>
+
+<input
+  type="file"
+  id="profile_picture"
+  name="profile_picture"
+  accept="image/*"
+>
+
+  </div>
+
+</div>
+
 
 
     <!-- Username -->

@@ -5,7 +5,11 @@
         <span class="profile-name">Admin</span>
     </div>
 
-    <button class="profile-menu" type="button" aria-label="More options">
+    <a 
+        href="edit_profile.php" 
+        class="profile-menu" 
+        aria-label="Edit profile"
+    >
         <i class="fa-solid fa-ellipsis-vertical"></i>
-    </button>
+    </a>
 </header>
