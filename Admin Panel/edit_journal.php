@@ -5,12 +5,12 @@ require_once __DIR__ . '/../config/database.php';
 $publicationID = filter_input(INPUT_GET, 'publicationID', FILTER_VALIDATE_INT);
 $journalID = filter_input(INPUT_GET, 'journalID', FILTER_VALIDATE_INT);
 
-if (($publicationID === false || $publicationID === null || $publicationID <= 0) &&($journalID === false || $journalID === null || $journalID <= 0)) {
+if (($publicationID === false || $publicationID === null || $publicationID <= 0) && ($journalID === false || $journalID === null || $journalID <= 0)) {
     header('Location: manage_journal.php');
     exit;
 }
 
-if ($publicationID === false ||$publicationID === null ||$publicationID <= 0) {
+if ($publicationID === false || $publicationID === null || $publicationID <= 0) {
     $pdo = (new Database())->getConnection();
 
     $stmt = $pdo->prepare(
@@ -44,9 +44,11 @@ $pageTitle = 'Edit Journal - Convergence';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet"href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/edit_journal.css">
+    <link rel="stylesheet" href="../css/edit_journal_modals.css">
     <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
+
 </head>
 
 <body>
@@ -67,17 +69,17 @@ $pageTitle = 'Edit Journal - Convergence';
                     </div>
                 </div>
 
-                <div id="loading" class="status-message" role="status"aria-live="polite">
+                <div id="loading" class="status-message" role="status" aria-live="polite">
                     <i class="fa-solid fa-spinner fa-spin"></i>
                     Loading journal...
                 </div>
 
-                <div id="errorMessage" class="status-message error-message" role="alert" aria-live="assertive"style="display: none;"></div>
+                <div id="errorMessage" class="status-message error-message" role="alert" aria-live="assertive" style="display: none;"></div>
 
-                <form id="editForm" data-publication-id="<?= htmlspecialchars((string) $publicationID) ?>"enctype="multipart/form-data"style="display: none;">
+                <form id="editForm" data-publication-id="<?= htmlspecialchars((string) $publicationID) ?>" enctype="multipart/form-data" style="display: none;">
 
-                    <input type="hidden" id="publicationID" name="publicationID"value="<?= htmlspecialchars((string) $publicationID) ?>">
-                    <div class="form-step"id="publicationStep">
+                    <input type="hidden" id="publicationID" name="publicationID" value="<?= htmlspecialchars((string) $publicationID) ?>">
+                    <div class="form-step" id="publicationStep">
                         <div class="form-header">
 
                             <div>
@@ -112,8 +114,7 @@ $pageTitle = 'Edit Journal - Convergence';
                                         name="year"
                                         min="1900"
                                         max="2100"
-                                        required
-                                    >
+                                        required>
 
                                 </div>
 
@@ -133,8 +134,7 @@ $pageTitle = 'Edit Journal - Convergence';
                                         id="volume"
                                         name="volume"
                                         min="1"
-                                        required
-                                    >
+                                        required>
 
                                 </div>
 
@@ -154,8 +154,7 @@ $pageTitle = 'Edit Journal - Convergence';
                                         id="number"
                                         name="number"
                                         min="1"
-                                        required
-                                    >
+                                        required>
 
                                 </div>
 
@@ -206,23 +205,20 @@ $pageTitle = 'Edit Journal - Convergence';
 
                                 <div
                                     class="pdf-upload-box"
-                                    id="publicationPdfUploadBox"
-                                >
+                                    id="publicationPdfUploadBox">
 
                                     <input
                                         type="file"
                                         id="publicationPDF"
                                         name="publicationPDF"
                                         accept="application/pdf,.pdf"
-                                        hidden
-                                    >
+                                        hidden>
 
                                     <div class="pdf-upload-inner">
 
                                         <label
                                             for="publicationPDF"
-                                            class="pdf-upload-label"
-                                        >
+                                            class="pdf-upload-label">
 
                                             <div class="upload-icon">
 
@@ -236,8 +232,7 @@ $pageTitle = 'Edit Journal - Convergence';
 
                                             <span
                                                 class="upload-file-name"
-                                                id="publicationPdfFileName"
-                                            >
+                                                id="publicationPdfFileName">
                                                 No file selected
                                             </span>
 
@@ -248,8 +243,7 @@ $pageTitle = 'Edit Journal - Convergence';
                                             type="button"
                                             class="undo-pdf-btn"
                                             id="publicationPdfUndo"
-                                            hidden
-                                        >
+                                            hidden>
                                             Undo
                                         </button>
 
@@ -271,8 +265,7 @@ $pageTitle = 'Edit Journal - Convergence';
 
                     <div
                         class="form-step"
-                        id="articleStep"
-                    >
+                        id="articleStep">
 
                         <div class="form-header">
 
@@ -298,13 +291,13 @@ $pageTitle = 'Edit Journal - Convergence';
                             <div class="form-group">
                                 <label for="articleSelect">Select Article</label>
 
-                                <select id="articleSelect"name="articleSelect">
+                                <select id="articleSelect" name="articleSelect">
                                     <option value="">Select an article</option>
                                 </select>
                             </div>
 
 
-                            <div id="selectedArticleEditor" class="article-form-card"style="display: none;">
+                            <div id="selectedArticleEditor" class="article-form-card" style="display: none;">
 
                                 <!-- ARTICLE HEADING -->
                                 <div class="article-heading-row">
@@ -328,8 +321,7 @@ $pageTitle = 'Edit Journal - Convergence';
                                         type="text"
                                         id="articleTitle"
                                         placeholder="Enter article title"
-                                        required
-                                    >
+                                        required>
 
                                 </div>
 
@@ -377,24 +369,21 @@ $pageTitle = 'Edit Journal - Convergence';
 
                                     <div
                                         class="pdf-upload-box"
-                                        id="articlePdfUploadBox"
-                                    >
+                                        id="articlePdfUploadBox">
 
                                         <input
                                             type="file"
                                             id="articlePDF"
                                             name="articlePDF"
                                             accept="application/pdf,.pdf"
-                                            hidden
-                                        >
+                                            hidden>
 
 
                                         <div class="pdf-upload-inner">
 
                                             <label
                                                 for="articlePDF"
-                                                class="pdf-upload-label"
-                                            >
+                                                class="pdf-upload-label">
 
                                                 <div class="upload-icon">
 
@@ -408,65 +397,34 @@ $pageTitle = 'Edit Journal - Convergence';
 
                                                 <span
                                                     class="upload-file-name"
-                                                    id="articlePdfFileName"
-                                                >
+                                                    id="articlePdfFileName">
                                                     No file selected
                                                 </span>
 
                                             </label>
 
-
-                                            <button
-                                                type="button"
-                                                class="undo-pdf-btn"
-                                                id="articlePdfUndo"
-                                                hidden
-                                            >
-                                                Undo
-                                            </button>
-
+                                            <button type="button" class="undo-pdf-btn" id="articlePdfUndo" hidden>Undo</button>
                                         </div>
 
                                     </div>
 
-
-                                    <small class="form-help">
-                                        Optional. Leave empty to keep the current PDF.
-                                    </small>
+                                    <small class="form-help">Optional. Leave empty to keep the current PDF</small>
 
                                 </div>
 
 
                                 <!-- AUTHORS -->
-
                                 <div class="form-group">
-
                                     <div class="field-label-row">
-
-                                        <label>
-                                            Authors
-                                        </label>
-
-                                        <button
-                                            type="button"
-                                            class="add-author-button"
-                                            onclick="addAuthor()"
-                                        >
-
+                                        <label>Authors</label>
+                                        <button type="button" class="add-author-button" onclick="addAuthor()">
                                             <i class="fa-solid fa-plus"></i>
-
                                             Add Author
-
                                         </button>
 
                                     </div>
 
-
-                                    <div
-                                        id="authors"
-                                        class="authors-container"
-                                    ></div>
-
+                                    <div id="authors" class="authors-container"></div>
                                 </div>
 
 
@@ -475,41 +433,22 @@ $pageTitle = 'Edit Journal - Convergence';
 
                         </div>
 
-
                         <!-- FORM ACTIONS -->
-
                         <div class="form-actions article-actions">
-
-                            <button
-                                type="button"
-                                class="cancel-btn"
-                                onclick="goBack()"
-                            >
-                                Cancel
-                            </button>
-
-                            <button ype="submit" class="save-draft-btn"id="saveButton">
-                                <i class="fa-solid fa-check"></i>
-                                Confirm Changes
-                            </button>
+                            <button type="button" class="cancel-btn" onclick="openCancelModal()">Cancel</button>
+                            <button type="submit" class="save-draft-btn" id="saveButton">Confirm Changes</button>
                         </div>
-
-
                     </div>
-
-
                 </form>
-
-
             </section>
-
         </main>
 
     </div>
 
+    <?php include 'edit_journal_modals.php'; ?>
 
+    <script src="../javascript/edit_journal_modal.js"></script>
     <script src="../javascript/edit_journal.js"></script>
-
 </body>
 
 </html>
