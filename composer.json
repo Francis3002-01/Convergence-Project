@@ -1,6 +1,7 @@
 {
     "require": {
         "vlucas/phpdotenv": "^5.7",
-        "geoip2/geoip2": "^3.4"
+        "geoip2/geoip2": "^3.4",
+        "phpmailer/phpmailer": "^7.1"
     }
 }

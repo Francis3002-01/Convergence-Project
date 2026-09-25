@@ -48,6 +48,12 @@ $error = '';
           <p class="error-message">Invalid email or password.</p>
         <?php endif; ?>
 
+        <?php if (isset($_GET['reset']) && $_GET['reset'] === 'success'): ?>
+          <p class="success-message">
+            Your password has been reset successfully. You can now log in.
+          </p>
+        <?php endif; ?>
+
         <div class="field" id="fe">
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" autocomplete="email" placeholder="you@gmail.com" value="<?= $email ?>" required>
@@ -66,7 +72,7 @@ $error = '';
         </div>
 
         <div class="row">
-          <a href="#">Forgot password?</a>
+          <a href="forgot_password.php">Forgot password?</a>
         </div>
 
         <button class="btn" type="submit">

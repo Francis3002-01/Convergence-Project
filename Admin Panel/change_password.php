@@ -9,11 +9,6 @@ if (!Admin::isLoggedIn()) {
     exit;
 }
 
-// If password change is no longer required, go to dashboard.
-if ($_SESSION['mustChangePassword'] !== true) {
-    header('Location: dashboard.php');
-    exit;
-}
 
 // Generate CSRF token if one does not already exist.
 if (empty($_SESSION['csrf_token'])) {
