@@ -32,34 +32,23 @@ $archiveIssues = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive | Convergence</title>
-
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <!-- CSS Links -->
     <link rel="stylesheet" href="includes_css/header.css">
     <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="stylesheet" href="css/transition.css">
     <link rel="stylesheet" href="css/archive_page.css">
-
     <link rel="icon" type="image/jpeg" href="Images/Convergence Logo.png">
 </head>
 
 <body>
 
     <?php include 'includes/header.php'; ?>
-
-
     <!-- Archive Introduction -->
-
     <section class="about-intro">
         <div class="about-intro-content">
             <h1>Archive</h1>
@@ -81,17 +70,13 @@ $archiveIssues = $stmt->fetchAll();
                 <?php foreach ($archiveIssues as $issue): ?>
 
                     <div class="journal-item">
-
                         <div class="journal-info">
-
                             <a href="archive-detailspage.php?issue_id=<?= htmlspecialchars($issue['publicationID']) ?>" class="issue-label">
                                 <?= htmlspecialchars($issue['year']) ?>:
                                 Volume <?= htmlspecialchars($issue['volume']) ?>,
                                 Number <?= htmlspecialchars($issue['number']) ?>
                             </a>
-
                         </div>
-
 
                         <a href="archive-detailspage.php?issue_id=<?= htmlspecialchars($issue['publicationID']) ?>" class="view-btn" title="View Issue">
                             <i class="fa-solid fa-eye"></i>
@@ -100,11 +85,8 @@ $archiveIssues = $stmt->fetchAll();
                     </div>
 
                 <?php endforeach; ?>
-
             <?php endif; ?>
-
         </div>
-
     </main>
     <?php include 'includes/footer.php'; ?>
 </body>

@@ -61,10 +61,8 @@ $pageTitle = "Manage Journals - Convergence";
 
                 </div>
 
-
                 <!-- CURRENT TAB -->
                 <div id="currentJournalContent" class="journal-tab-content">
-
                     <div class="journal-list-header">
                         <div>Title</div>
                         <div>Authors</div>

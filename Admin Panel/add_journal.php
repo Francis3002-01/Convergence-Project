@@ -50,11 +50,7 @@ $pageTitle = "Add Journal - Convergence";
                         <div class="form-header">
                             <div>
                                 <h2>Publication Issue</h2>
-
-                                <p>
-                                    Enter the publication issue information
-                                </p>
-
+                                <p>Enter the publication issue information</p>
                                 <br>
                             </div>
                         </div>
