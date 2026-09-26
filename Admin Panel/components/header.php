@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $username = $_SESSION['username'] ?? 'Admin';
-$profilePicture = $_SESSION['profilePicture'] ?? '';
+$profilePicture = $_SESSION['profilePic'] ?? '';
 ?>
 
 <header class="admin-header">

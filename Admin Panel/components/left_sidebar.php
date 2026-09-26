@@ -27,7 +27,7 @@
     </nav>
 
     <div class="sidebar-logout">
-        <a href="logout.php">
+        <a href="logout_handler.php">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span>Logout</span>
         </a>
