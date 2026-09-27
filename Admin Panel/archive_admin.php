@@ -13,10 +13,56 @@ $pdo = $database->getConnection();
 
 /**
  * --------------------------------------------------------------------------
+ * Create Supabase public PDF URL
+ * --------------------------------------------------------------------------
+ */
+function createPublicPdfUrl(?string $storagePath): string
+{
+    if (empty($storagePath)) {
+        return '';
+    }
+
+    // If the database already contains a complete URL,
+    // use it directly.
+    if (filter_var($storagePath, FILTER_VALIDATE_URL)) {
+        return $storagePath;
+    }
+
+    $supabaseUrl = rtrim(
+        $_ENV['SUPABASE_URL'] ?? '',
+        '/'
+    );
+
+    $bucketName = $_ENV['SUPABASE_BUCKET'] ?? 'journalpdf';
+
+    if ($supabaseUrl === '') {
+        return '';
+    }
+
+    /*
+     * Encode each path segment separately so that
+     * slashes remain directory separators.
+     */
+    $encodedPath = implode(
+        '/',
+        array_map(
+            'rawurlencode',
+            explode('/', ltrim($storagePath, '/'))
+        )
+    );
+
+    return $supabaseUrl .
+        '/storage/v1/object/public/' .
+        rawurlencode($bucketName) .
+        '/' .
+        $encodedPath;
+}
+
+/**
+ * --------------------------------------------------------------------------
  * Get selected publication ID
  * --------------------------------------------------------------------------
  */
-
 $publicationID = filter_input(
     INPUT_GET,
     'publicationID',
@@ -31,7 +77,6 @@ $articles = [];
  * Get Archive Issues
  * --------------------------------------------------------------------------
  */
-
 $archiveStmt = $pdo->query(
     'SELECT
         "publicationID",
@@ -55,7 +100,6 @@ $archiveIssues = $archiveStmt->fetchAll();
  * If an archive issue was selected, retrieve its details
  * --------------------------------------------------------------------------
  */
-
 if ($publicationID && $publicationID > 0) {
 
     /**
@@ -63,7 +107,6 @@ if ($publicationID && $publicationID > 0) {
      * Get selected archive issue
      * ----------------------------------------------------------------------
      */
-
     $issueStmt = $pdo->prepare(
         'SELECT
             "publicationID",
@@ -89,7 +132,6 @@ if ($publicationID && $publicationID > 0) {
      * Get Articles and Authors
      * ----------------------------------------------------------------------
      */
-
     if ($selectedIssue) {
 
         $articleStmt = $pdo->prepare(
@@ -122,12 +164,12 @@ if ($publicationID && $publicationID > 0) {
          * Group Authors by Article
          * ------------------------------------------------------------------
          */
-
         foreach ($rows as $row) {
 
             $journalID = (int) $row['journalID'];
 
             if (!isset($articles[$journalID])) {
+
                 $articles[$journalID] = [
                     'journalID' => $journalID,
                     'title' => $row['title'] ?? '',
@@ -166,15 +208,35 @@ if ($publicationID && $publicationID > 0) {
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
     <title>Archive - Convergence</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet"href="../css/archive_admin.css">
-    <link rel="stylesheet" href="../css/header.css">
-    <link rel="icon"type="image/png"href="../Images/Convergence Logo.png">
-    <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/admin.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/archive_admin.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/header.css">
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="../Images/Convergence Logo.png">
 
 </head>
 
@@ -202,7 +264,9 @@ if ($publicationID && $publicationID > 0) {
 
                         <div class="page-heading">
 
-                            <h1>Archive</h1>
+                            <h1>
+                                Archive
+                            </h1>
 
                             <p>
                                 View previously published journal issues
@@ -273,16 +337,16 @@ if ($publicationID && $publicationID > 0) {
                                     <div
                                         class="archive-list-row"
                                         data-search="<?= htmlspecialchars(
-                                                            strtolower(
-                                                                (string) $archive['year']
-                                                                    . ' '
-                                                                    . (string) $archive['volume']
-                                                                    . ' '
-                                                                    . (string) $archive['number']
-                                                            ),
-                                                            ENT_QUOTES,
-                                                            'UTF-8'
-                                                        ) ?>">
+                                            strtolower(
+                                                (string) $archive['year']
+                                                . ' '
+                                                . (string) $archive['volume']
+                                                . ' '
+                                                . (string) $archive['number']
+                                            ),
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>">
 
                                         <div>
                                             <?= htmlspecialchars(
@@ -309,7 +373,9 @@ if ($publicationID && $publicationID > 0) {
                                                 class="view-archive-button"
                                                 title="View Archive Issue"
                                                 aria-label="View Archive Issue">
+
                                                 <i class="fa-solid fa-eye"></i>
+
                                             </a>
 
                                         </div>
@@ -340,7 +406,6 @@ if ($publicationID && $publicationID > 0) {
 
                 </section>
 
-
             <?php else: ?>
 
                 <!-- =====================================================
@@ -366,7 +431,6 @@ if ($publicationID && $publicationID > 0) {
                         </a>
 
                     </div>
-
 
                     <!-- =================================================
                          ISSUE INFORMATION
@@ -396,7 +460,6 @@ if ($publicationID && $publicationID > 0) {
 
                         </div>
 
-
                         <!-- ISSUE DETAILS -->
 
                         <div class="archive-publication-summary">
@@ -408,11 +471,9 @@ if ($publicationID && $publicationID > 0) {
                                 </span>
 
                                 <strong>
-
                                     <?= htmlspecialchars(
                                         (string) $selectedIssue['year']
                                     ) ?>
-
                                 </strong>
 
                             </div>
@@ -424,11 +485,9 @@ if ($publicationID && $publicationID > 0) {
                                 </span>
 
                                 <strong>
-
                                     <?= htmlspecialchars(
                                         (string) $selectedIssue['volume']
                                     ) ?>
-
                                 </strong>
 
                             </div>
@@ -440,11 +499,9 @@ if ($publicationID && $publicationID > 0) {
                                 </span>
 
                                 <strong>
-
                                     <?= htmlspecialchars(
                                         (string) $selectedIssue['number']
                                     ) ?>
-
                                 </strong>
 
                             </div>
@@ -452,7 +509,6 @@ if ($publicationID && $publicationID > 0) {
                         </div>
 
                     </div>
-
 
                     <!-- =================================================
                          EDITORIAL NOTE
@@ -476,7 +532,6 @@ if ($publicationID && $publicationID > 0) {
 
                         </div>
 
-
                         <div class="editorial-note-card">
 
                             <div class="editorial-note-icon">
@@ -484,7 +539,6 @@ if ($publicationID && $publicationID > 0) {
                                 <i class="fa-solid fa-file-pdf"></i>
 
                             </div>
-
 
                             <div class="editorial-note-info">
 
@@ -498,16 +552,30 @@ if ($publicationID && $publicationID > 0) {
 
                             </div>
 
-
                             <div class="editorial-note-actions">
 
                                 <!-- READ EDITORIAL NOTE -->
 
+                                <?php
+                                $editorialPdfUrl = createPublicPdfUrl(
+                                    $selectedIssue['publicationPDF'] ?? ''
+                                );
+                                ?>
+
                                 <a
-                                    href="#"
+                                    href="<?= htmlspecialchars(
+                                        $editorialPdfUrl,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>"
                                     class="read-button"
-                                    title="Read Editorial Note">
+                                    title="Read Editorial Note"
+                                    <?= $editorialPdfUrl !== ''
+                                        ? 'target="_blank" rel="noopener noreferrer"'
+                                        : '' ?>>
+
                                     Read
+
                                 </a>
 
                             </div>
@@ -515,7 +583,6 @@ if ($publicationID && $publicationID > 0) {
                         </div>
 
                     </div>
-
 
                     <!-- =================================================
                          ARTICLES
@@ -539,7 +606,6 @@ if ($publicationID && $publicationID > 0) {
 
                         </div>
 
-
                         <div class="archive-articles-container">
 
                             <!-- ARTICLE LIST HEADER -->
@@ -559,7 +625,6 @@ if ($publicationID && $publicationID > 0) {
                                 </div>
 
                             </div>
-
 
                             <!-- DATABASE ARTICLES -->
 
@@ -586,7 +651,6 @@ if ($publicationID && $publicationID > 0) {
 
                                             </div>
 
-
                                             <!-- AUTHORS -->
 
                                             <div class="article-authors">
@@ -608,24 +672,31 @@ if ($publicationID && $publicationID > 0) {
 
                                             </div>
 
-
                                             <!-- ARTICLE ACTIONS -->
 
                                             <div class="article-actions">
 
+                                                <?php
+                                                $articlePdfUrl =
+                                                    createPublicPdfUrl(
+                                                        $article['journalPDF'] ?? ''
+                                                    );
+                                                ?>
+
                                                 <a
-                                                    href="<?= !empty($article['journalPDF'])
-                                                                ? htmlspecialchars(
-                                                                    (string) $article['journalPDF']
-                                                                )
-                                                                : '#'
-                                                            ?>"
+                                                    href="<?= htmlspecialchars(
+                                                        $articlePdfUrl,
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>"
                                                     class="read-button"
                                                     title="Read Article"
-                                                    <?= !empty($article['journalPDF'])
+                                                    <?= $articlePdfUrl !== ''
                                                         ? 'target="_blank" rel="noopener noreferrer"'
                                                         : '' ?>>
+
                                                     Read
+
                                                 </a>
 
                                             </div>
@@ -664,7 +735,6 @@ if ($publicationID && $publicationID > 0) {
 
     </div>
 
-
     <!-- =============================================================
          SEARCH
          ============================================================= -->
@@ -672,6 +742,7 @@ if ($publicationID && $publicationID > 0) {
     <?php if (!$selectedIssue): ?>
 
         <script>
+
             const searchInput =
                 document.getElementById('searchInput');
 
@@ -683,8 +754,8 @@ if ($publicationID && $publicationID > 0) {
 
                 const searchTerm =
                     searchInput.value
-                    .trim()
-                    .toLowerCase();
+                        .trim()
+                        .toLowerCase();
 
 
                 const rows =
@@ -729,6 +800,7 @@ if ($publicationID && $publicationID > 0) {
                     'click',
                     searchArchives
                 );
+
         </script>
 
     <?php endif; ?>
@@ -736,3 +808,4 @@ if ($publicationID && $publicationID > 0) {
 </body>
 
 </html>
+

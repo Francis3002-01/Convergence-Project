@@ -398,44 +398,65 @@ async function loadJournals() {
    ----------------------------------------- */
 
 function searchJournals() {
-  const searchInput = document.getElementById("searchInput");
+    const searchInput = document.getElementById("searchInput");
 
-  const searchTerm = (searchInput ? searchInput.value : "")
-    .trim()
-    .toLowerCase();
+    const searchTerm = (searchInput ? searchInput.value : "")
+        .trim()
+        .toLowerCase();
 
-  const issueSource = activeTab === "draft" ? draftIssueData : currentIssueData;
+    const issueSource =
+        activeTab === "draft"
+            ? draftIssueData
+            : currentIssueData;
 
-  const filtered = issueSource.filter((issue) => {
-    const issueText = [
-      issue.year,
-      issue.volume,
-      issue.number,
-      issue.publicationPDF,
+    /*
+     * If the search box is empty,
+     * show all issues normally.
+     */
+    if (searchTerm === "") {
+        renderIssueLists();
+        return;
+    }
 
-      ...(issue.articles || []).flatMap((article) => [
-        article.title,
+    /*
+     * Only keep articles whose TITLE matches
+     * the search term.
+     */
+    const filteredIssues = issueSource
+        .map((issue) => {
+            const matchingArticles = (issue.articles || []).filter((article) => {
+                const title = String(article.title || "").toLowerCase();
 
-        ...(article.authors || []).flatMap((author) => [
-          author.firstName,
-          author.lastName,
-        ]),
-      ]),
-    ]
-      .join(" ")
-      .toLowerCase();
+                return title.includes(searchTerm);
+            });
 
-    return issueText.includes(searchTerm);
-  });
+            /*
+             * Keep the issue only if at least one
+             * article title matches.
+             */
+            if (matchingArticles.length === 0) {
+                return null;
+            }
 
-  const container =
-    activeTab === "draft"
-      ? document.getElementById("draftJournalList")
-      : document.getElementById("currentJournalList");
+            return {
+                ...issue,
+                articles: matchingArticles
+            };
+        })
+        .filter(Boolean);
 
-  if (container) {
-    renderIssueContainer(container, filtered, activeTab);
-  }
+    const container =
+        activeTab === "draft"
+            ? document.getElementById("draftJournalList")
+            : document.getElementById("currentJournalList");
+
+    if (container) {
+        renderIssueContainer(
+            container,
+            filteredIssues,
+            activeTab
+        );
+    }
 }
 
 /* -----------------------------------------

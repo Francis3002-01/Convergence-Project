@@ -1,56 +1,78 @@
-/* Base Reset & Styling */
+/* ==========================================================================
+   BASE RESET & STYLING
+   ========================================================================== */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html,
 body {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     font-family: Arial, Helvetica, sans-serif;
     background-color: #f8f9fa;
     color: #333333;
 }
 
+
+/* ==========================================================================
+   ARCHIVE INTRO / BANNER
+   ========================================================================== */
+
 .about-intro {
-  position: relative;
-  width: 100%;
-  background: #A42821;
-  color: #ffffff;
-  margin-bottom: 55px;
-  overflow: hidden;
-  text-align: center;
+    position: relative;
+    width: 100%;
+    background: #A42821;
+    color: #ffffff;
+    margin-bottom: 55px;
+    overflow: hidden;
+    text-align: center;
 }
 
 .about-intro-content {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 60px 40px;
-  position: relative;
-  z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    position: relative;
+    z-index: 1;
 }
 
 .about-intro h1 {
-  margin: 0 0 15px;
-  color: #ffffff;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 44px;
-  font-weight: normal;
-  line-height: 1.2;
+    margin: 0 0 15px;
+    color: #ffffff;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 44px;
+    font-weight: normal;
+    line-height: 1.2;
 }
 
 .about-intro p {
-  max-width: 850px;
-  margin: 0 auto;
-  color: #f7e9eb;
-  font-size: 17px;
-  line-height: 1.8;
+    max-width: 850px;
+    margin: 0 auto;
+    color: #f7e9eb;
+    font-size: 17px;
+    line-height: 1.8;
 }
 
-/* Main Container */
+
+/* ==========================================================================
+   MAIN CONTAINER
+   ========================================================================== */
+
 .archive-container {
+    width: 100%;
     max-width: 900px;
     margin: 30px auto;
     padding: 0 20px;
+    flex: 1;
 }
 
 .section-title {
@@ -61,14 +83,22 @@ body {
     padding-bottom: 8px;
 }
 
-/* Journal List Wrapper */
+
+/* ==========================================================================
+   JOURNAL LIST WRAPPER
+   ========================================================================== */
+
 .journal-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-/* Individual Journal Item */
+
+/* ==========================================================================
+   INDIVIDUAL JOURNAL ITEM
+   ========================================================================== */
+
 .journal-item {
     background-color: #ffffff;
     border: 1px solid #e2e8f0;
@@ -86,7 +116,11 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* Issue Label Styling */
+
+/* ==========================================================================
+   ISSUE LABEL STYLING
+   ========================================================================== */
+
 .journal-info {
     flex: 1;
 }
@@ -103,7 +137,11 @@ body {
     color: #a42821;
 }
 
-/* Clickable Red Eye Icon (Right Side) */
+
+/* ==========================================================================
+   CLICKABLE RED EYE ICON
+   ========================================================================== */
+
 .view-btn {
     display: flex;
     align-items: center;
@@ -135,8 +173,13 @@ body {
     color: #ffffff;
 }
 
-/* Mobile Responsive */
+
+/* ==========================================================================
+   MOBILE RESPONSIVE
+   ========================================================================== */
+
 @media (max-width: 600px) {
+
     .journal-item {
         padding: 14px 16px;
         gap: 12px;
@@ -151,4 +194,5 @@ body {
     .issue-label {
         font-size: 15px;
     }
+
 }

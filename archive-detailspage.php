@@ -336,28 +336,43 @@ if ($publicationID && $publicationID > 0) {
                     <span>Number <?= htmlspecialchars((string) ($issue['number'] ?? '')) ?></span>
                 </div>
 
-                <div class="editorial-actions">
+                <?php if (!empty($issue['publicationPDF'])): ?>
 
-                    <!-- Read Editorial Note -->
-                    <a
-                        href="#"
-                        class="editorial-button read-button"
-                        onclick="return false;">
-                        <i class="fa-solid fa-book-open"></i>
-                        <span>Read Editorial Note</span>
-                    </a>
+                    <div class="editorial-actions">
 
+                        <!-- Read Editorial Note -->
+                        <a
+                            href="<?= htmlspecialchars($issue['publicationPDF']) ?>"
+                            class="editorial-button read-button"
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>Read Editorial Note</span>
+                        </a>
 
-                    <!-- Download Editorial Note -->
-                    <a
-                        href="#"
-                        class="editorial-button download-button"
-                        onclick="return false;">
-                        <i class="fa-solid fa-download"></i>
-                        <span>Download Editorial Note</span>
-                    </a>
+                        <!-- Download Editorial Note -->
+                        <a
+                            href="archive-detailspage.php?issue_id=<?= (int) $issue['publicationID'] ?>&download=editorial"
+                            class="editorial-button download-button">
+                            <i class="fa-solid fa-download"></i>
+                            <span>Download Editorial Note</span>
+                        </a>
 
-                </div>
+                    </div>
+
+                <?php else: ?>
+
+                    <div class="editorial-actions">
+
+                        <span class="editorial-button read-button disabled">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>Editorial Note Unavailable</span>
+                        </span>
+
+                    </div>
+
+                <?php endif; ?>
+
             </section>
 
             <section class="articles-section" aria-labelledby="articles-heading">
