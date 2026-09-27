@@ -3,10 +3,16 @@
    ========================================================================== */
 
 .page-header {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 25px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.page-heading {
+    text-align: left;
 }
 
 .page-header h1 {

@@ -6,20 +6,21 @@
 <!DOCTYPE html>
 
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Edit Profile | Convergence Admin</title>
+  <title>Edit Profile | Convergence Admin</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="../css/edit_profile.css">
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="../css/edit_profile.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 
 <body>
@@ -28,18 +29,17 @@
 
   <header class="site-header">
     <div class="brand">
-      <img 
-        src="../Images/Convergence Logo.png" 
-        alt="Convergence logo" 
-        class="brand-logo"
-      >
+      <img
+        src="../Images/Convergence Logo.png"
+        alt="Convergence logo"
+        class="brand-logo">
 
 
-  <div class="brand-text">
-    <h1>CONVERGENCE</h1>
-    <span>A MULTIDISCIPLINARY JOURNAL</span>
-  </div>
-</div>
+      <div class="brand-text">
+        <h1>CONVERGENCE</h1>
+        <span>A MULTIDISCIPLINARY JOURNAL</span>
+      </div>
+    </div>
 
 
   </header>
@@ -56,94 +56,90 @@
   <main class="content-area">
 
 
-<div class="profile-card">
+    <div class="profile-card">
 
-  <form 
-    action="edit_profile_handler.php" 
-    method="POST" 
-    enctype="multipart/form-data"
-    class="profile-form"
-  >
+      <form
+        action="edit_profile_handler.php"
+        method="POST"
+        enctype="multipart/form-data"
+        class="profile-form">
 
-    <!-- Profile Picture -->
-    <div class="profile-picture-section">
+        <!-- Profile Picture -->
+        <div class="profile-picture-section">
 
-  <div class="profile-picture-preview">
-    <span>A</span>
-  </div>
+          <div class="profile-picture-preview">
+            <span>A</span>
+          </div>
 
-  <div class="profile-picture-content">
+          <div class="profile-picture-content">
 
-<span class="profile-picture-label">
-  Profile Picture
-</span>
+            <span class="profile-picture-label">
+              Profile Picture
+            </span>
 
-<p class="profile-picture-help">
-  Upload a new profile picture.
-</p>
+            <p class="profile-picture-help">
+              Upload a new profile picture.
+            </p>
 
-<label for="profile_picture" class="upload-button">
-  <i class="fa-solid fa-upload"></i>
-  Choose Picture
-</label>
+            <label for="profile_picture" class="upload-button">
+              <i class="fa-solid fa-upload"></i>
+              Choose Picture
+            </label>
 
-<input
-  type="file"
-  id="profile_picture"
-  name="profile_picture"
-  accept="image/*"
->
+            <input
+              type="file"
+              id="profile_picture"
+              name="profile_picture"
+              accept="image/*">
 
-  </div>
+          </div>
 
-</div>
+        </div>
 
 
 
-    <!-- Username -->
-    <div class="profile-field">
-      <label for="username">Username</label>
+        <!-- Username -->
+        <div class="profile-field">
+          <label for="username">Username</label>
 
-      <input
-        type="text"
-        id="username"
-        name="username"
-        value="Admin"
-        required
-      >
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value="Admin"
+            required>
+        </div>
+
+
+        <!-- Email -->
+        <div class="profile-field">
+          <label for="email">Email</label>
+
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="admin@example.com"
+            required>
+        </div>
+
+
+        <!-- Buttons -->
+        <div class="profile-actions">
+
+          <a href="dashboard.php" class="btn-secondary">
+            Cancel
+          </a>
+
+          <button type="submit" class="btn-primary">
+            Save Changes
+          </button>
+
+        </div>
+
+      </form>
+
     </div>
-
-
-    <!-- Email -->
-    <div class="profile-field">
-      <label for="email">Email</label>
-
-      <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="admin@example.com"
-        required
-      >
-    </div>
-
-
-    <!-- Buttons -->
-    <div class="profile-actions">
-
-      <a href="dashboard.php" class="btn-secondary">
-        Cancel
-      </a>
-
-      <button type="submit" class="btn-primary">
-        Save Changes
-      </button>
-
-    </div>
-
-  </form>
-
-</div>
 
 
   </main>
@@ -157,4 +153,5 @@
   </footer>
 
 </body>
+
 </html>
