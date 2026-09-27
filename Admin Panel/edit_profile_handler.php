@@ -30,20 +30,6 @@ $username = trim($_POST['username'] ?? '');
 $email = trim($_POST['email'] ?? '');
 
 
-// Basic validation
-if ($username === '' || $email === '') {
-    header('Location: edit_profile.php?error=required');
-    exit;
-}
-
-
-// Validate email
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    header('Location: edit_profile.php?error=email');
-    exit;
-}
-
-
 try {
 
     // Connect to database
@@ -52,36 +38,74 @@ try {
 
 
     /*
-     * Check whether the username or email is already
-     * being used by another admin.
+     * Get the current admin information.
+     *
+     * This allows empty fields to keep their
+     * existing values.
      */
-    $checkQuery = '
-        SELECT "adminID"
+    $currentQuery = '
+        SELECT
+            "username",
+            "email",
+            "profilePic"
         FROM "Admin"
-        WHERE ("username" = :username OR "email" = :email)
-        AND "adminID" != :adminID
+        WHERE "adminID" = :adminID
         LIMIT 1
     ';
 
-    $checkStmt = $pdo->prepare($checkQuery);
+    $currentStmt = $pdo->prepare($currentQuery);
 
-    $checkStmt->execute([
-        ':username' => $username,
-        ':email' => $email,
+    $currentStmt->execute([
         ':adminID' => $adminID
     ]);
 
+    $currentAdmin = $currentStmt->fetch();
 
-    if ($checkStmt->fetch()) {
-        header('Location: edit_profile.php?error=exists');
+
+    if (!$currentAdmin) {
+        header('Location: edit_profile.php?error=database');
         exit;
     }
 
 
     /*
-     * Start with the basic profile information.
+     * If the username field is empty,
+     * keep the existing username.
      */
-    $profilePicturePath = null;
+    if ($username === '') {
+        $username = $currentAdmin['username'];
+    }
+
+
+    /*
+     * If the email field is empty,
+     * keep the existing email.
+     */
+    if ($email === '') {
+        $email = $currentAdmin['email'];
+    }
+
+
+    /*
+     * Validate the email only if a new email
+     * was actually entered.
+     *
+     * Since an empty email keeps the old value,
+     * there is no need to validate an empty field.
+     */
+    if (
+        trim($_POST['email'] ?? '') !== '' &&
+        !filter_var($email, FILTER_VALIDATE_EMAIL)
+    ) {
+        header('Location: edit_profile.php?error=email');
+        exit;
+    }
+
+
+    /*
+     * Start with no new profile picture.
+     */
+    $profilePicPath = null;
 
 
     /*
@@ -109,7 +133,9 @@ try {
 
 
         // Verify that the uploaded file is actually an image
-        $imageInfo = getimagesize($_FILES['profile_picture']['tmp_name']);
+        $imageInfo = getimagesize(
+            $_FILES['profile_picture']['tmp_name']
+        );
 
         if ($imageInfo === false) {
             header('Location: edit_profile.php?error=image');
@@ -136,7 +162,7 @@ try {
         /*
          * Create the upload directory if it doesn't exist.
          *
-         * This will create:
+         * This creates:
          * Admin Panel/uploads/admin_profiles/
          */
         $uploadDirectory = __DIR__ . '/uploads/admin_profiles/';
@@ -154,7 +180,13 @@ try {
          */
         $extension = $allowedTypes[$imageType];
 
-        $fileName = 'admin_' . $adminID . '_' . uniqid() . '.' . $extension;
+        $fileName =
+            'admin_' .
+            $adminID .
+            '_' .
+            uniqid() .
+            '.' .
+            $extension;
 
         $destination = $uploadDirectory . $fileName;
 
@@ -172,26 +204,31 @@ try {
 
 
         /*
-         * This is the path that will be stored in the database.
+         * Path stored in the database.
          */
-        $profilePicturePath = 'uploads/admin_profiles/' . $fileName;
+        $profilePicPath =
+            'uploads/admin_profiles/' . $fileName;
     }
 
 
     /*
-     * Update the profile.
+     * Update username and email.
      *
-     * If no new picture was uploaded, keep the existing
-     * profile picture unchanged.
+     * These values are either:
+     * - the newly entered values, or
+     * - the existing values if the fields were empty.
      */
-    if ($profilePicturePath !== null) {
+    if ($profilePicPath !== null) {
 
+        /*
+         * A new profile picture was uploaded.
+         */
         $updateQuery = '
             UPDATE "Admin"
             SET
                 "username" = :username,
                 "email" = :email,
-                "profilePicture" = :profilePicture
+                "profilePic" = :profilePic
             WHERE "adminID" = :adminID
         ';
 
@@ -200,12 +237,16 @@ try {
         $updateStmt->execute([
             ':username' => $username,
             ':email' => $email,
-            ':profilePicture' => $profilePicturePath,
+            ':profilePic' => $profilePicPath,
             ':adminID' => $adminID
         ]);
 
     } else {
 
+        /*
+         * No new profile picture was uploaded.
+         * Keep the existing profile picture.
+         */
         $updateQuery = '
             UPDATE "Admin"
             SET
@@ -225,15 +266,15 @@ try {
 
 
     /*
-     * Update the session so the new information is
-     * immediately available throughout the admin panel.
+     * Update the session so the changes are
+     * immediately reflected throughout the admin panel.
      */
     $_SESSION['username'] = $username;
     $_SESSION['email'] = $email;
 
 
-    if ($profilePicturePath !== null) {
-        $_SESSION['profilePicture'] = $profilePicturePath;
+    if ($profilePicPath !== null) {
+        $_SESSION['profilePic'] = $profilePicPath;
     }
 
 
@@ -256,4 +297,3 @@ try {
     header('Location: edit_profile.php?error=database');
     exit;
 }
-?>

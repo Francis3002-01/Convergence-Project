@@ -3,22 +3,46 @@
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
 
+
+// Get token from URL.
 $token = $_GET['token'] ?? '';
+
+
+// Get validation error from handler.
+$urlError = $_GET['error'] ?? '';
+
 
 $error = '';
 $validToken = false;
 
-if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
+
+// Validate token format first.
+if (
+    $token === '' ||
+    !preg_match('/^[a-f0-9]{64}$/', $token)
+) {
+
     $error = 'Invalid or expired password reset link.';
+
 } else {
 
     try {
 
+        // Connect to database.
         $database = new Database();
         $pdo = $database->getConnection();
 
+
+        /*
+         * Hash the raw token so that it can be
+         * compared with the hash stored in the database.
+         */
         $tokenHash = hash('sha256', $token);
 
+
+        /*
+         * Find a valid unused and unexpired token.
+         */
         $sql = '
             SELECT
                 "tokenID",
@@ -36,13 +60,19 @@ if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
             ':tokenHash' => $tokenHash
         ]);
 
+
         $resetToken = $stmt->fetch();
 
+
         if ($resetToken) {
+
             $validToken = true;
+
         } else {
+
             $error = 'Invalid or expired password reset link.';
         }
+
 
     } catch (PDOException $e) {
 
@@ -55,6 +85,23 @@ if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
     }
 }
 
+
+/*
+ * Display errors returned from the reset handler.
+ */
+if ($urlError === 'empty') {
+
+    $error = 'Please enter and confirm your new password.';
+
+} elseif ($urlError === 'mismatch') {
+
+    $error = 'The passwords do not match.';
+
+} elseif ($urlError === 'length') {
+
+    $error = 'Password must be at least 8 characters long.';
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -62,209 +109,334 @@ if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
 
 <head>
 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-  <title>Reset Password | Convergence Admin</title>
+    <title>Reset Password | Convergence Admin</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap"
-    rel="stylesheet"
-  >
+    <!-- Google Fonts -->
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
 
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  >
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
 
-  <link rel="stylesheet" href="../css/change_password.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+
+    <!-- Reset Password CSS -->
+    <link
+        rel="stylesheet"
+        href="../css/reset_password.css"
+    >
 
 </head>
 
+
 <body>
 
-  <header class="site-header">
 
-    <div class="brand">
+    <!-- Header -->
+    <header class="site-header">
 
-      <img
-        src="../Images/Convergence Logo.png"
-        alt="Convergence logo"
-        class="brand-logo"
-      >
+        <div class="brand">
 
-      <div class="brand-text">
+            <img
+                src="../Images/Convergence Logo.png"
+                alt="Convergence logo"
+                class="brand-logo"
+            >
 
-        <h1>CONVERGENCE</h1>
+            <div class="brand-text">
 
-        <span>A MULTIDISCIPLINARY JOURNAL</span>
+                <h1>CONVERGENCE</h1>
 
-      </div>
+                <span>A MULTIDISCIPLINARY JOURNAL</span>
 
-    </div>
+            </div>
 
-  </header>
+        </div>
 
-
-  <section class="page-banner">
-
-    <h2>Reset Password</h2>
-
-  </section>
+    </header>
 
 
-  <main class="content-area">
+    <!-- Page Banner -->
+    <section class="page-banner">
 
-    <div class="cp-card">
+        <h2>Reset Password</h2>
 
-      <?php if (!$validToken): ?>
+        <p>Create a new password for your administrator account.</p>
 
-        <p class="error-message">
-          <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
+    </section>
+
+
+    <!-- Main Content -->
+    <main class="content-area">
+
+        <div class="rp-card">
+
+
+            <?php if (!$validToken): ?>
+
+
+                <!-- Invalid Token -->
+
+                <p class="error-message">
+
+                    <?= htmlspecialchars(
+                        $error,
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
+
+                </p>
+
+
+                <a
+                    href="forgot_password.php"
+                    class="btn-primary"
+                >
+                    Request a New Reset Link
+                </a>
+
+
+            <?php else: ?>
+
+
+                <!-- Valid Token -->
+
+                <p class="rp-intro">
+
+                    Enter and confirm your new password below.
+
+                    Your reset link will only work once and will
+                    expire after 30 minutes.
+
+                </p>
+
+
+                <form
+                    action="reset_password_handler.php"
+                    method="POST"
+                    class="rp-form"
+                >
+
+
+                    <!-- Reset Token -->
+                    <input
+                        type="hidden"
+                        name="token"
+                        value="<?= htmlspecialchars(
+                            $token,
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>"
+                    >
+
+
+                    <!-- New Password -->
+                    <div class="rp-field">
+
+                        <label for="new_password">
+                            New Password
+                        </label>
+
+
+                        <div class="pw">
+
+                            <input
+                                type="password"
+                                id="new_password"
+                                name="new_password"
+                                autocomplete="new-password"
+                                required
+                            >
+
+
+                            <button
+                                type="button"
+                                class="toggle-password"
+                                data-target="new_password"
+                                aria-label="Show password"
+                                aria-pressed="false"
+                            >
+
+                                <i
+                                    class="fa-solid fa-eye"
+                                    aria-hidden="true"
+                                ></i>
+
+                            </button>
+
+                        </div>
+
+
+                        <p class="password-hint">
+                            Password must be at least 8 characters long.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Confirm Password -->
+                    <div class="rp-field">
+
+                        <label for="confirm_password">
+                            Confirm New Password
+                        </label>
+
+
+                        <div class="pw">
+
+                            <input
+                                type="password"
+                                id="confirm_password"
+                                name="confirm_password"
+                                autocomplete="new-password"
+                                required
+                            >
+
+
+                            <button
+                                type="button"
+                                class="toggle-password"
+                                data-target="confirm_password"
+                                aria-label="Show password"
+                                aria-pressed="false"
+                            >
+
+                                <i
+                                    class="fa-solid fa-eye"
+                                    aria-hidden="true"
+                                ></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Submit -->
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                    >
+                        Reset Password
+                    </button>
+
+
+                </form>
+
+
+                <a
+                    href="admin_login.php"
+                    class="back-login"
+                >
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Back to Log In
+                </a>
+
+
+            <?php endif; ?>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="site-footer">
+
+        <p>
+            &copy; <?php echo date("Y"); ?> Convergence Journal.
+            All rights reserved.
         </p>
 
-        <a href="forgot_password.php" class="btn-primary">
-          Request a New Reset Link
-        </a>
-
-      <?php else: ?>
-
-        <form
-          action="reset_password_handler.php"
-          method="POST"
-          class="cp-form"
-        >
-
-          <input
-            type="hidden"
-            name="token"
-            value="<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>"
-          >
-
-          <div class="cp-field">
-
-            <label for="new_password">
-              New Password
-            </label>
-
-            <div class="pw">
-
-              <input
-                type="password"
-                id="new_password"
-                name="new_password"
-                autocomplete="new-password"
-                required
-              >
-
-              <button
-                type="button"
-                class="toggle-password"
-                data-target="new_password"
-                aria-label="Show password"
-                aria-pressed="false"
-              >
-                <i class="fa-solid fa-eye" aria-hidden="true"></i>
-              </button>
-
-            </div>
-
-          </div>
+    </footer>
 
 
-          <div class="cp-field">
+    <!-- Password Visibility -->
+    <script>
 
-            <label for="confirm_password">
-              Confirm New Password
-            </label>
+        document
+            .querySelectorAll('.toggle-password')
+            .forEach(function(button) {
 
-            <div class="pw">
+                button.addEventListener(
+                    'click',
+                    function() {
 
-              <input
-                type="password"
-                id="confirm_password"
-                name="confirm_password"
-                autocomplete="new-password"
-                required
-              >
+                        var targetId =
+                            this.getAttribute('data-target');
 
-              <button
-                type="button"
-                class="toggle-password"
-                data-target="confirm_password"
-                aria-label="Show password"
-                aria-pressed="false"
-              >
-                <i class="fa-solid fa-eye" aria-hidden="true"></i>
-              </button>
+                        var passwordInput =
+                            document.getElementById(targetId);
 
-            </div>
-
-          </div>
+                        var show =
+                            passwordInput.type === 'password';
 
 
-          <button
-            type="submit"
-            class="btn-primary"
-          >
-            Reset Password
-          </button>
-
-        </form>
-
-      <?php endif; ?>
-
-    </div>
-
-  </main>
+                        passwordInput.type =
+                            show ? 'text' : 'password';
 
 
-  <footer class="site-footer">
-
-    <p>
-      &copy; <?php echo date("Y"); ?> Convergence Journal.
-      All rights reserved.
-    </p>
-
-  </footer>
+                        this.setAttribute(
+                            'aria-pressed',
+                            show ? 'true' : 'false'
+                        );
 
 
-  <script>
+                        this.setAttribute(
+                            'aria-label',
+                            show
+                                ? 'Hide password'
+                                : 'Show password'
+                        );
 
-    document.querySelectorAll('.toggle-password').forEach(function(button) {
 
-      button.addEventListener('click', function() {
+                        var icon =
+                            this.querySelector('i');
 
-        var targetId = this.getAttribute('data-target');
-        var passwordInput = document.getElementById(targetId);
 
-        var show = passwordInput.type === 'password';
+                        icon.classList.toggle(
+                            'fa-eye',
+                            !show
+                        );
 
-        passwordInput.type = show ? 'text' : 'password';
 
-        this.setAttribute(
-          'aria-pressed',
-          show ? 'true' : 'false'
-        );
+                        icon.classList.toggle(
+                            'fa-eye-slash',
+                            show
+                        );
 
-        this.setAttribute(
-          'aria-label',
-          show ? 'Hide password' : 'Show password'
-        );
+                    }
+                );
 
-        var icon = this.querySelector('i');
+            });
 
-        icon.classList.toggle('fa-eye', !show);
-        icon.classList.toggle('fa-eye-slash', show);
+    </script>
 
-      });
-
-    });
-
-  </script>
 
 </body>
 
