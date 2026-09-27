@@ -47,6 +47,7 @@ $pageTitle = 'Edit Journal - Convergence';
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/edit_journal.css">
     <link rel="stylesheet" href="../css/edit_journal_modals.css">
+    <link rel="stylesheet" href="../css/header.css">
     <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
 
 </head>

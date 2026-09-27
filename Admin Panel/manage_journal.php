@@ -14,6 +14,7 @@ $pageTitle = "Manage Journals - Convergence";
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/manage_journal.css">
+    <link rel="stylesheet" href="../css/header.css">
     <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
 </head>
 
@@ -31,7 +32,7 @@ $pageTitle = "Manage Journals - Convergence";
             <div class="page-header">
 
                 <div class="page-heading">
-                    <h1 id="pageTitle">Manage Journals</h1>
+                    <h1 id="pageTitle">Manage Journal</h1>
                     <p id="pageDescription">Manage the current publication and prepare the next issue</p>
                 </div>
 

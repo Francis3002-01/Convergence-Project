@@ -187,6 +187,8 @@ if ($publicationID && $publicationID > 0) {
         rel="stylesheet"
         href="../css/archive_admin.css">
 
+    <link rel="stylesheet" href="../css/header.css">
+
     <link
         rel="icon"
         type="image/png"

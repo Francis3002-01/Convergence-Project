@@ -15,7 +15,7 @@
         <a href="manage_journal.php"
             class="<?= basename($_SERVER['PHP_SELF']) === 'manage_journal.php' ? 'active' : '' ?>">
             <i class="fa-solid fa-book"></i>
-            <span>Manage Journals</span>
+            <span>Manage Journal</span>
         </a>
 
         <a href="archive_admin.php"
