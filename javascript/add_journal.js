@@ -1,17 +1,11 @@
+let pendingPublicationMode = null;
 let articles = [];
-
 let currentArticleIndex = 0;
-
 let publicationPdfFile = null;
-
 let articleDeleteIndex = null;
-
 let authorDeleteIndex = null;
 
-// ==============================
 // BASIC HELPERS
-// ==============================
-
 function escapeHtml(value) {
   if (value === null || value === undefined) {
     return "";
@@ -39,45 +33,32 @@ function createArticle() {
   };
 }
 
-// ==============================
 // INITIALIZE FORM
-// ==============================
 
 function initializeAddJournalPage() {
   resetPublicationForm();
-
   const publicationPdfUploadBox = document.getElementById(
     "publicationPdfUploadBox",
   );
-
   const publicationPdfInput = document.getElementById("publicationPDF");
-
   const articlePdfUploadBox = document.getElementById("articlePdfUploadBox");
-
   const articlePdfInput = document.getElementById("pdfFile");
 
   // Publication PDF upload
-
   if (publicationPdfUploadBox && publicationPdfInput) {
     setupPublicationPdfUpload();
   }
 
   // Article PDF upload
-
   if (articlePdfUploadBox && articlePdfInput) {
     setupPdfUpload();
   }
 }
 
-// ==============================
 // PUBLICATION FORM
-// ==============================
-
 function resetPublicationForm() {
   const yearSelect = document.getElementById("year");
-
   const volumeInput = document.getElementById("volume");
-
   const numberInput = document.getElementById("number");
 
   if (yearSelect) {
@@ -89,7 +70,6 @@ function resetPublicationForm() {
       const option = document.createElement("option");
 
       option.value = year;
-
       option.textContent = year;
 
       yearSelect.appendChild(option);
@@ -111,7 +91,6 @@ function resetPublicationForm() {
   resetPublicationPdfInput();
 
   const publicationStep = document.getElementById("publicationStep");
-
   const articleStep = document.getElementById("articleStep");
 
   if (publicationStep) {
@@ -123,19 +102,14 @@ function resetPublicationForm() {
   }
 
   renderArticleTabs();
-
   loadArticle(0);
 }
 
-// ==============================
 // GO TO ARTICLES
-// ==============================
 
 function goToArticles() {
   const year = document.getElementById("year");
-
   const volume = document.getElementById("volume");
-
   const number = document.getElementById("number");
 
   if (!year || !volume || !number) {
@@ -144,38 +118,30 @@ function goToArticles() {
 
   if (!year.value) {
     alert("Please select the publication year.");
-
     return;
   }
 
   if (!volume.value.trim()) {
     alert("Please enter the volume.");
-
     volume.focus();
-
     return;
   }
 
   if (!number.value.trim()) {
     alert("Please enter the issue number.");
-
     number.focus();
-
     return;
   }
 
   if (!publicationPdfFile) {
     alert("Please upload the Publication PDF.");
-
     return;
   }
 
   // Save publication information for display
 
   const displayYear = document.getElementById("displayYear");
-
   const displayVolume = document.getElementById("displayVolume");
-
   const displayNumber = document.getElementById("displayNumber");
 
   if (displayYear) {
@@ -193,7 +159,6 @@ function goToArticles() {
   // Move to article step
 
   const publicationStep = document.getElementById("publicationStep");
-
   const articleStep = document.getElementById("articleStep");
 
   if (publicationStep) {
@@ -205,19 +170,15 @@ function goToArticles() {
   }
 
   renderArticleTabs();
-
   loadArticle(currentArticleIndex);
 }
 
-// ==============================
 // GO BACK TO PUBLICATION
-// ==============================
 
 function goToPublication() {
   saveCurrentArticle();
 
   const publicationStep = document.getElementById("publicationStep");
-
   const articleStep = document.getElementById("articleStep");
 
   if (articleStep) {
@@ -231,9 +192,7 @@ function goToPublication() {
   setupPublicationPdfUpload();
 }
 
-// ==============================
 // ARTICLE TABS
-// ==============================
 
 function renderArticleTabs() {
   const articleTabs = document.getElementById("articleTabs");
@@ -248,7 +207,6 @@ function renderArticleTabs() {
     const tab = document.createElement("button");
 
     tab.type = "button";
-
     tab.className = "article-tab";
 
     if (index === currentArticleIndex) {
@@ -271,9 +229,7 @@ function renderArticleTabs() {
   });
 }
 
-// ==============================
 // LOAD ARTICLE
-// ==============================
 
 function loadArticle(index) {
   if (!articles[index]) {
@@ -285,9 +241,7 @@ function loadArticle(index) {
   const article = articles[index];
 
   const articleHeading = document.getElementById("articleHeading");
-
   const articleTitle = document.getElementById("articleTitle");
-
   const articleDeleteButton = document.getElementById("deleteArticleButton");
 
   if (articleHeading) {
@@ -298,8 +252,7 @@ function loadArticle(index) {
     articleTitle.value = article.title || "";
   }
 
-  // Only allow deleting an article
-  // if there is more than one
+  // Only allow deleting an article if there is more than one
 
   if (articleDeleteButton) {
     articleDeleteButton.style.display =
@@ -351,9 +304,7 @@ function loadArticle(index) {
   renderArticleTabs();
 }
 
-// ==============================
 // SAVE CURRENT ARTICLE
-// ==============================
 
 function saveCurrentArticle() {
   const article = articles[currentArticleIndex];
@@ -363,7 +314,6 @@ function saveCurrentArticle() {
   }
 
   const titleInput = document.getElementById("articleTitle");
-
   const pdfInput = document.getElementById("pdfFile");
 
   if (titleInput) {
@@ -382,31 +332,25 @@ function saveCurrentArticle() {
 
   authorRows.forEach((row) => {
     const firstNameInput = row.querySelector(".author-first-name");
-
     const lastNameInput = row.querySelector(".author-last-name");
 
     article.authors.push({
       firstName: firstNameInput ? firstNameInput.value.trim() : "",
-
       lastName: lastNameInput ? lastNameInput.value.trim() : "",
     });
   });
 
-  // Make sure there is always
-  // at least one author
+  // Make sure there is always at least one author
 
   if (article.authors.length === 0) {
     article.authors.push({
       firstName: "",
-
       lastName: "",
     });
   }
 }
 
-// ==============================
 // ADD ARTICLE
-// ==============================
 
 function addArticle() {
   saveCurrentArticle();
@@ -420,25 +364,23 @@ function addArticle() {
   loadArticle(currentArticleIndex);
 }
 
-// ==============================
 // DELETE ARTICLE
-// ==============================
 
 function requestDeleteArticle() {
   if (articles.length <= 1) {
     alert("At least one article is required.");
-
     return;
   }
 
   articleDeleteIndex = currentArticleIndex;
 
   const modal = document.getElementById("confirmationModal");
-
   const message = document.getElementById("confirmationMessage");
 
   if (message) {
-    message.textContent = `Are you sure you want to remove Article ${articleDeleteIndex + 1}?`;
+    message.textContent = `Are you sure you want to remove Article ${
+      articleDeleteIndex + 1
+    }?`;
   }
 
   if (modal) {
@@ -459,7 +401,6 @@ function deleteArticle() {
     articleDeleteIndex >= articles.length
   ) {
     closeConfirmationModal();
-
     return;
   }
 
@@ -482,9 +423,7 @@ function deleteArticle() {
   loadArticle(currentArticleIndex);
 }
 
-// ==============================
-// AUTHORS
-// ==============================
+// RENDER AUTHORS
 
 function renderAuthors() {
   const authorsContainer = document.getElementById("authors");
@@ -507,43 +446,45 @@ function renderAuthors() {
     row.className = "author-row";
 
     row.innerHTML = `
-    <div class="author-fields">
+      <div class="author-fields">
         <div class="form-group">
-            <label>First Name</label>
-            <input
-                type="text"
-                class="author-first-name"
-                value="${escapeHtml(author.firstName)}"
-                placeholder="Enter first name"
-            >
+          <label>First Name</label>
+
+          <input
+            type="text"
+            class="author-first-name"
+            value="${escapeHtml(author.firstName)}"
+            placeholder="Enter first name"
+          >
         </div>
 
         <div class="form-group">
-            <label>Last Name</label>
-            <input
-                type="text"
-                class="author-last-name"
-                value="${escapeHtml(author.lastName)}"
-                placeholder="Enter last name"
-            >
-        </div>
-    </div>
+          <label>Last Name</label>
 
-    ${
-      article.authors.length > 1
-        ? `
+          <input
+            type="text"
+            class="author-last-name"
+            value="${escapeHtml(author.lastName)}"
+            placeholder="Enter last name"
+          >
+        </div>
+      </div>
+
+      ${
+        article.authors.length > 1
+          ? `
             <button
-                type="button"
-                class="delete-author-btn"
-                onclick="requestDeleteAuthor(${index})"
-                title="Remove author"
+              type="button"
+              class="delete-author-btn"
+              onclick="requestDeleteAuthor(${index})"
+              title="Remove author"
             >
-                <i class="fa-solid fa-trash"></i>
+              <i class="fa-solid fa-trash"></i>
             </button>
-        `
-        : ""
-    }
-`;
+          `
+          : ""
+      }
+    `;
 
     authorsContainer.appendChild(row);
   });
@@ -554,7 +495,6 @@ function addAuthor() {
 
   articles[currentArticleIndex].authors.push({
     firstName: "",
-
     lastName: "",
   });
 
@@ -570,14 +510,12 @@ function requestDeleteAuthor(index) {
 
   if (article.authors.length <= 1) {
     alert("At least one author is required.");
-
     return;
   }
 
   authorDeleteIndex = index;
 
   const modal = document.getElementById("confirmationModal");
-
   const message = document.getElementById("confirmationMessage");
 
   if (message) {
@@ -600,7 +538,6 @@ function deleteAuthor() {
 
   if (!article) {
     closeConfirmationModal();
-
     return;
   }
 
@@ -610,7 +547,6 @@ function deleteAuthor() {
     authorDeleteIndex >= article.authors.length
   ) {
     closeConfirmationModal();
-
     return;
   }
 
@@ -623,9 +559,7 @@ function deleteAuthor() {
   renderAuthors();
 }
 
-// ==============================
 // MODALS
-// ==============================
 
 function closeModal() {
   const modal = document.getElementById("confirmationModal");
@@ -643,19 +577,14 @@ function closeConfirmationModal() {
   }
 
   articleDeleteIndex = null;
-
   authorDeleteIndex = null;
 }
 
-// ==============================
 // PUBLICATION PDF UPLOAD
-// ==============================
 
 function setupPublicationPdfUpload() {
   const uploadBox = document.getElementById("publicationPdfUploadBox");
-
   const fileInput = document.getElementById("publicationPDF");
-
   const undoButton = document.getElementById("publicationPdfUndo");
 
   if (!uploadBox || !fileInput) {
@@ -670,9 +599,7 @@ function setupPublicationPdfUpload() {
 
   uploadBox.dataset.initialized = "true";
 
-  // ==============================
   // CLICK / FILE SELECT
-  // ==============================
 
   fileInput.addEventListener("change", function () {
     if (this.files && this.files.length > 0) {
@@ -680,25 +607,19 @@ function setupPublicationPdfUpload() {
     }
   });
 
-  // ==============================
   // DRAG ENTER
-  // ==============================
 
   uploadBox.addEventListener("dragenter", function (event) {
     event.preventDefault();
-
     event.stopPropagation();
 
     uploadBox.classList.add("drag-over");
   });
 
-  // ==============================
   // DRAG OVER
-  // ==============================
 
   uploadBox.addEventListener("dragover", function (event) {
     event.preventDefault();
-
     event.stopPropagation();
 
     if (event.dataTransfer) {
@@ -708,13 +629,10 @@ function setupPublicationPdfUpload() {
     uploadBox.classList.add("drag-over");
   });
 
-  // ==============================
   // DRAG LEAVE
-  // ==============================
 
   uploadBox.addEventListener("dragleave", function (event) {
     event.preventDefault();
-
     event.stopPropagation();
 
     if (!uploadBox.contains(event.relatedTarget)) {
@@ -722,13 +640,10 @@ function setupPublicationPdfUpload() {
     }
   });
 
-  // ==============================
   // DROP
-  // ==============================
 
   uploadBox.addEventListener("drop", function (event) {
     event.preventDefault();
-
     event.stopPropagation();
 
     uploadBox.classList.remove("drag-over");
@@ -741,8 +656,7 @@ function setupPublicationPdfUpload() {
 
     const file = files[0];
 
-    // Put the dropped file
-    // into the actual file input
+    // Put the dropped file into the actual file input
 
     try {
       const dataTransfer = new DataTransfer();
@@ -757,14 +671,11 @@ function setupPublicationPdfUpload() {
     handlePublicationPdfFile(file);
   });
 
-  // ==============================
   // UNDO
-  // ==============================
 
   if (undoButton) {
     undoButton.addEventListener("click", function (event) {
       event.preventDefault();
-
       event.stopPropagation();
 
       resetPublicationPdfInput();
@@ -782,9 +693,7 @@ function handlePublicationPdfFile(file) {
 
   if (!isPdf) {
     alert("Please select a PDF file.");
-
     resetPublicationPdfInput();
-
     return;
   }
 
@@ -792,9 +701,7 @@ function handlePublicationPdfFile(file) {
 
   if (file.size > maxSize) {
     alert("The PDF file must not exceed 40 MB.");
-
     resetPublicationPdfInput();
-
     return;
   }
 
@@ -825,7 +732,6 @@ function resetPublicationPdfInput() {
   publicationPdfFile = null;
 
   const fileInput = document.getElementById("publicationPDF");
-
   const fileName = document.getElementById("publicationPdfFileName");
 
   const uploadTitle = document.querySelector(
@@ -857,15 +763,11 @@ function resetPublicationPdfInput() {
   }
 }
 
-// ==============================
 // ARTICLE PDF UPLOAD
-// ==============================
 
 function setupPdfUpload() {
   const uploadBox = document.getElementById("articlePdfUploadBox");
-
   const fileInput = document.getElementById("pdfFile");
-
   const undoButton = document.getElementById("articlePdfUndo");
 
   if (!uploadBox || !fileInput) {
@@ -880,9 +782,7 @@ function setupPdfUpload() {
 
   uploadBox.dataset.initialized = "true";
 
-  // ==============================
   // CLICK / FILE SELECT
-  // ==============================
 
   fileInput.addEventListener("change", function () {
     if (this.files && this.files.length > 0) {
@@ -890,25 +790,19 @@ function setupPdfUpload() {
     }
   });
 
-  // ==============================
   // DRAG ENTER
-  // ==============================
 
   uploadBox.addEventListener("dragenter", function (event) {
     event.preventDefault();
-
     event.stopPropagation();
 
     uploadBox.classList.add("drag-over");
   });
 
-  // ==============================
   // DRAG OVER
-  // ==============================
 
   uploadBox.addEventListener("dragover", function (event) {
     event.preventDefault();
-
     event.stopPropagation();
 
     if (event.dataTransfer) {
@@ -918,13 +812,10 @@ function setupPdfUpload() {
     uploadBox.classList.add("drag-over");
   });
 
-  // ==============================
   // DRAG LEAVE
-  // ==============================
 
   uploadBox.addEventListener("dragleave", function (event) {
     event.preventDefault();
-
     event.stopPropagation();
 
     if (!uploadBox.contains(event.relatedTarget)) {
@@ -932,13 +823,10 @@ function setupPdfUpload() {
     }
   });
 
-  // ==============================
   // DROP
-  // ==============================
 
   uploadBox.addEventListener("drop", function (event) {
     event.preventDefault();
-
     event.stopPropagation();
 
     uploadBox.classList.remove("drag-over");
@@ -951,8 +839,7 @@ function setupPdfUpload() {
 
     const file = files[0];
 
-    // Put the dropped file
-    // into the actual file input
+    // Put the dropped file into the actual file input
 
     try {
       const dataTransfer = new DataTransfer();
@@ -967,14 +854,11 @@ function setupPdfUpload() {
     handlePdfFile(file);
   });
 
-  // ==============================
   // UNDO
-  // ==============================
 
   if (undoButton) {
     undoButton.addEventListener("click", function (event) {
       event.preventDefault();
-
       event.stopPropagation();
 
       undoPdfFile();
@@ -992,9 +876,7 @@ function handlePdfFile(file) {
 
   if (!isPdf) {
     alert("Please select a PDF file.");
-
     resetPdfInput();
-
     return;
   }
 
@@ -1002,9 +884,7 @@ function handlePdfFile(file) {
 
   if (file.size > maxSize) {
     alert("The PDF file must not exceed 40 MB.");
-
     resetPdfInput();
-
     return;
   }
 
@@ -1035,13 +915,10 @@ function handlePdfFile(file) {
 
 function resetPdfInput() {
   const fileInput = document.getElementById("pdfFile");
-
   const fileName = document.getElementById("pdfFileName");
-
   const uploadTitle = document.querySelector(
     "#articlePdfUploadBox .upload-title",
   );
-
   const undoButton = document.getElementById("articlePdfUndo");
 
   const uploadBox = document.getElementById("articlePdfUploadBox");
@@ -1075,56 +952,43 @@ function undoPdfFile() {
   resetPdfInput();
 }
 
-// ==============================
 // SAVE / PUBLISH JOURNAL
-// ==============================
 
 async function savePublication(mode = "draft") {
   saveCurrentArticle();
 
   const year = document.getElementById("year")?.value.trim();
-
   const volume = document.getElementById("volume")?.value.trim();
-
   const number = document.getElementById("number")?.value.trim();
 
-  // ==============================
   // BASIC VALIDATION
-  // ==============================
 
   if (!year) {
     alert("Please select the publication year.");
-
     return;
   }
 
   if (!volume) {
     alert("Please enter the volume.");
-
     return;
   }
 
   if (!number) {
     alert("Please enter the issue number.");
-
     return;
   }
 
   if (!publicationPdfFile) {
     alert("Please upload the Publication PDF.");
-
     return;
   }
 
   if (articles.length === 0) {
     alert("Please add at least one article.");
-
     return;
   }
 
-  // ==============================
   // VALIDATE ARTICLES
-  // ==============================
 
   for (let i = 0; i < articles.length; i++) {
     const article = articles[i];
@@ -1135,7 +999,6 @@ async function savePublication(mode = "draft") {
       currentArticleIndex = i;
 
       renderArticleTabs();
-
       loadArticle(i);
 
       return;
@@ -1147,7 +1010,6 @@ async function savePublication(mode = "draft") {
       currentArticleIndex = i;
 
       renderArticleTabs();
-
       loadArticle(i);
 
       return;
@@ -1159,7 +1021,6 @@ async function savePublication(mode = "draft") {
       currentArticleIndex = i;
 
       renderArticleTabs();
-
       loadArticle(i);
 
       return;
@@ -1180,7 +1041,6 @@ async function savePublication(mode = "draft") {
         currentArticleIndex = i;
 
         renderArticleTabs();
-
         loadArticle(i);
 
         return;
@@ -1188,47 +1048,39 @@ async function savePublication(mode = "draft") {
     }
   }
 
-  // ==============================
   // CONFIRM PUBLISH
-  // ==============================
 
   if (mode === "publish") {
-    const confirmed = confirm("Are you sure you want to publish this journal?");
+    pendingPublicationMode = mode;
 
-    if (!confirmed) {
-      return;
+    const modal = document.getElementById("publishConfirmationModal");
+
+    if (modal) {
+      modal.classList.add("show");
     }
+
+    return;
   }
 
-  // ==============================
   // PREPARE FORM DATA
-  // ==============================
 
   const formData = new FormData();
 
   formData.append("action", "add");
-
   formData.append("mode", mode);
-
   formData.append("year", year);
-
   formData.append("volume", volume);
-
   formData.append("number", number);
-
   formData.append("publicationPDF", publicationPdfFile);
 
-  // Send article information
-  // without PDF files
+  // Send article information without PDF files
 
   const articleData = articles.map((article) => ({
     journalID: article.journalID || null,
-
     title: article.title,
 
     authors: article.authors.map((author) => ({
       firstName: author.firstName,
-
       lastName: author.lastName,
     })),
   }));
@@ -1241,9 +1093,7 @@ async function savePublication(mode = "draft") {
     formData.append(`pdf_${index}`, article.pdf);
   });
 
-  // ==============================
   // SEND TO BACKEND
-  // ==============================
 
   try {
     const response = await fetch("manage_journal_api.php", {
@@ -1273,24 +1123,58 @@ async function savePublication(mode = "draft") {
   }
 }
 
-// ==============================
 // CANCEL ADD JOURNAL
-// ==============================
 
 function cancelAddJournal() {
-  const confirmed = confirm(
-    "Are you sure you want to cancel? Any unsaved changes will be lost.",
-  );
+  const modal = document.getElementById("cancelConfirmationModal");
 
-  if (!confirmed) {
-    return;
+  if (modal) {
+    modal.classList.add("show");
   }
+}
 
+function closeCancelConfirmationModal() {
+  const modal = document.getElementById("cancelConfirmationModal");
+
+  if (modal) {
+    modal.classList.remove("show");
+  }
+}
+
+function confirmCancelAddJournal() {
   window.location.href = "manage_journal.php";
 }
 
-// ==============================
-// PAGE LOAD
-// ==============================
+// PUBLISH JOURNAL MODAL
 
-document.addEventListener("DOMContentLoaded", initializeAddJournalPage);
+function closePublishConfirmationModal() {
+  const modal = document.getElementById("publishConfirmationModal");
+
+  if (modal) {
+    modal.classList.remove("show");
+  }
+
+  pendingPublicationMode = null;
+}
+
+function confirmPublish() {
+  const mode = pendingPublicationMode;
+
+  closePublishConfirmationModal();
+
+  if (mode === "publish") {
+    savePublication("publish");
+  }
+}
+
+// PAGE LOAD
+
+document.addEventListener("DOMContentLoaded", function () {
+  initializeAddJournalPage();
+
+  const confirmPublishButton = document.getElementById("confirmPublishButton");
+
+  if (confirmPublishButton) {
+    confirmPublishButton.addEventListener("click", confirmPublish);
+  }
+});

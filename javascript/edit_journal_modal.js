@@ -1,258 +1,220 @@
 document.addEventListener("DOMContentLoaded", () => {
-setupModalEvents();
+    setupModalEvents();
 });
 
 /* =========================================================
-MODAL ELEMENTS
+   MODAL ELEMENTS
 ========================================================= */
 
 function getModal(id) {
-return document.getElementById(id);
+    return document.getElementById(id);
 }
 
 /* =========================================================
-SAVE CONFIRMATION MODAL
+   SAVE CONFIRMATION MODAL
 ========================================================= */
 
 function openSaveConfirmModal() {
-const modal = getModal("saveConfirmModal");
+    const modal = getModal("saveConfirmModal");
 
+    if (!modal) {
+        console.error("saveConfirmModal was not found.");
+        return;
+    }
 
-if (!modal) {
-    console.error(
-        "saveConfirmModal was not found."
-    );
-    return;
-}
-
-modal.style.display = "flex";
-
-
+    modal.style.display = "flex";
 }
 
 function closeSaveConfirmModal() {
-const modal = getModal("saveConfirmModal");
+    const modal = getModal("saveConfirmModal");
 
+    if (!modal) {
+        return;
+    }
 
-if (!modal) {
-    return;
-}
-
-modal.style.display = "none";
-
-
+    modal.style.display = "none";
 }
 
 /* =========================================================
-CANCEL / DISCARD MODAL
+   CANCEL / DISCARD MODAL
 ========================================================= */
 
 function openCancelModal() {
-const modal = getModal("cancelConfirmModal");
+    const modal = getModal("cancelConfirmModal");
 
+    if (!modal) {
+        console.error("cancelConfirmModal was not found.");
+        return;
+    }
 
-if (!modal) {
-    console.error(
-        "cancelConfirmModal was not found."
-    );
-    return;
-}
-
-modal.style.display = "flex";
-
-
+    modal.style.display = "flex";
 }
 
 function closeCancelModal() {
-const modal = getModal("cancelConfirmModal");
+    const modal = getModal("cancelConfirmModal");
 
+    if (!modal) {
+        return;
+    }
 
-if (!modal) {
-    return;
-}
-
-modal.style.display = "none";
-
-
+    modal.style.display = "none";
 }
 
 function discardChanges() {
-window.location.href =
-"manage_journal.php";
+    window.location.href = "manage_journal.php";
 }
 
 /* =========================================================
-ERROR MODAL
+   ERROR MODAL
 ========================================================= */
 
 function showErrorModal(message) {
-const modal = getModal("errorModal");
-const messageElement =
-document.getElementById("errorModalMessage");
+    const modal = getModal("errorModal");
+    const messageElement = document.getElementById("errorModalMessage");
 
+    if (!modal) {
+        console.error("errorModal was not found.");
+        alert(message);
+        return;
+    }
 
-if (!modal) {
-    console.error(
-        "errorModal was not found."
-    );
+    if (messageElement) {
+        messageElement.textContent =
+            message || "An error occurred.";
+    }
 
-    alert(message);
-    return;
-}
-
-if (messageElement) {
-    messageElement.textContent =
-        message ||
-        "An error occurred.";
-}
-
-modal.style.display = "flex";
-
-
+    modal.style.display = "flex";
 }
 
 function closeErrorModal() {
-const modal = getModal("errorModal");
+    const modal = getModal("errorModal");
 
+    if (!modal) {
+        return;
+    }
 
-if (!modal) {
-    return;
-}
-
-modal.style.display = "none";
-
-
+    modal.style.display = "none";
 }
 
 /* =========================================================
-MODAL BUTTON EVENTS
+   MODAL BUTTON EVENTS
 ========================================================= */
 
 function setupModalEvents() {
 
+    /* -----------------------------------------------------
+       Confirm Changes modal
+    ----------------------------------------------------- */
 
-// Confirm Changes modal
 const confirmSaveButton =
-    document.getElementById(
-        "confirmSaveButton"
-    );
+    document.getElementById("confirmSaveButton");
 
 if (confirmSaveButton) {
-    confirmSaveButton.addEventListener(
-        "click",
-        async () => {
+    confirmSaveButton.addEventListener("click", async () => {
 
-            closeSaveConfirmModal();
+        console.log("CONFIRM CHANGES BUTTON CLICKED");
 
-            if (
-                typeof saveChanges ===
-                "function"
-            ) {
-                await saveChanges();
-            } else {
-                console.error(
-                    "saveChanges() is not available."
-                );
-            }
+        closeSaveConfirmModal();
+
+        console.log("SAVE MODAL CLOSED");
+
+        if (typeof saveChanges === "function") {
+            console.log("saveChanges() FOUND");
+            await saveChanges();
+        } else {
+            console.error("saveChanges() NOT FOUND");
         }
-    );
+    });
+} else {
+    console.error("confirmSaveButton was not found.");
 }
 
+    /* -----------------------------------------------------
+       Cancel / Discard modal
+    ----------------------------------------------------- */
 
-// Cancel / Discard modal
-const discardButton =
-    document.getElementById(
-        "discardChangesButton"
-    );
+    const discardButton =
+        document.getElementById("discardChangesButton");
 
-if (discardButton) {
-    discardButton.addEventListener(
-        "click",
-        discardChanges
-    );
-}
+    if (discardButton) {
+        discardButton.addEventListener(
+            "click",
+            discardChanges
+        );
+    }
 
+    /* -----------------------------------------------------
+       Close save confirmation modal
+    ----------------------------------------------------- */
 
-// Close save modal
-const closeSaveButton =
-    document.getElementById(
-        "closeSaveModalButton"
-    );
+    const closeSaveButton =
+        document.getElementById("closeSaveModalButton");
 
-if (closeSaveButton) {
-    closeSaveButton.addEventListener(
-        "click",
-        closeSaveConfirmModal
-    );
-}
+    if (closeSaveButton) {
+        closeSaveButton.addEventListener(
+            "click",
+            closeSaveConfirmModal
+        );
+    }
 
+    /* -----------------------------------------------------
+       Close cancel modal
+    ----------------------------------------------------- */
 
-// Close cancel modal
-const closeCancelButton =
-    document.getElementById(
-        "closeCancelModalButton"
-    );
+    const closeCancelButton =
+        document.getElementById("closeCancelModalButton");
 
-if (closeCancelButton) {
-    closeCancelButton.addEventListener(
-        "click",
-        closeCancelModal
-    );
-}
+    if (closeCancelButton) {
+        closeCancelButton.addEventListener(
+            "click",
+            closeCancelModal
+        );
+    }
 
+    /* -----------------------------------------------------
+       Close error modal
+    ----------------------------------------------------- */
 
-// Close error modal
-const closeErrorButton =
-    document.getElementById(
-        "closeErrorModalButton"
-    );
+    const closeErrorButton =
+        document.getElementById("closeErrorModalButton");
 
-if (closeErrorButton) {
-    closeErrorButton.addEventListener(
-        "click",
-        closeErrorModal
-    );
-}
+    if (closeErrorButton) {
+        closeErrorButton.addEventListener(
+            "click",
+            closeErrorModal
+        );
+    }
 
+    /* -----------------------------------------------------
+       Clicking outside a modal closes it
+    ----------------------------------------------------- */
 
-// Clicking outside a modal closes it.
-document.addEventListener(
-    "click",
-    (event) => {
+    document.addEventListener("click", (event) => {
 
         if (
-            event.target.classList.contains(
-                "modal-overlay"
-            )
+            event.target.classList.contains("modal-overlay")
         ) {
-            event.target.style.display =
-                "none";
+            event.target.style.display = "none";
         }
 
-    }
-);
+    });
 
+    /* -----------------------------------------------------
+       ESC closes any open modal
+    ----------------------------------------------------- */
 
-// ESC closes any open modal.
-document.addEventListener(
-    "keydown",
-    (event) => {
+    document.addEventListener("keydown", (event) => {
 
         if (event.key !== "Escape") {
             return;
         }
 
         const modals =
-            document.querySelectorAll(
-                ".modal-overlay"
-            );
+            document.querySelectorAll(".modal-overlay");
 
         modals.forEach((modal) => {
             modal.style.display = "none";
         });
 
-    }
-);
-
-
+    });
 }

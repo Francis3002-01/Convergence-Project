@@ -1,0 +1,89 @@
+/* =========================================================
+   ADD JOURNAL MODALS
+   ========================================================= */
+.confirmation-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.confirmation-modal.show {
+    display: flex;
+}
+
+.confirmation-dialog {
+    width: 90%;
+    max-width: 430px;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.confirmation-icon {
+    width: 55px;
+    height: 55px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #fce8e6;
+    color: #a42821;
+    font-size: 23px;
+}
+
+.confirmation-dialog h3 {
+    margin: 0 0 10px;
+    font-size: 21px;
+    color: #17243a;
+}
+
+.confirmation-dialog p {
+    margin: 0 auto 25px;
+    max-width: 350px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #666666;
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.modal-cancel-btn,
+.modal-confirm-btn {
+    min-width: 120px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-cancel-btn {
+    background-color: #eeeeee;
+    color: #333333;
+}
+
+.modal-cancel-btn:hover {
+    background-color: #dddddd;
+}
+
+.modal-confirm-btn {
+    background-color: #a42821;
+    color: #ffffff;
+}
+
+.modal-confirm-btn:hover {
+    background-color: #8d211c;
+}
+

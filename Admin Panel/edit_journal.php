@@ -2,15 +2,31 @@
 
 require_once __DIR__ . '/../config/database.php';
 
-$publicationID = filter_input(INPUT_GET, 'publicationID', FILTER_VALIDATE_INT);
-$journalID = filter_input(INPUT_GET, 'journalID', FILTER_VALIDATE_INT);
+$publicationID = filter_input(
+    INPUT_GET,
+    'publicationID',
+    FILTER_VALIDATE_INT
+);
 
-if (($publicationID === false || $publicationID === null || $publicationID <= 0) && ($journalID === false || $journalID === null || $journalID <= 0)) {
+$journalID = filter_input(
+    INPUT_GET,
+    'journalID',
+    FILTER_VALIDATE_INT
+);
+
+if (
+    ($publicationID === false || $publicationID === null || $publicationID <= 0) &&
+    ($journalID === false || $journalID === null || $journalID <= 0)
+) {
     header('Location: manage_journal.php');
     exit;
 }
 
-if ($publicationID === false || $publicationID === null || $publicationID <= 0) {
+if (
+    $publicationID === false ||
+    $publicationID === null ||
+    $publicationID <= 0
+) {
     $pdo = (new Database())->getConnection();
 
     $stmt = $pdo->prepare(
@@ -40,15 +56,41 @@ $pageTitle = 'Edit Journal - Convergence';
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="../css/edit_journal.css">
-    <link rel="stylesheet" href="../css/edit_journal_modals.css">
-    <link rel="stylesheet" href="../css/header.css">
-    <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>
+        <?= htmlspecialchars($pageTitle) ?>
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/admin.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/edit_journal.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/edit_journal_modals.css">
+
+    <link
+        rel="stylesheet"
+        href="../css/header.css">
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="../Images/Convergence Logo.png">
 
 </head>
 
@@ -61,31 +103,89 @@ $pageTitle = 'Edit Journal - Convergence';
         <?php include 'components/header.php'; ?>
 
         <main class="content">
+
             <section class="edit-journal-container">
 
                 <div class="page-header">
+
                     <div class="page-heading">
-                        <h1 id="pageTitle">Edit Journal</h1>
-                        <p id="pageDescription">Update the publication issue and its articles</p>
+
+                        <h1 id="pageTitle">
+                            Edit Journal
+                        </h1>
+
+                        <p id="pageDescription">
+                            Update the publication issue and its articles
+                        </p>
+
                     </div>
+
                 </div>
 
-                <div id="loading" class="status-message" role="status" aria-live="polite">
+
+                <!-- LOADING MESSAGE -->
+
+                <div
+                    id="loading"
+                    class="status-message"
+                    role="status"
+                    aria-live="polite">
+
                     <i class="fa-solid fa-spinner fa-spin"></i>
+
                     Loading journal...
+
                 </div>
 
-                <div id="errorMessage" class="status-message error-message" role="alert" aria-live="assertive" style="display: none;"></div>
 
-                <form id="editForm" data-publication-id="<?= htmlspecialchars((string) $publicationID) ?>" enctype="multipart/form-data" style="display: none;">
+                <!-- ERROR MESSAGE -->
 
-                    <input type="hidden" id="publicationID" name="publicationID" value="<?= htmlspecialchars((string) $publicationID) ?>">
-                    <div class="form-step" id="publicationStep">
+                <div
+                    id="errorMessage"
+                    class="status-message error-message"
+                    role="alert"
+                    aria-live="assertive"
+                    style="display: none;">
+                </div>
+
+
+                <!-- EDIT FORM -->
+
+                <form
+                    id="editForm"
+                    data-publication-id="<?= htmlspecialchars((string) $publicationID) ?>"
+                    enctype="multipart/form-data"
+                    style="display: none;">
+
+                    <input
+                        type="hidden"
+                        id="publicationID"
+                        name="publicationID"
+                        value="<?= htmlspecialchars((string) $publicationID) ?>">
+
+
+                    <!-- =====================================================
+                         PUBLICATION ISSUE
+                    ====================================================== -->
+
+                    <div
+                        class="form-step"
+                        id="publicationStep">
+
                         <div class="form-header">
 
                             <div>
-                                <h2>Publication Issue</h2>
-                                <p>Edit the publication issue information</p><br>
+
+                                <h2>
+                                    Publication Issue
+                                </h2>
+
+                                <p>
+                                    Edit the publication issue information
+                                </p>
+
+                                <br>
+
                             </div>
 
                         </div>
@@ -99,13 +199,17 @@ $pageTitle = 'Edit Journal - Convergence';
                             <div class="publication-fields">
 
 
+                                <!-- YEAR -->
+
                                 <div class="form-group">
 
                                     <label for="year">
 
                                         Year
 
-                                        <span class="required">*</span>
+                                        <span class="required">
+                                            *
+                                        </span>
 
                                     </label>
 
@@ -120,13 +224,17 @@ $pageTitle = 'Edit Journal - Convergence';
                                 </div>
 
 
+                                <!-- VOLUME -->
+
                                 <div class="form-group">
 
                                     <label for="volume">
 
                                         Volume
 
-                                        <span class="required">*</span>
+                                        <span class="required">
+                                            *
+                                        </span>
 
                                     </label>
 
@@ -140,13 +248,17 @@ $pageTitle = 'Edit Journal - Convergence';
                                 </div>
 
 
+                                <!-- NUMBER -->
+
                                 <div class="form-group">
 
                                     <label for="number">
 
                                         Number
 
-                                        <span class="required">*</span>
+                                        <span class="required">
+                                            *
+                                        </span>
 
                                     </label>
 
@@ -158,7 +270,6 @@ $pageTitle = 'Edit Journal - Convergence';
                                         required>
 
                                 </div>
-
 
                             </div>
 
@@ -245,13 +356,14 @@ $pageTitle = 'Edit Journal - Convergence';
                                             class="undo-pdf-btn"
                                             id="publicationPdfUndo"
                                             hidden>
+
                                             Undo
+
                                         </button>
 
                                     </div>
 
                                 </div>
-
 
                                 <small class="form-help">
                                     Optional. Leave empty to keep the current PDF.
@@ -259,10 +371,14 @@ $pageTitle = 'Edit Journal - Convergence';
 
                             </div>
 
-
                         </div>
 
                     </div>
+
+
+                    <!-- =====================================================
+                         ARTICLES
+                    ====================================================== -->
 
                     <div
                         class="form-step"
@@ -289,24 +405,85 @@ $pageTitle = 'Edit Journal - Convergence';
 
                         <div class="form-section">
 
-                            <div class="form-group">
-                                <label for="articleSelect">Select Article</label>
 
-                                <select id="articleSelect" name="articleSelect">
-                                    <option value="">Select an article</option>
+                            <!-- ARTICLE SELECTOR -->
+
+                            <div class="form-group">
+
+                                <div class="field-label-row">
+
+                                    <label for="articleSelect">
+                                        Select Article
+                                    </label>
+
+                                    <button
+                                        type="button"
+                                        class="add-article-button"
+                                        id="addArticleButton"
+                                        onclick="addNewArticle()">
+
+                                        <i class="fa-solid fa-plus"></i>
+
+                                        Add New Article
+
+                                    </button>
+
+                                </div>
+
+
+                                <select
+                                    id="articleSelect"
+                                    name="articleSelect">
+
+                                    <option value="">
+                                        Select an article
+                                    </option>
+
                                 </select>
+
                             </div>
 
 
-                            <div id="selectedArticleEditor" class="article-form-card" style="display: none;">
+                            <!-- SELECTED ARTICLE EDITOR -->
+
+                            <div
+                                id="selectedArticleEditor"
+                                class="article-form-card"
+                                style="display: none;">
+
 
                                 <!-- ARTICLE HEADING -->
+
                                 <div class="article-heading-row">
 
                                     <div>
-                                        <span class="article-label">Article</span>
-                                        <h3 id="articleHeading">Article</h3>
+
+                                        <span class="article-label">
+                                            Article
+                                        </span>
+
+                                        <h3 id="articleHeading">
+                                            Article
+                                        </h3>
+
                                     </div>
+
+
+                                    <!-- ONLY SHOWN FOR NEW ARTICLES -->
+
+                                    <button
+                                        type="button"
+                                        class="remove-article-button"
+                                        id="removeArticleButton"
+                                        onclick="openRemoveArticleModal()"
+                                        style="display: none;">
+
+                                        <i class="fa-solid fa-trash"></i>
+
+                                        Remove New Article
+
+                                    </button>
+
                                 </div>
 
 
@@ -404,52 +581,172 @@ $pageTitle = 'Edit Journal - Convergence';
 
                                             </label>
 
-                                            <button type="button" class="undo-pdf-btn" id="articlePdfUndo" hidden>Undo</button>
+
+                                            <button
+                                                type="button"
+                                                class="undo-pdf-btn"
+                                                id="articlePdfUndo"
+                                                hidden>
+
+                                                Undo
+
+                                            </button>
+
                                         </div>
 
                                     </div>
 
-                                    <small class="form-help">Optional. Leave empty to keep the current PDF</small>
+                                    <small class="form-help">
+                                        Optional. Leave empty to keep the current PDF.
+                                    </small>
 
                                 </div>
 
 
                                 <!-- AUTHORS -->
+
                                 <div class="form-group">
+
                                     <div class="field-label-row">
-                                        <label>Authors</label>
-                                        <button type="button" class="add-author-button" onclick="addAuthor()">
+
+                                        <label>
+                                            Authors
+                                        </label>
+
+                                        <button
+                                            type="button"
+                                            class="add-author-button"
+                                            onclick="addAuthor()">
+
                                             <i class="fa-solid fa-plus"></i>
+
                                             Add Author
+
                                         </button>
 
                                     </div>
 
-                                    <div id="authors" class="authors-container"></div>
-                                </div>
 
+                                    <div
+                                        id="authors"
+                                        class="authors-container">
+                                    </div>
+
+                                </div>
 
                             </div>
 
-
                         </div>
 
-                        <!-- FORM ACTIONS -->
-                        <div class="form-actions article-actions">
-                            <button type="button" class="cancel-btn" onclick="openCancelModal()">Cancel</button>
-                            <button type="submit" class="save-draft-btn" id="saveButton">Confirm Changes</button>
-                        </div>
                     </div>
+
+
+                    <!-- =====================================================
+                         FORM ACTIONS
+                    ====================================================== -->
+
+                    <div class="form-actions article-actions">
+
+                        <button
+                            type="button"
+                            class="cancel-btn"
+                            onclick="openCancelModal()">
+
+                            Cancel
+
+                        </button>
+
+
+                        <button
+                            type="submit"
+                            class="save-draft-btn"
+                            id="saveButton">
+
+                            Confirm Changes
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- =====================================================
+                         REMOVE NEW ARTICLE MODAL
+                         This one stays here because it is handled by
+                         edit_journal.js.
+                    ====================================================== -->
+
+                    <div
+                        class="modal-overlay"
+                        id="removeArticleModal">
+
+                        <div class="modal-box">
+
+                            <div class="modal-icon">
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </div>
+
+                            <h2>
+                                Remove New Article?
+                            </h2>
+
+                            <p>
+                                Are you sure you want to remove this new article?
+                                Any information entered for this article will be lost.
+                            </p>
+
+                            <div class="modal-actions">
+
+                                <button
+                                    type="button"
+                                    class="modal-cancel-btn"
+                                    onclick="closeRemoveArticleModal()">
+
+                                    Cancel
+
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="modal-danger-btn"
+                                    onclick="confirmRemoveNewArticle()">
+
+                                    Remove Article
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
                 </form>
+
             </section>
+
         </main>
 
     </div>
 
+
+    <!-- =============================================================
+         SAVE / CANCEL / ERROR MODALS
+         These are defined ONLY in edit_journal_modals.php.
+    ============================================================= -->
+
     <?php include 'edit_journal_modals.php'; ?>
 
+
+    <!-- =============================================================
+         JAVASCRIPT
+    ============================================================= -->
+
     <script src="../javascript/edit_journal_modal.js"></script>
+
     <script src="../javascript/edit_journal.js"></script>
+
 </body>
 
 </html>

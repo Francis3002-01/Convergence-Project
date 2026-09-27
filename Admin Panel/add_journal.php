@@ -15,7 +15,8 @@ $pageTitle = "Add Journal - Convergence";
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/add_journal.css">
     <link rel="stylesheet" href="../css/header.css">
-    <link rel="icon" type="image/png"href="../Images/Convergence Logo.png">
+    <link rel="stylesheet" href="../css/add_journal_modals.css">
+    <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
 </head>
 
 <body>
@@ -86,8 +87,7 @@ $pageTitle = "Add Journal - Convergence";
                                         name="volume"
                                         min="1"
                                         placeholder="e.g. 11"
-                                        required
-                                    >
+                                        required>
                                 </div>
 
 
@@ -102,8 +102,7 @@ $pageTitle = "Add Journal - Convergence";
                                         name="number"
                                         min="1"
                                         placeholder="e.g. 1"
-                                        required
-                                    >
+                                        required>
                                 </div>
 
                             </div>
@@ -118,21 +117,18 @@ $pageTitle = "Add Journal - Convergence";
 
                                 <div
                                     class="pdf-upload-box"
-                                    id="publicationPdfUploadBox"
-                                >
+                                    id="publicationPdfUploadBox">
 
                                     <input
                                         type="file"
                                         id="publicationPDF"
                                         name="publicationPDF"
                                         accept="application/pdf,.pdf"
-                                        hidden
-                                    >
+                                        hidden>
 
                                     <label
                                         for="publicationPDF"
-                                        class="pdf-upload-label"
-                                    >
+                                        class="pdf-upload-label">
 
                                         <div class="upload-icon">
                                             <i class="fa-solid fa-file-pdf"></i>
@@ -144,8 +140,7 @@ $pageTitle = "Add Journal - Convergence";
 
                                         <span
                                             class="upload-file-name"
-                                            id="publicationPdfFileName"
-                                        >
+                                            id="publicationPdfFileName">
                                             No file selected
                                         </span>
 
@@ -156,8 +151,7 @@ $pageTitle = "Add Journal - Convergence";
                                         type="button"
                                         class="undo-pdf-btn"
                                         id="publicationPdfUndo"
-                                        hidden
-                                    >
+                                        hidden>
                                         Undo
                                     </button>
 
@@ -174,16 +168,14 @@ $pageTitle = "Add Journal - Convergence";
                             <button
                                 type="button"
                                 class="cancel-btn"
-                                onclick="cancelAddJournal()"
-                            >
+                                onclick="cancelAddJournal()">
                                 Cancel
                             </button>
 
                             <button
                                 type="button"
                                 class="next-btn"
-                                onclick="goToArticles()"
-                            >
+                                onclick="goToArticles()">
                                 Next
                                 <i class="fa-solid fa-arrow-right"></i>
                             </button>
@@ -197,8 +189,7 @@ $pageTitle = "Add Journal - Convergence";
                     <div
                         class="form-step"
                         id="articleStep"
-                        style="display: none;"
-                    >
+                        style="display: none;">
 
                         <!-- BACK TO PUBLICATION -->
                         <div class="article-step-top">
@@ -206,8 +197,7 @@ $pageTitle = "Add Journal - Convergence";
                             <button
                                 type="button"
                                 class="back-to-publication"
-                                onclick="goToPublication()"
-                            >
+                                onclick="goToPublication()">
                                 <i class="fa-solid fa-arrow-left"></i>
                                 Back to Publication Issue
                             </button>
@@ -258,14 +248,12 @@ $pageTitle = "Add Journal - Convergence";
 
                             <div
                                 class="article-tabs"
-                                id="articleTabs"
-                            ></div>
+                                id="articleTabs"></div>
 
                             <button
                                 type="button"
                                 class="add-article-btn"
-                                onclick="addArticle()"
-                            >
+                                onclick="addArticle()">
                                 <i class="fa-solid fa-plus"></i>
                                 Add Article
                             </button>
@@ -294,8 +282,7 @@ $pageTitle = "Add Journal - Convergence";
                                     class="delete-article-button"
                                     id="deleteArticleButton"
                                     onclick="requestDeleteArticle()"
-                                    title="Remove article"
-                                >
+                                    title="Remove article">
                                     <i class="fa-solid fa-trash"></i>
                                     Remove Article
                                 </button>
@@ -314,8 +301,7 @@ $pageTitle = "Add Journal - Convergence";
                                     type="text"
                                     id="articleTitle"
                                     placeholder="Enter article title"
-                                    required
-                                >
+                                    required>
 
                             </div>
 
@@ -329,20 +315,17 @@ $pageTitle = "Add Journal - Convergence";
 
                                 <div
                                     class="pdf-upload-box"
-                                    id="articlePdfUploadBox"
-                                >
+                                    id="articlePdfUploadBox">
 
                                     <input
                                         type="file"
                                         id="pdfFile"
                                         accept="application/pdf,.pdf"
-                                        hidden
-                                    >
+                                        hidden>
 
                                     <label
                                         for="pdfFile"
-                                        class="pdf-upload-label"
-                                    >
+                                        class="pdf-upload-label">
 
                                         <div class="upload-icon">
                                             <i class="fa-solid fa-file-pdf"></i>
@@ -354,8 +337,7 @@ $pageTitle = "Add Journal - Convergence";
 
                                         <span
                                             class="upload-file-name"
-                                            id="pdfFileName"
-                                        >
+                                            id="pdfFileName">
                                             No file selected
                                         </span>
 
@@ -366,8 +348,7 @@ $pageTitle = "Add Journal - Convergence";
                                         type="button"
                                         class="undo-pdf-btn"
                                         id="articlePdfUndo"
-                                        hidden
-                                    >
+                                        hidden>
                                         Undo
                                     </button>
 
@@ -388,8 +369,7 @@ $pageTitle = "Add Journal - Convergence";
                                     <button
                                         type="button"
                                         class="add-author-button"
-                                        onclick="addAuthor()"
-                                    >
+                                        onclick="addAuthor()">
                                         <i class="fa-solid fa-plus"></i>
                                         Add Author
                                     </button>
@@ -399,8 +379,7 @@ $pageTitle = "Add Journal - Convergence";
 
                                 <div
                                     id="authors"
-                                    class="authors-container"
-                                ></div>
+                                    class="authors-container"></div>
 
                             </div>
 
@@ -413,8 +392,7 @@ $pageTitle = "Add Journal - Convergence";
                             <button
                                 type="button"
                                 class="cancel-btn"
-                                onclick="cancelAddJournal()"
-                            >
+                                onclick="cancelAddJournal()">
                                 Cancel
                             </button>
 
@@ -424,8 +402,7 @@ $pageTitle = "Add Journal - Convergence";
                                 type="button"
                                 class="save-draft-btn"
                                 id="saveDraftButton"
-                                onclick="savePublication('draft')"
-                            >
+                                onclick="savePublication('draft')">
                                 <i class="fa-solid fa-file-pen"></i>
                                 Save as Draft
                             </button>
@@ -436,8 +413,7 @@ $pageTitle = "Add Journal - Convergence";
                                 type="button"
                                 class="publish-btn"
                                 id="publishButton"
-                                onclick="savePublication('publish')"
-                            >
+                                onclick="savePublication('publish')">
                                 <i class="fa-solid fa-upload"></i>
                                 Publish
                             </button>
@@ -455,63 +431,10 @@ $pageTitle = "Add Journal - Convergence";
     </div>
 
 
-    <!-- REMOVE ARTICLE CONFIRMATION MODAL -->
-    <div
-        class="confirmation-modal"
-        id="confirmationModal"
-    >
-
-        <div
-            class="confirmation-overlay"
-            onclick="closeConfirmationModal()"
-        ></div>
-
-
-        <div class="confirmation-dialog">
-
-            <div class="confirmation-icon">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-
-
-            <h3>
-                Remove Article?
-            </h3>
-
-
-            <p id="confirmationMessage">
-                Are you sure you want to remove this article?
-            </p>
-
-
-            <div class="confirmation-actions">
-
-                <button
-                    type="button"
-                    class="modal-cancel-btn"
-                    onclick="closeConfirmationModal()"
-                >
-                    Cancel
-                </button>
-
-
-                <button
-                    type="button"
-                    class="modal-confirm-btn"
-                    id="confirmDeleteButton"
-                >
-                    Remove Article
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
+    <!-- ADD JOURNAL MODALS -->
+    <?php include 'components/add_journal_modals.php'; ?>
 
     <script src="../javascript/add_journal.js"></script>
-
 </body>
 
 </html>
