@@ -13,12 +13,28 @@
             </a>
 
             <!-- Search -->
-            <form class="search-box" action="search.php" method="GET">
-                <input type="text" name="q" placeholder="Search for articles..." aria-label="Search articles" autocomplete="off">
+
+            <form class="search-box" action="search.php" method="GET" id="searchForm">
+                <input type="text" name="q" id="searchInput" placeholder="Search for articles..."aria-label="Search articles"autocomplete="off">
                 <button type="submit" aria-label="Search">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
             </form>
+
+            <script>
+                const searchForm = document.getElementById("searchForm");
+                const searchInput = document.getElementById("searchInput");
+
+                searchForm.addEventListener("submit", function(event) {
+                    // Remove spaces from the beginning and end
+                    const query = searchInput.value.trim();
+
+                    // Prevent going to search.php if the search bar is empty
+                    if (query === "") {
+                        event.preventDefault();
+                    }
+                });
+            </script>
         </div>
 
         <!-- Navigation -->
@@ -58,9 +74,7 @@
                 menuIcon.classList.remove("fa-bars");
                 menuIcon.classList.add("fa-xmark");
                 menuToggle.setAttribute("aria-label", "Close navigation menu");
-            } 
-            
-            else {
+            } else {
                 menuIcon.classList.remove("fa-xmark");
                 menuIcon.classList.add("fa-bars");
                 menuToggle.setAttribute("aria-label", "Open navigation menu");

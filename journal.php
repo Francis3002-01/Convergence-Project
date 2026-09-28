@@ -44,11 +44,7 @@ function normalizeIssuePdfPath(string $storagePath): string
     }
 
     $storagePath = ltrim($storagePath, '/');
-
-    $bucketName = trim(
-        (string) ($_ENV['SUPABASE_BUCKET'] ?? ''),
-        '/'
-    );
+    $bucketName = trim((string) ($_ENV['SUPABASE_BUCKET'] ?? ''),'/');
 
     if ($bucketName !== '') {
         $bucketPrefix = $bucketName . '/';

@@ -1,1180 +1,2788 @@
+/* =========================================================
+   ADD / CONTINUE EDITING JOURNAL
+   Convergence: A Multidisciplinary Journal
+   ========================================================= */
+
+
+/* =========================================================
+   GLOBAL STATE
+   ========================================================= */
+
 let pendingPublicationMode = null;
+
 let articles = [];
 let currentArticleIndex = 0;
+
 let publicationPdfFile = null;
+let editingPublicationID = null;
+let existingPublicationPdf = null;
+
 let articleDeleteIndex = null;
 let authorDeleteIndex = null;
 
-// BASIC HELPERS
+
+/* =========================================================
+   HELPER FUNCTIONS
+   ========================================================= */
+
+/*
+ * Escape HTML characters before putting values into innerHTML.
+ * This prevents saved author names or titles from being
+ * interpreted as HTML.
+ */
 function escapeHtml(value) {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
+
+/*
+ * Create a new empty article object.
+ */
 function createArticle() {
-  return {
-    journalID: null,
-    title: "",
-    pdf: null,
-    authors: [
-      {
-        firstName: "",
-        lastName: "",
-      },
-    ],
-  };
+    return {
+        journalID: null,
+        title: "",
+        pdf: null,
+        existingPdf: null,
+
+        authors: [
+            {
+                firstName: "",
+                lastName: ""
+            }
+        ]
+    };
 }
 
-// INITIALIZE FORM
 
-function initializeAddJournalPage() {
-  resetPublicationForm();
-  const publicationPdfUploadBox = document.getElementById(
-    "publicationPdfUploadBox",
-  );
-  const publicationPdfInput = document.getElementById("publicationPDF");
-  const articlePdfUploadBox = document.getElementById("articlePdfUploadBox");
-  const articlePdfInput = document.getElementById("pdfFile");
-
-  // Publication PDF upload
-  if (publicationPdfUploadBox && publicationPdfInput) {
-    setupPublicationPdfUpload();
-  }
-
-  // Article PDF upload
-  if (articlePdfUploadBox && articlePdfInput) {
-    setupPdfUpload();
-  }
-}
-
-// PUBLICATION FORM
-function resetPublicationForm() {
-  const yearSelect = document.getElementById("year");
-  const volumeInput = document.getElementById("volume");
-  const numberInput = document.getElementById("number");
-
-  if (yearSelect) {
-    yearSelect.innerHTML = "";
-
-    const currentYear = new Date().getFullYear();
-
-    for (let year = currentYear; year >= 2000; year--) {
-      const option = document.createElement("option");
-
-      option.value = year;
-      option.textContent = year;
-
-      yearSelect.appendChild(option);
-    }
-  }
-
-  if (volumeInput) {
-    volumeInput.value = "";
-  }
-
-  if (numberInput) {
-    numberInput.value = "";
-  }
-
-  articles = [createArticle()];
-
-  currentArticleIndex = 0;
-
-  resetPublicationPdfInput();
-
-  const publicationStep = document.getElementById("publicationStep");
-  const articleStep = document.getElementById("articleStep");
-
-  if (publicationStep) {
-    publicationStep.style.display = "block";
-  }
-
-  if (articleStep) {
-    articleStep.style.display = "none";
-  }
-
-  renderArticleTabs();
-  loadArticle(0);
-}
-
-// GO TO ARTICLES
-
-function goToArticles() {
-  const year = document.getElementById("year");
-  const volume = document.getElementById("volume");
-  const number = document.getElementById("number");
-
-  if (!year || !volume || !number) {
-    return;
-  }
-
-  if (!year.value) {
-    alert("Please select the publication year.");
-    return;
-  }
-
-  if (!volume.value.trim()) {
-    alert("Please enter the volume.");
-    volume.focus();
-    return;
-  }
-
-  if (!number.value.trim()) {
-    alert("Please enter the issue number.");
-    number.focus();
-    return;
-  }
-
-  if (!publicationPdfFile) {
-    alert("Please upload the Publication PDF.");
-    return;
-  }
-
-  // Save publication information for display
-
-  const displayYear = document.getElementById("displayYear");
-  const displayVolume = document.getElementById("displayVolume");
-  const displayNumber = document.getElementById("displayNumber");
-
-  if (displayYear) {
-    displayYear.textContent = year.value;
-  }
-
-  if (displayVolume) {
-    displayVolume.textContent = volume.value;
-  }
-
-  if (displayNumber) {
-    displayNumber.textContent = number.value;
-  }
-
-  // Move to article step
-
-  const publicationStep = document.getElementById("publicationStep");
-  const articleStep = document.getElementById("articleStep");
-
-  if (publicationStep) {
-    publicationStep.style.display = "none";
-  }
-
-  if (articleStep) {
-    articleStep.style.display = "block";
-  }
-
-  renderArticleTabs();
-  loadArticle(currentArticleIndex);
-}
-
-// GO BACK TO PUBLICATION
-
-function goToPublication() {
-  saveCurrentArticle();
-
-  const publicationStep = document.getElementById("publicationStep");
-  const articleStep = document.getElementById("articleStep");
-
-  if (articleStep) {
-    articleStep.style.display = "none";
-  }
-
-  if (publicationStep) {
-    publicationStep.style.display = "block";
-  }
-
-  setupPublicationPdfUpload();
-}
-
-// ARTICLE TABS
-
-function renderArticleTabs() {
-  const articleTabs = document.getElementById("articleTabs");
-
-  if (!articleTabs) {
-    return;
-  }
-
-  articleTabs.innerHTML = "";
-
-  articles.forEach((article, index) => {
-    const tab = document.createElement("button");
-
-    tab.type = "button";
-    tab.className = "article-tab";
-
-    if (index === currentArticleIndex) {
-      tab.classList.add("active");
+/*
+ * Get the file name from a stored file path.
+ */
+function getFileNameFromPath(path) {
+    if (!path) {
+        return "";
     }
 
-    tab.textContent = `Article ${index + 1}`;
+    const normalizedPath = String(path).replace(/\\/g, "/");
+    const parts = normalizedPath.split("/");
 
-    tab.addEventListener("click", function () {
-      saveCurrentArticle();
-
-      currentArticleIndex = index;
-
-      renderArticleTabs();
-
-      loadArticle(index);
-    });
-
-    articleTabs.appendChild(tab);
-  });
+    return parts[parts.length - 1];
 }
 
-// LOAD ARTICLE
 
-function loadArticle(index) {
-  if (!articles[index]) {
-    return;
-  }
-
-  currentArticleIndex = index;
-
-  const article = articles[index];
-
-  const articleHeading = document.getElementById("articleHeading");
-  const articleTitle = document.getElementById("articleTitle");
-  const articleDeleteButton = document.getElementById("deleteArticleButton");
-
-  if (articleHeading) {
-    articleHeading.textContent = `Article ${index + 1}`;
-  }
-
-  if (articleTitle) {
-    articleTitle.value = article.title || "";
-  }
-
-  // Only allow deleting an article if there is more than one
-
-  if (articleDeleteButton) {
-    articleDeleteButton.style.display =
-      articles.length > 1 ? "inline-flex" : "none";
-  }
-
-  renderAuthors();
-
-  resetPdfInput();
-
-  // Restore existing PDF information
-
-  if (article.pdf) {
-    const fileName = document.getElementById("pdfFileName");
-
-    const uploadTitle = document.querySelector(
-      "#articlePdfUploadBox .upload-title",
-    );
-
-    const undoButton = document.getElementById("articlePdfUndo");
-
-    if (fileName) {
-      fileName.textContent = article.pdf.name;
-    }
-
-    if (uploadTitle) {
-      uploadTitle.hidden = true;
-    }
-
-    if (undoButton) {
-      undoButton.hidden = false;
-    }
-
-    const pdfInput = document.getElementById("pdfFile");
-
-    if (pdfInput) {
-      try {
-        const dataTransfer = new DataTransfer();
-
-        dataTransfer.items.add(article.pdf);
-
-        pdfInput.files = dataTransfer.files;
-      } catch (error) {
-        console.warn("Unable to restore PDF input:", error);
-      }
-    }
-  }
-
-  renderArticleTabs();
-}
-
-// SAVE CURRENT ARTICLE
-
-function saveCurrentArticle() {
-  const article = articles[currentArticleIndex];
-
-  if (!article) {
-    return;
-  }
-
-  const titleInput = document.getElementById("articleTitle");
-  const pdfInput = document.getElementById("pdfFile");
-
-  if (titleInput) {
-    article.title = titleInput.value.trim();
-  }
-
-  if (pdfInput && pdfInput.files && pdfInput.files.length > 0) {
-    article.pdf = pdfInput.files[0];
-  }
-
-  // Save authors
-
-  const authorRows = document.querySelectorAll(".author-row");
-
-  article.authors = [];
-
-  authorRows.forEach((row) => {
-    const firstNameInput = row.querySelector(".author-first-name");
-    const lastNameInput = row.querySelector(".author-last-name");
-
-    article.authors.push({
-      firstName: firstNameInput ? firstNameInput.value.trim() : "",
-      lastName: lastNameInput ? lastNameInput.value.trim() : "",
-    });
-  });
-
-  // Make sure there is always at least one author
-
-  if (article.authors.length === 0) {
-    article.authors.push({
-      firstName: "",
-      lastName: "",
-    });
-  }
-}
-
-// ADD ARTICLE
-
-function addArticle() {
-  saveCurrentArticle();
-
-  articles.push(createArticle());
-
-  currentArticleIndex = articles.length - 1;
-
-  renderArticleTabs();
-
-  loadArticle(currentArticleIndex);
-}
-
-// DELETE ARTICLE
-
-function requestDeleteArticle() {
-  if (articles.length <= 1) {
-    alert("At least one article is required.");
-    return;
-  }
-
-  articleDeleteIndex = currentArticleIndex;
-
-  const modal = document.getElementById("confirmationModal");
-  const message = document.getElementById("confirmationMessage");
-
-  if (message) {
-    message.textContent = `Are you sure you want to remove Article ${
-      articleDeleteIndex + 1
-    }?`;
-  }
-
-  if (modal) {
-    modal.style.display = "flex";
-  }
-
-  const confirmButton = document.getElementById("confirmDeleteButton");
-
-  if (confirmButton) {
-    confirmButton.onclick = deleteArticle;
-  }
-}
-
-function deleteArticle() {
-  if (
-    articleDeleteIndex === null ||
-    articleDeleteIndex < 0 ||
-    articleDeleteIndex >= articles.length
-  ) {
-    closeConfirmationModal();
-    return;
-  }
-
-  articles.splice(articleDeleteIndex, 1);
-
-  if (currentArticleIndex >= articles.length) {
-    currentArticleIndex = articles.length - 1;
-  }
-
-  if (currentArticleIndex < 0) {
-    currentArticleIndex = 0;
-  }
-
-  articleDeleteIndex = null;
-
-  closeConfirmationModal();
-
-  renderArticleTabs();
-
-  loadArticle(currentArticleIndex);
-}
-
-// RENDER AUTHORS
-
-function renderAuthors() {
-  const authorsContainer = document.getElementById("authors");
-
-  if (!authorsContainer) {
-    return;
-  }
-
-  const article = articles[currentArticleIndex];
-
-  if (!article) {
-    return;
-  }
-
-  authorsContainer.innerHTML = "";
-
-  article.authors.forEach((author, index) => {
-    const row = document.createElement("div");
-
-    row.className = "author-row";
-
-    row.innerHTML = `
-      <div class="author-fields">
-        <div class="form-group">
-          <label>First Name</label>
-
-          <input
-            type="text"
-            class="author-first-name"
-            value="${escapeHtml(author.firstName)}"
-            placeholder="Enter first name"
-          >
-        </div>
-
-        <div class="form-group">
-          <label>Last Name</label>
-
-          <input
-            type="text"
-            class="author-last-name"
-            value="${escapeHtml(author.lastName)}"
-            placeholder="Enter last name"
-          >
-        </div>
-      </div>
-
-      ${
-        article.authors.length > 1
-          ? `
-            <button
-              type="button"
-              class="delete-author-btn"
-              onclick="requestDeleteAuthor(${index})"
-              title="Remove author"
-            >
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          `
-          : ""
-      }
-    `;
-
-    authorsContainer.appendChild(row);
-  });
-}
-
-function addAuthor() {
-  saveCurrentArticle();
-
-  articles[currentArticleIndex].authors.push({
-    firstName: "",
-    lastName: "",
-  });
-
-  renderAuthors();
-}
-
-function requestDeleteAuthor(index) {
-  const article = articles[currentArticleIndex];
-
-  if (!article) {
-    return;
-  }
-
-  if (article.authors.length <= 1) {
-    alert("At least one author is required.");
-    return;
-  }
-
-  authorDeleteIndex = index;
-
-  const modal = document.getElementById("confirmationModal");
-  const message = document.getElementById("confirmationMessage");
-
-  if (message) {
-    message.textContent = "Are you sure you want to remove this author?";
-  }
-
-  if (modal) {
-    modal.style.display = "flex";
-  }
-
-  const confirmButton = document.getElementById("confirmDeleteButton");
-
-  if (confirmButton) {
-    confirmButton.onclick = deleteAuthor;
-  }
-}
-
-function deleteAuthor() {
-  const article = articles[currentArticleIndex];
-
-  if (!article) {
-    closeConfirmationModal();
-    return;
-  }
-
-  if (
-    authorDeleteIndex === null ||
-    authorDeleteIndex < 0 ||
-    authorDeleteIndex >= article.authors.length
-  ) {
-    closeConfirmationModal();
-    return;
-  }
-
-  article.authors.splice(authorDeleteIndex, 1);
-
-  authorDeleteIndex = null;
-
-  closeConfirmationModal();
-
-  renderAuthors();
-}
-
-// MODALS
-
-function closeModal() {
-  const modal = document.getElementById("confirmationModal");
-
-  if (modal) {
-    modal.style.display = "none";
-  }
-}
-
-function closeConfirmationModal() {
-  const modal = document.getElementById("confirmationModal");
-
-  if (modal) {
-    modal.style.display = "none";
-  }
-
-  articleDeleteIndex = null;
-  authorDeleteIndex = null;
-}
-
-// PUBLICATION PDF UPLOAD
-
-function setupPublicationPdfUpload() {
-  const uploadBox = document.getElementById("publicationPdfUploadBox");
-  const fileInput = document.getElementById("publicationPDF");
-  const undoButton = document.getElementById("publicationPdfUndo");
-
-  if (!uploadBox || !fileInput) {
-    return;
-  }
-
-  // Prevent duplicate event listeners
-
-  if (uploadBox.dataset.initialized === "true") {
-    return;
-  }
-
-  uploadBox.dataset.initialized = "true";
-
-  // CLICK / FILE SELECT
-
-  fileInput.addEventListener("change", function () {
-    if (this.files && this.files.length > 0) {
-      handlePublicationPdfFile(this.files[0]);
-    }
-  });
-
-  // DRAG ENTER
-
-  uploadBox.addEventListener("dragenter", function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    uploadBox.classList.add("drag-over");
-  });
-
-  // DRAG OVER
-
-  uploadBox.addEventListener("dragover", function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = "copy";
-    }
-
-    uploadBox.classList.add("drag-over");
-  });
-
-  // DRAG LEAVE
-
-  uploadBox.addEventListener("dragleave", function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (!uploadBox.contains(event.relatedTarget)) {
-      uploadBox.classList.remove("drag-over");
-    }
-  });
-
-  // DROP
-
-  uploadBox.addEventListener("drop", function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    uploadBox.classList.remove("drag-over");
-
-    const files = event.dataTransfer ? event.dataTransfer.files : null;
-
-    if (!files || files.length === 0) {
-      return;
-    }
-
-    const file = files[0];
-
-    // Put the dropped file into the actual file input
-
-    try {
-      const dataTransfer = new DataTransfer();
-
-      dataTransfer.items.add(file);
-
-      fileInput.files = dataTransfer.files;
-    } catch (error) {
-      console.warn("Unable to sync dropped publication PDF:", error);
-    }
-
-    handlePublicationPdfFile(file);
-  });
-
-  // UNDO
-
-  if (undoButton) {
-    undoButton.addEventListener("click", function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      resetPublicationPdfInput();
-    });
-  }
-}
-
-function handlePublicationPdfFile(file) {
-  if (!file) {
-    return;
-  }
-
-  const isPdf =
-    file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-
-  if (!isPdf) {
-    alert("Please select a PDF file.");
-    resetPublicationPdfInput();
-    return;
-  }
-
-  const maxSize = 40 * 1024 * 1024;
-
-  if (file.size > maxSize) {
-    alert("The PDF file must not exceed 40 MB.");
-    resetPublicationPdfInput();
-    return;
-  }
-
-  publicationPdfFile = file;
-
-  const fileName = document.getElementById("publicationPdfFileName");
-
-  const uploadTitle = document.querySelector(
-    "#publicationPdfUploadBox .upload-title",
-  );
-
-  const undoButton = document.getElementById("publicationPdfUndo");
-
-  if (fileName) {
-    fileName.textContent = file.name;
-  }
-
-  if (uploadTitle) {
-    uploadTitle.hidden = true;
-  }
-
-  if (undoButton) {
-    undoButton.hidden = false;
-  }
-}
-
-function resetPublicationPdfInput() {
-  publicationPdfFile = null;
-
-  const fileInput = document.getElementById("publicationPDF");
-  const fileName = document.getElementById("publicationPdfFileName");
-
-  const uploadTitle = document.querySelector(
-    "#publicationPdfUploadBox .upload-title",
-  );
-
-  const undoButton = document.getElementById("publicationPdfUndo");
-
-  const uploadBox = document.getElementById("publicationPdfUploadBox");
-
-  if (fileInput) {
-    fileInput.value = "";
-  }
-
-  if (fileName) {
-    fileName.textContent = "No file selected";
-  }
-
-  if (uploadTitle) {
-    uploadTitle.hidden = false;
-  }
-
-  if (undoButton) {
-    undoButton.hidden = true;
-  }
-
-  if (uploadBox) {
-    uploadBox.classList.remove("drag-over");
-  }
-}
-
-// ARTICLE PDF UPLOAD
-
-function setupPdfUpload() {
-  const uploadBox = document.getElementById("articlePdfUploadBox");
-  const fileInput = document.getElementById("pdfFile");
-  const undoButton = document.getElementById("articlePdfUndo");
-
-  if (!uploadBox || !fileInput) {
-    return;
-  }
-
-  // Prevent duplicate event listeners
-
-  if (uploadBox.dataset.initialized === "true") {
-    return;
-  }
-
-  uploadBox.dataset.initialized = "true";
-
-  // CLICK / FILE SELECT
-
-  fileInput.addEventListener("change", function () {
-    if (this.files && this.files.length > 0) {
-      handlePdfFile(this.files[0]);
-    }
-  });
-
-  // DRAG ENTER
-
-  uploadBox.addEventListener("dragenter", function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    uploadBox.classList.add("drag-over");
-  });
-
-  // DRAG OVER
-
-  uploadBox.addEventListener("dragover", function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = "copy";
-    }
-
-    uploadBox.classList.add("drag-over");
-  });
-
-  // DRAG LEAVE
-
-  uploadBox.addEventListener("dragleave", function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (!uploadBox.contains(event.relatedTarget)) {
-      uploadBox.classList.remove("drag-over");
-    }
-  });
-
-  // DROP
-
-  uploadBox.addEventListener("drop", function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    uploadBox.classList.remove("drag-over");
-
-    const files = event.dataTransfer ? event.dataTransfer.files : null;
-
-    if (!files || files.length === 0) {
-      return;
-    }
-
-    const file = files[0];
-
-    // Put the dropped file into the actual file input
-
-    try {
-      const dataTransfer = new DataTransfer();
-
-      dataTransfer.items.add(file);
-
-      fileInput.files = dataTransfer.files;
-    } catch (error) {
-      console.warn("Unable to sync dropped article PDF:", error);
-    }
-
-    handlePdfFile(file);
-  });
-
-  // UNDO
-
-  if (undoButton) {
-    undoButton.addEventListener("click", function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      undoPdfFile();
-    });
-  }
-}
-
-function handlePdfFile(file) {
-  if (!file) {
-    return;
-  }
-
-  const isPdf =
-    file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-
-  if (!isPdf) {
-    alert("Please select a PDF file.");
-    resetPdfInput();
-    return;
-  }
-
-  const maxSize = 40 * 1024 * 1024;
-
-  if (file.size > maxSize) {
-    alert("The PDF file must not exceed 40 MB.");
-    resetPdfInput();
-    return;
-  }
-
-  if (articles[currentArticleIndex]) {
-    articles[currentArticleIndex].pdf = file;
-  }
-
-  const fileName = document.getElementById("pdfFileName");
-
-  const uploadTitle = document.querySelector(
-    "#articlePdfUploadBox .upload-title",
-  );
-
-  const undoButton = document.getElementById("articlePdfUndo");
-
-  if (fileName) {
-    fileName.textContent = file.name;
-  }
-
-  if (uploadTitle) {
-    uploadTitle.hidden = true;
-  }
-
-  if (undoButton) {
-    undoButton.hidden = false;
-  }
-}
-
-function resetPdfInput() {
-  const fileInput = document.getElementById("pdfFile");
-  const fileName = document.getElementById("pdfFileName");
-  const uploadTitle = document.querySelector(
-    "#articlePdfUploadBox .upload-title",
-  );
-  const undoButton = document.getElementById("articlePdfUndo");
-
-  const uploadBox = document.getElementById("articlePdfUploadBox");
-
-  if (fileInput) {
-    fileInput.value = "";
-  }
-
-  if (fileName) {
-    fileName.textContent = "No file selected";
-  }
-
-  if (uploadTitle) {
-    uploadTitle.hidden = false;
-  }
-
-  if (undoButton) {
-    undoButton.hidden = true;
-  }
-
-  if (uploadBox) {
-    uploadBox.classList.remove("drag-over");
-  }
-}
-
-function undoPdfFile() {
-  if (articles[currentArticleIndex]) {
-    articles[currentArticleIndex].pdf = null;
-  }
-
-  resetPdfInput();
-}
-
-// SAVE / PUBLISH JOURNAL
-
-async function savePublication(mode = "draft") {
-  saveCurrentArticle();
-
-  const year = document.getElementById("year")?.value.trim();
-  const volume = document.getElementById("volume")?.value.trim();
-  const number = document.getElementById("number")?.value.trim();
-
-  // BASIC VALIDATION
-
-  if (!year) {
-    alert("Please select the publication year.");
-    return;
-  }
-
-  if (!volume) {
-    alert("Please enter the volume.");
-    return;
-  }
-
-  if (!number) {
-    alert("Please enter the issue number.");
-    return;
-  }
-
-  if (!publicationPdfFile) {
-    alert("Please upload the Publication PDF.");
-    return;
-  }
-
-  if (articles.length === 0) {
-    alert("Please add at least one article.");
-    return;
-  }
-
-  // VALIDATE ARTICLES
-
-  for (let i = 0; i < articles.length; i++) {
-    const article = articles[i];
-
-    if (!article.title.trim()) {
-      alert(`Please enter a title for Article ${i + 1}.`);
-
-      currentArticleIndex = i;
-
-      renderArticleTabs();
-      loadArticle(i);
-
-      return;
-    }
-
-    if (!article.pdf) {
-      alert(`Please upload a PDF for Article ${i + 1}.`);
-
-      currentArticleIndex = i;
-
-      renderArticleTabs();
-      loadArticle(i);
-
-      return;
-    }
-
-    if (!article.authors || article.authors.length === 0) {
-      alert(`Please add at least one author for Article ${i + 1}.`);
-
-      currentArticleIndex = i;
-
-      renderArticleTabs();
-      loadArticle(i);
-
-      return;
-    }
-
-    for (
-      let authorIndex = 0;
-      authorIndex < article.authors.length;
-      authorIndex++
-    ) {
-      const author = article.authors[authorIndex];
-
-      if (!author.firstName.trim() || !author.lastName.trim()) {
-        alert(
-          `Please complete Author ${authorIndex + 1} for Article ${i + 1}.`,
-        );
-
-        currentArticleIndex = i;
-
-        renderArticleTabs();
-        loadArticle(i);
-
+/* =========================================================
+   MESSAGE MODAL
+   Replaces browser alert()
+   ========================================================= */
+
+/*
+ * Show a general information/message modal.
+ */
+function showMessage(title, message) {
+
+    const modal = document.getElementById("messageModal");
+    const titleElement = document.getElementById("messageTitle");
+    const messageElement = document.getElementById("messageText");
+
+    if (!modal || !titleElement || !messageElement) {
+        console.error("Message modal elements not found.");
         return;
-      }
     }
-  }
 
-  // CONFIRM PUBLISH
+    titleElement.textContent = title;
+    messageElement.textContent = message;
 
-  if (mode === "publish") {
-    pendingPublicationMode = mode;
+    modal.classList.add("show");
+}
+
+
+/*
+ * Close the general information/message modal.
+ */
+function closeMessageModal() {
+
+    const modal = document.getElementById("messageModal");
+
+    if (modal) {
+        modal.classList.remove("show");
+    }
+}
+
+
+/* =========================================================
+   CONFIRMATION MODAL
+   Used for removing articles/authors
+   ========================================================= */
+
+/*
+ * Close the remove confirmation modal.
+ */
+function closeConfirmationModal() {
+
+    const modal = document.getElementById("confirmationModal");
+
+    if (modal) {
+        modal.classList.remove("show");
+    }
+
+    articleDeleteIndex = null;
+    authorDeleteIndex = null;
+}
+
+
+/* =========================================================
+   CANCEL CONFIRMATION MODAL
+   ========================================================= */
+
+/*
+ * Open the cancel confirmation modal.
+ */
+function cancelAddJournal() {
+
+    const modal = document.getElementById("cancelConfirmationModal");
+
+    if (!modal) {
+        console.error("Cancel confirmation modal not found.");
+        return;
+    }
+
+    modal.classList.add("show");
+}
+
+
+/*
+ * Close the cancel confirmation modal.
+ */
+function closeCancelConfirmationModal() {
+
+    const modal = document.getElementById("cancelConfirmationModal");
+
+    if (modal) {
+        modal.classList.remove("show");
+    }
+}
+
+
+/*
+ * Confirm cancellation.
+ *
+ * Goes back to Manage Journal.
+ */
+function confirmCancelAddJournal() {
+
+    window.location.href = "manage_journal.php";
+}
+
+
+/* =========================================================
+   PUBLISH CONFIRMATION MODAL
+   ========================================================= */
+
+/*
+ * Close the publish confirmation modal.
+ */
+function closePublishConfirmationModal() {
 
     const modal = document.getElementById("publishConfirmationModal");
 
     if (modal) {
-      modal.classList.add("show");
+        modal.classList.remove("show");
     }
 
-    return;
-  }
+    pendingPublicationMode = null;
+}
 
-  // PREPARE FORM DATA
 
-  const formData = new FormData();
+/*
+ * Confirm publishing.
+ */
+function confirmPublish() {
 
-  formData.append("action", "add");
-  formData.append("mode", mode);
-  formData.append("year", year);
-  formData.append("volume", volume);
-  formData.append("number", number);
-  formData.append("publicationPDF", publicationPdfFile);
+    closePublishConfirmationModal();
 
-  // Send article information without PDF files
+    submitPublication("publish");
+}
 
-  const articleData = articles.map((article) => ({
-    journalID: article.journalID || null,
-    title: article.title,
 
-    authors: article.authors.map((author) => ({
-      firstName: author.firstName,
-      lastName: author.lastName,
-    })),
-  }));
+/* =========================================================
+   INITIALIZE PAGE
+   ========================================================= */
 
-  formData.append("articleData", JSON.stringify(articleData));
+async function initializeAddJournalPage() {
 
-  // Attach article PDFs
+    const urlParams = new URLSearchParams(window.location.search);
 
-  articles.forEach((article, index) => {
-    formData.append(`pdf_${index}`, article.pdf);
-  });
+    const publicationID = urlParams.get("publicationID");
 
-  // SEND TO BACKEND
+    /*
+     * If publicationID exists, this page is being used
+     * to continue editing an existing draft.
+     */
+    if (publicationID) {
 
-  try {
-    const response = await fetch("manage_journal_api.php", {
-      method: "POST",
-      body: formData,
-    });
+        const parsedID = Number(publicationID);
 
-    const result = await response.json();
+        if (Number.isInteger(parsedID) && parsedID > 0) {
 
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Failed to save the journal.");
+            editingPublicationID = parsedID;
+
+            resetPublicationForm();
+
+            await loadDraftPublication(editingPublicationID);
+
+        } else {
+
+            console.error("Invalid publicationID.");
+
+            resetPublicationForm();
+        }
+
+    } else {
+
+        /*
+         * No publicationID means this is a new journal.
+         */
+        resetPublicationForm();
     }
 
-    alert(
-      mode === "publish"
-        ? "Journal published successfully."
-        : "Journal saved as draft successfully.",
+
+    setupPublicationPdfUpload();
+    setupArticlePdfUpload();
+
+
+    /*
+     * Connect the publish confirmation button.
+     */
+    const confirmPublishButton =
+        document.getElementById("confirmPublishButton");
+
+    if (confirmPublishButton) {
+
+        confirmPublishButton.onclick = function () {
+            confirmPublish();
+        };
+    }
+}
+
+
+/* =========================================================
+   RESET FORM
+   ========================================================= */
+
+function resetPublicationForm() {
+
+    const year = document.getElementById("year");
+    const volume = document.getElementById("volume");
+    const number = document.getElementById("number");
+
+    if (year) {
+        year.innerHTML = "";
+
+        const currentYear = new Date().getFullYear();
+
+        for (let y = currentYear; y >= 2000; y--) {
+
+            const option = document.createElement("option");
+
+            option.value = y;
+            option.textContent = y;
+
+            year.appendChild(option);
+        }
+
+        year.value = "";
+    }
+
+    if (volume) {
+        volume.value = "";
+    }
+
+    if (number) {
+        number.value = "";
+    }
+
+
+    /*
+     * Start with one empty article.
+     */
+    articles = [
+        createArticle()
+    ];
+
+    currentArticleIndex = 0;
+
+
+    /*
+     * Reset publication PDF state.
+     */
+    publicationPdfFile = null;
+    existingPublicationPdf = null;
+
+
+    const publicationPDF =
+        document.getElementById("publicationPDF");
+
+    if (publicationPDF) {
+        publicationPDF.value = "";
+    }
+
+
+    const publicationPdfFileName =
+        document.getElementById("publicationPdfFileName");
+
+    if (publicationPdfFileName) {
+        publicationPdfFileName.textContent =
+            "No file selected";
+    }
+
+
+    const publicationPdfUploadBox =
+        document.getElementById("publicationPdfUploadBox");
+
+    if (publicationPdfUploadBox) {
+        publicationPdfUploadBox.classList.remove("has-file");
+    }
+
+
+    const publicationPdfUndo =
+        document.getElementById("publicationPdfUndo");
+
+    if (publicationPdfUndo) {
+        publicationPdfUndo.hidden = true;
+    }
+
+
+    const publicationPdfUploadTitle =
+        document.querySelector(
+            "#publicationPdfUploadBox .upload-title"
+        );
+
+    if (publicationPdfUploadTitle) {
+        publicationPdfUploadTitle.style.display = "";
+    }
+
+
+    /*
+     * Show publication step first.
+     */
+    const publicationStep =
+        document.getElementById("publicationStep");
+
+    const articleStep =
+        document.getElementById("articleStep");
+
+    if (publicationStep) {
+        publicationStep.style.display = "block";
+    }
+
+    if (articleStep) {
+        articleStep.style.display = "none";
+    }
+
+
+    renderArticleTabs();
+    loadArticle(0);
+}
+
+
+/* =========================================================
+   LOAD EXISTING DRAFT
+   ========================================================= */
+
+async function loadDraftPublication(publicationID) {
+
+    try {
+
+        const response = await fetch(
+            `manage_journal_api.php?action=view&publicationID=${encodeURIComponent(publicationID)}`
+        );
+
+        const result = await response.json();
+
+        if (!result.success || !result.data) {
+
+            console.error(
+                "Unable to load draft:",
+                result.message
+            );
+
+            showMessage(
+                "Unable to Load Draft",
+                result.message ||
+                "The draft could not be loaded."
+            );
+
+            return;
+        }
+
+
+        const issue = result.data;
+
+
+        /*
+         * Make sure the selected publication is actually
+         * a draft.
+         */
+        if (!issue.is_draft) {
+
+            showMessage(
+                "Invalid Draft",
+                "This publication is not a draft and cannot be continued."
+            );
+
+            return;
+        }
+
+
+        /*
+         * Restore publication information.
+         */
+        const year =
+            document.getElementById("year");
+
+        const volume =
+            document.getElementById("volume");
+
+        const number =
+            document.getElementById("number");
+
+
+        if (year) {
+            year.value = issue.year ?? "";
+        }
+
+        if (volume) {
+            volume.value = issue.volume ?? "";
+        }
+
+        if (number) {
+            number.value = issue.number ?? "";
+        }
+
+
+        /*
+         * Restore summary.
+         */
+        const displayYear =
+            document.getElementById("displayYear");
+
+        const displayVolume =
+            document.getElementById("displayVolume");
+
+        const displayNumber =
+            document.getElementById("displayNumber");
+
+
+        if (displayYear) {
+            displayYear.textContent =
+                issue.year ?? "";
+        }
+
+        if (displayVolume) {
+            displayVolume.textContent =
+                issue.volume ?? "";
+        }
+
+        if (displayNumber) {
+            displayNumber.textContent =
+                issue.number ?? "";
+        }
+
+
+        /*
+         * Restore existing publication PDF.
+         */
+        existingPublicationPdf =
+            issue.publicationPDF || null;
+
+
+        if (existingPublicationPdf) {
+
+            const fileName =
+                getFileNameFromPath(
+                    existingPublicationPdf
+                );
+
+            const publicationPdfFileName =
+                document.getElementById(
+                    "publicationPdfFileName"
+                );
+
+            if (publicationPdfFileName) {
+                publicationPdfFileName.textContent =
+                    fileName;
+            }
+
+
+            const uploadTitle =
+                document.querySelector(
+                    "#publicationPdfUploadBox .upload-title"
+                );
+
+            if (uploadTitle) {
+                uploadTitle.style.display = "none";
+            }
+
+
+            const undoButton =
+                document.getElementById(
+                    "publicationPdfUndo"
+                );
+
+            if (undoButton) {
+                undoButton.hidden = false;
+            }
+        }
+
+
+        /*
+         * Restore articles.
+         */
+        if (
+            Array.isArray(issue.articles) &&
+            issue.articles.length > 0
+        ) {
+
+            articles = issue.articles.map(article => {
+
+                return {
+
+                    journalID:
+                        article.journalID ??
+                        null,
+
+                    title:
+                        article.title ??
+                        "",
+
+                    pdf:
+                        null,
+
+                    existingPdf:
+                        article.journalPDF ||
+                        null,
+
+                    authors:
+                        Array.isArray(article.authors) &&
+                        article.authors.length > 0
+
+                            ? article.authors.map(author => ({
+                                firstName:
+                                    author.firstName ??
+                                    "",
+
+                                lastName:
+                                    author.lastName ??
+                                    ""
+                            }))
+
+                            : [
+                                {
+                                    firstName: "",
+                                    lastName: ""
+                                }
+                            ]
+                };
+            });
+
+        } else {
+
+            /*
+             * If the draft currently has no articles,
+             * provide one empty article slot in the UI.
+             */
+            articles = [
+                createArticle()
+            ];
+        }
+
+
+        currentArticleIndex = 0;
+
+
+        /*
+         * Show article step when continuing a draft.
+         */
+        const publicationStep =
+            document.getElementById(
+                "publicationStep"
+            );
+
+        const articleStep =
+            document.getElementById(
+                "articleStep"
+            );
+
+
+        if (publicationStep) {
+            publicationStep.style.display =
+                "none";
+        }
+
+        if (articleStep) {
+            articleStep.style.display =
+                "block";
+        }
+
+
+        /*
+         * Change page heading.
+         */
+        const pageTitle =
+            document.getElementById("pageTitle");
+
+        const pageDescription =
+            document.getElementById("pageDescription");
+
+
+        if (pageTitle) {
+            pageTitle.textContent =
+                "Continue Editing Draft";
+        }
+
+        if (pageDescription) {
+            pageDescription.textContent =
+                "Continue editing the saved journal issue and its articles";
+        }
+
+
+        renderArticleTabs();
+        loadArticle(0);
+
+    } catch (error) {
+
+        console.error(
+            "Error loading draft:",
+            error
+        );
+
+        showMessage(
+            "Unable to Load Draft",
+            "An error occurred while loading the draft."
+        );
+    }
+}
+
+
+/* =========================================================
+   PUBLICATION PDF UPLOAD
+   ========================================================= */
+
+function setupPublicationPdfUpload() {
+
+    const fileInput =
+        document.getElementById("publicationPDF");
+
+    const uploadBox =
+        document.getElementById(
+            "publicationPdfUploadBox"
+        );
+
+    const undoButton =
+        document.getElementById(
+            "publicationPdfUndo"
+        );
+
+
+    if (!fileInput || !uploadBox) {
+        return;
+    }
+
+
+    /*
+     * Clicking the upload box opens file selection.
+     */
+    uploadBox.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target.closest(
+                    "#publicationPdfUndo"
+                )
+            ) {
+                return;
+            }
+
+            fileInput.click();
+        }
     );
 
-    // Return to Manage Journals
 
-    window.location.href = "manage_journals.php";
-  } catch (error) {
-    console.error("Save publication error:", error);
+    /*
+     * File selected normally.
+     */
+    fileInput.addEventListener(
+        "change",
+        function () {
 
-    alert(error.message || "An error occurred while saving the journal.");
-  }
+            handlePublicationPdfFile(
+                fileInput.files[0]
+            );
+        }
+    );
+
+
+    /*
+     * Drag over.
+     */
+    uploadBox.addEventListener(
+        "dragover",
+        function (event) {
+
+            event.preventDefault();
+
+            uploadBox.classList.add(
+                "drag-over"
+            );
+        }
+    );
+
+
+    /*
+     * Drag leave.
+     */
+    uploadBox.addEventListener(
+        "dragleave",
+        function () {
+
+            uploadBox.classList.remove(
+                "drag-over"
+            );
+        }
+    );
+
+
+    /*
+     * Drop.
+     */
+    uploadBox.addEventListener(
+        "drop",
+        function (event) {
+
+            event.preventDefault();
+
+            uploadBox.classList.remove(
+                "drag-over"
+            );
+
+            const file =
+                event.dataTransfer.files[0];
+
+            handlePublicationPdfFile(file);
+        }
+    );
+
+
+    /*
+     * Undo selected publication PDF.
+     */
+    if (undoButton) {
+
+        undoButton.addEventListener(
+            "click",
+            function (event) {
+
+                event.stopPropagation();
+
+                undoPublicationPdf();
+            }
+        );
+    }
 }
 
-// CANCEL ADD JOURNAL
 
-function cancelAddJournal() {
-  const modal = document.getElementById("cancelConfirmationModal");
+/*
+ * Validate and store publication PDF.
+ */
+function handlePublicationPdfFile(file) {
 
-  if (modal) {
-    modal.classList.add("show");
-  }
+    if (!file) {
+        return;
+    }
+
+
+    if (
+        file.type !== "application/pdf" &&
+        !file.name.toLowerCase().endsWith(".pdf")
+    ) {
+
+        showMessage(
+            "Invalid File",
+            "Please select a PDF file."
+        );
+
+        return;
+    }
+
+
+    /*
+     * Maximum file size: 40 MB.
+     */
+    const maxSize =
+        40 * 1024 * 1024;
+
+
+    if (file.size > maxSize) {
+
+        showMessage(
+            "File Too Large",
+            "The publication PDF must not exceed 40 MB."
+        );
+
+        return;
+    }
+
+
+    publicationPdfFile = file;
+
+
+    /*
+     * If a new file is selected, the old
+     * server PDF is no longer used.
+     */
+    existingPublicationPdf = null;
+
+
+    const fileName =
+        document.getElementById(
+            "publicationPdfFileName"
+        );
+
+    if (fileName) {
+        fileName.textContent =
+            file.name;
+    }
+
+
+    const uploadTitle =
+        document.querySelector(
+            "#publicationPdfUploadBox .upload-title"
+        );
+
+    if (uploadTitle) {
+        uploadTitle.style.display =
+            "none";
+    }
+
+
+    const undoButton =
+        document.getElementById(
+            "publicationPdfUndo"
+        );
+
+    if (undoButton) {
+        undoButton.hidden = false;
+    }
 }
 
-function closeCancelConfirmationModal() {
-  const modal = document.getElementById("cancelConfirmationModal");
 
-  if (modal) {
-    modal.classList.remove("show");
-  }
+/*
+ * Undo publication PDF selection.
+ */
+function undoPublicationPdf() {
+
+    publicationPdfFile = null;
+
+
+    const fileInput =
+        document.getElementById(
+            "publicationPDF"
+        );
+
+    if (fileInput) {
+        fileInput.value = "";
+    }
+
+
+    const fileName =
+        document.getElementById(
+            "publicationPdfFileName"
+        );
+
+
+    /*
+     * If an existing server PDF exists,
+     * preserve it.
+     */
+    if (existingPublicationPdf) {
+
+        if (fileName) {
+            fileName.textContent =
+                getFileNameFromPath(
+                    existingPublicationPdf
+                );
+        }
+
+    } else {
+
+        if (fileName) {
+            fileName.textContent =
+                "No file selected";
+        }
+    }
+
+
+    const uploadTitle =
+        document.querySelector(
+            "#publicationPdfUploadBox .upload-title"
+        );
+
+    if (uploadTitle) {
+
+        uploadTitle.style.display =
+            existingPublicationPdf
+                ? "none"
+                : "";
+    }
+
+
+    const undoButton =
+        document.getElementById(
+            "publicationPdfUndo"
+        );
+
+    if (undoButton) {
+
+        undoButton.hidden =
+            !existingPublicationPdf;
+    }
 }
 
-function confirmCancelAddJournal() {
-  window.location.href = "manage_journal.php";
+
+/* =========================================================
+   ARTICLE PDF UPLOAD
+   ========================================================= */
+
+function setupArticlePdfUpload() {
+
+    const fileInput =
+        document.getElementById("pdfFile");
+
+    const uploadBox =
+        document.getElementById(
+            "articlePdfUploadBox"
+        );
+
+    const undoButton =
+        document.getElementById(
+            "articlePdfUndo"
+        );
+
+
+    if (!fileInput || !uploadBox) {
+        return;
+    }
+
+
+    uploadBox.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target.closest(
+                    "#articlePdfUndo"
+                )
+            ) {
+                return;
+            }
+
+            fileInput.click();
+        }
+    );
+
+
+    fileInput.addEventListener(
+        "change",
+        function () {
+
+            handleArticlePdfFile(
+                fileInput.files[0]
+            );
+        }
+    );
+
+
+    uploadBox.addEventListener(
+        "dragover",
+        function (event) {
+
+            event.preventDefault();
+
+            uploadBox.classList.add(
+                "drag-over"
+            );
+        }
+    );
+
+
+    uploadBox.addEventListener(
+        "dragleave",
+        function () {
+
+            uploadBox.classList.remove(
+                "drag-over"
+            );
+        }
+    );
+
+
+    uploadBox.addEventListener(
+        "drop",
+        function (event) {
+
+            event.preventDefault();
+
+            uploadBox.classList.remove(
+                "drag-over"
+            );
+
+            const file =
+                event.dataTransfer.files[0];
+
+            handleArticlePdfFile(file);
+        }
+    );
+
+
+    if (undoButton) {
+
+        undoButton.addEventListener(
+            "click",
+            function (event) {
+
+                event.stopPropagation();
+
+                undoPdfFile();
+            }
+        );
+    }
 }
 
-// PUBLISH JOURNAL MODAL
 
-function closePublishConfirmationModal() {
-  const modal = document.getElementById("publishConfirmationModal");
+/*
+ * Validate and store article PDF.
+ */
+function handleArticlePdfFile(file) {
 
-  if (modal) {
-    modal.classList.remove("show");
-  }
+    if (!file) {
+        return;
+    }
 
-  pendingPublicationMode = null;
+
+    if (
+        file.type !== "application/pdf" &&
+        !file.name.toLowerCase().endsWith(".pdf")
+    ) {
+
+        showMessage(
+            "Invalid File",
+            "Please select a PDF file."
+        );
+
+        return;
+    }
+
+
+    const maxSize =
+        40 * 1024 * 1024;
+
+
+    if (file.size > maxSize) {
+
+        showMessage(
+            "File Too Large",
+            "The article PDF must not exceed 40 MB."
+        );
+
+        return;
+    }
+
+
+    const article =
+        articles[currentArticleIndex];
+
+    if (!article) {
+        return;
+    }
+
+
+    article.pdf = file;
+    article.existingPdf = null;
+
+
+    const fileName =
+        document.getElementById(
+            "pdfFileName"
+        );
+
+    if (fileName) {
+        fileName.textContent =
+            file.name;
+    }
+
+
+    const uploadTitle =
+        document.querySelector(
+            "#articlePdfUploadBox .upload-title"
+        );
+
+    if (uploadTitle) {
+        uploadTitle.style.display =
+            "none";
+    }
+
+
+    const undoButton =
+        document.getElementById(
+            "articlePdfUndo"
+        );
+
+    if (undoButton) {
+        undoButton.hidden = false;
+    }
 }
 
-function confirmPublish() {
-  const mode = pendingPublicationMode;
 
-  closePublishConfirmationModal();
+/*
+ * Undo article PDF selection.
+ */
+function undoPdfFile() {
 
-  if (mode === "publish") {
-    savePublication("publish");
-  }
+    const article =
+        articles[currentArticleIndex];
+
+    if (!article) {
+        return;
+    }
+
+
+    article.pdf = null;
+
+
+    const fileInput =
+        document.getElementById(
+            "pdfFile"
+        );
+
+    if (fileInput) {
+        fileInput.value = "";
+    }
+
+
+    const fileName =
+        document.getElementById(
+            "pdfFileName"
+        );
+
+
+    if (article.existingPdf) {
+
+        if (fileName) {
+            fileName.textContent =
+                getFileNameFromPath(
+                    article.existingPdf
+                );
+        }
+
+    } else {
+
+        if (fileName) {
+            fileName.textContent =
+                "No file selected";
+        }
+    }
+
+
+    const uploadTitle =
+        document.querySelector(
+            "#articlePdfUploadBox .upload-title"
+        );
+
+    if (uploadTitle) {
+
+        uploadTitle.style.display =
+            article.existingPdf
+                ? "none"
+                : "";
+    }
+
+
+    const undoButton =
+        document.getElementById(
+            "articlePdfUndo"
+        );
+
+    if (undoButton) {
+
+        undoButton.hidden =
+            !article.existingPdf;
+    }
 }
 
-// PAGE LOAD
 
-document.addEventListener("DOMContentLoaded", function () {
-  initializeAddJournalPage();
+/* =========================================================
+   PUBLICATION STEP / ARTICLE STEP
+   ========================================================= */
 
-  const confirmPublishButton = document.getElementById("confirmPublishButton");
+function goToArticles() {
 
-  if (confirmPublishButton) {
-    confirmPublishButton.addEventListener("click", confirmPublish);
-  }
-});
+    if (!validateIssueInformation()) {
+        return;
+    }
+
+
+    /*
+     * Save current article before switching.
+     */
+    saveCurrentArticle();
+
+
+    const publicationStep =
+        document.getElementById(
+            "publicationStep"
+        );
+
+    const articleStep =
+        document.getElementById(
+            "articleStep"
+        );
+
+
+    if (publicationStep) {
+        publicationStep.style.display =
+            "none";
+    }
+
+    if (articleStep) {
+        articleStep.style.display =
+            "block";
+    }
+
+
+    /*
+     * Update summary.
+     */
+    const year =
+        document.getElementById("year");
+
+    const volume =
+        document.getElementById("volume");
+
+    const number =
+        document.getElementById("number");
+
+
+    const displayYear =
+        document.getElementById(
+            "displayYear"
+        );
+
+    const displayVolume =
+        document.getElementById(
+            "displayVolume"
+        );
+
+    const displayNumber =
+        document.getElementById(
+            "displayNumber"
+        );
+
+
+    if (displayYear) {
+        displayYear.textContent =
+            year ? year.value : "";
+    }
+
+    if (displayVolume) {
+        displayVolume.textContent =
+            volume ? volume.value : "";
+    }
+
+    if (displayNumber) {
+        displayNumber.textContent =
+            number ? number.value : "";
+    }
+
+
+    renderArticleTabs();
+    loadArticle(currentArticleIndex);
+}
+
+
+/*
+ * Go back to publication information.
+ */
+function goToPublication() {
+
+    saveCurrentArticle();
+
+
+    const publicationStep =
+        document.getElementById(
+            "publicationStep"
+        );
+
+    const articleStep =
+        document.getElementById(
+            "articleStep"
+        );
+
+
+    if (publicationStep) {
+        publicationStep.style.display =
+            "block";
+    }
+
+    if (articleStep) {
+        articleStep.style.display =
+            "none";
+    }
+
+
+    setupPublicationPdfUpload();
+}
+
+
+/* =========================================================
+   ARTICLE TABS
+   ========================================================= */
+
+function renderArticleTabs() {
+
+    const container =
+        document.getElementById(
+            "articleTabs"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    container.innerHTML = "";
+
+
+    articles.forEach(
+        function (article, index) {
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "article-tab";
+
+
+            if (index === currentArticleIndex) {
+                button.classList.add(
+                    "active"
+                );
+            }
+
+
+            button.textContent =
+                `Article ${index + 1}`;
+
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    saveCurrentArticle();
+
+                    loadArticle(index);
+                }
+            );
+
+
+            container.appendChild(button);
+        }
+    );
+}
+
+
+/* =========================================================
+   LOAD ARTICLE
+   ========================================================= */
+
+function loadArticle(index) {
+
+    if (!articles[index]) {
+        return;
+    }
+
+
+    currentArticleIndex = index;
+
+
+    const article =
+        articles[currentArticleIndex];
+
+
+    /*
+     * Article heading.
+     */
+    const articleHeading =
+        document.getElementById(
+            "articleHeading"
+        );
+
+
+    if (articleHeading) {
+
+        articleHeading.textContent =
+            `Article ${currentArticleIndex + 1}`;
+    }
+
+
+    /*
+     * Article title.
+     */
+    const articleTitle =
+        document.getElementById(
+            "articleTitle"
+        );
+
+
+    if (articleTitle) {
+
+        articleTitle.value =
+            article.title || "";
+    }
+
+
+    /*
+     * Delete article button.
+     */
+    const articleDeleteButton =
+        document.getElementById(
+            "deleteArticleButton"
+        );
+
+
+    if (articleDeleteButton) {
+
+        /*
+         * Keep the button visible even when there is
+         * only one article so that clicking it can show
+         * the "Cannot Remove Article" message modal.
+         */
+        articleDeleteButton.style.display =
+            "inline-flex";
+    }
+
+
+    /*
+     * Render authors.
+     */
+    renderAuthors();
+
+
+    /*
+     * Reset article PDF input.
+     */
+    const fileInput =
+        document.getElementById(
+            "pdfFile"
+        );
+
+
+    if (fileInput) {
+        fileInput.value = "";
+    }
+
+
+    /*
+     * Display PDF state.
+     */
+    const fileName =
+        document.getElementById(
+            "pdfFileName"
+        );
+
+
+    const uploadTitle =
+        document.querySelector(
+            "#articlePdfUploadBox .upload-title"
+        );
+
+
+    const undoButton =
+        document.getElementById(
+            "articlePdfUndo"
+        );
+
+
+    if (article.existingPdf) {
+
+        if (fileName) {
+
+            fileName.textContent =
+                getFileNameFromPath(
+                    article.existingPdf
+                );
+        }
+
+
+        if (uploadTitle) {
+            uploadTitle.style.display =
+                "none";
+        }
+
+
+        if (undoButton) {
+            undoButton.hidden = false;
+        }
+
+    } else {
+
+        if (fileName) {
+            fileName.textContent =
+                "No file selected";
+        }
+
+
+        if (uploadTitle) {
+            uploadTitle.style.display =
+                "";
+        }
+
+
+        if (undoButton) {
+            undoButton.hidden = true;
+        }
+    }
+
+
+    renderArticleTabs();
+}
+
+
+/* =========================================================
+   SAVE CURRENT ARTICLE
+   ========================================================= */
+
+function saveCurrentArticle() {
+
+    const article =
+        articles[currentArticleIndex];
+
+    if (!article) {
+        return;
+    }
+
+
+    /*
+     * Save title.
+     */
+    const titleInput =
+        document.getElementById(
+            "articleTitle"
+        );
+
+
+    if (titleInput) {
+
+        article.title =
+            titleInput.value.trim();
+    }
+
+
+    /*
+     * Save newly selected PDF.
+     */
+    const fileInput =
+        document.getElementById(
+            "pdfFile"
+        );
+
+
+    if (
+        fileInput &&
+        fileInput.files &&
+        fileInput.files.length > 0
+    ) {
+
+        article.pdf =
+            fileInput.files[0];
+
+        article.existingPdf =
+            null;
+    }
+
+
+    /*
+     * Save authors.
+     */
+    const authorRows =
+        document.querySelectorAll(
+            "#authors .author-row"
+        );
+
+
+    if (authorRows.length > 0) {
+
+        article.authors = [];
+
+
+        authorRows.forEach(
+            function (row) {
+
+                const firstNameInput =
+                    row.querySelector(
+                        ".author-first-name"
+                    );
+
+                const lastNameInput =
+                    row.querySelector(
+                        ".author-last-name"
+                    );
+
+
+                article.authors.push({
+                    firstName:
+                        firstNameInput
+                            ? firstNameInput.value.trim()
+                            : "",
+
+                    lastName:
+                        lastNameInput
+                            ? lastNameInput.value.trim()
+                            : ""
+                });
+            }
+        );
+
+    } else {
+
+        article.authors = [
+            {
+                firstName: "",
+                lastName: ""
+            }
+        ];
+    }
+}
+
+
+/* =========================================================
+   ADD ARTICLE
+   ========================================================= */
+
+function addArticle() {
+
+    saveCurrentArticle();
+
+
+    articles.push(
+        createArticle()
+    );
+
+
+    currentArticleIndex =
+        articles.length - 1;
+
+
+    renderArticleTabs();
+
+    loadArticle(
+        currentArticleIndex
+    );
+}
+
+
+/* =========================================================
+   REMOVE ARTICLE
+   ========================================================= */
+
+function requestDeleteArticle() {
+
+    /*
+     * Do not allow the last article to be removed.
+     * Show the custom message modal instead of alert().
+     */
+    if (articles.length <= 1) {
+
+        showMessage(
+            "Cannot Remove Article",
+            "At least one article is required."
+        );
+
+        return;
+    }
+
+
+    saveCurrentArticle();
+
+
+    articleDeleteIndex =
+        currentArticleIndex;
+
+
+    const modal =
+        document.getElementById(
+            "confirmationModal"
+        );
+
+    const title =
+        document.getElementById(
+            "confirmationTitle"
+        );
+
+    const message =
+        document.getElementById(
+            "confirmationMessage"
+        );
+
+    const confirmButton =
+        document.getElementById(
+            "confirmDeleteButton"
+        );
+
+
+    if (
+        !modal ||
+        !title ||
+        !message ||
+        !confirmButton
+    ) {
+
+        console.error(
+            "Confirmation modal elements not found."
+        );
+
+        return;
+    }
+
+
+    title.textContent =
+        "Remove Article?";
+
+
+    message.textContent =
+        "Are you sure you want to remove this article? This cannot be undone.";
+
+
+    confirmButton.textContent =
+        "Remove Article";
+
+
+    confirmButton.onclick =
+        function () {
+
+            deleteArticle();
+        };
+
+
+    modal.classList.add(
+        "show"
+    );
+}
+
+
+/*
+ * Delete the selected article from the local form.
+ */
+function deleteArticle() {
+
+    if (
+        articleDeleteIndex === null ||
+        !articles[articleDeleteIndex]
+    ) {
+
+        closeConfirmationModal();
+
+        return;
+    }
+
+
+    articles.splice(
+        articleDeleteIndex,
+        1
+    );
+
+
+    /*
+     * Adjust current article index.
+     */
+    if (
+        currentArticleIndex >=
+        articles.length
+    ) {
+
+        currentArticleIndex =
+            articles.length - 1;
+    }
+
+
+    if (currentArticleIndex < 0) {
+        currentArticleIndex = 0;
+    }
+
+
+    articleDeleteIndex = null;
+
+
+    closeConfirmationModal();
+
+
+    renderArticleTabs();
+
+
+    loadArticle(
+        currentArticleIndex
+    );
+}
+
+
+/* =========================================================
+   AUTHORS
+   ========================================================= */
+
+function renderAuthors() {
+
+    const container =
+        document.getElementById(
+            "authors"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const article =
+        articles[currentArticleIndex];
+
+
+    if (!article) {
+        return;
+    }
+
+
+    container.innerHTML = "";
+
+
+    /*
+     * Make sure at least one author row exists.
+     */
+    if (
+        !Array.isArray(article.authors) ||
+        article.authors.length === 0
+    ) {
+
+        article.authors = [
+            {
+                firstName: "",
+                lastName: ""
+            }
+        ];
+    }
+
+
+    article.authors.forEach(
+        function (author, index) {
+
+            const row =
+                document.createElement("div");
+
+            row.className =
+                "author-row";
+
+
+            row.innerHTML = `
+                <div class="author-fields">
+
+                    <div class="form-group">
+
+                        <label>
+                            First Name
+                        </label>
+
+                        <input
+                            type="text"
+                            class="author-first-name"
+                            placeholder="First Name"
+                            value="${escapeHtml(author.firstName || "")}"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Last Name
+                        </label>
+
+                        <input
+                            type="text"
+                            class="author-last-name"
+                            placeholder="Last Name"
+                            value="${escapeHtml(author.lastName || "")}"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="action-btn delete-author-btn"
+                    title="Remove author"
+                    aria-label="Remove author"
+                    onclick="requestDeleteAuthor(${index})"
+                >
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+
+
+            const deleteButton =
+                row.querySelector(
+                    ".delete-author-btn"
+                );
+
+
+            /*
+             * Do not hide the button anymore.
+             *
+             * Clicking it when there is only one author
+             * will show the custom message modal.
+             */
+            if (deleteButton) {
+                deleteButton.style.display =
+                    "flex";
+            }
+
+
+            container.appendChild(
+                row
+            );
+        }
+    );
+}
+
+
+/*
+ * Add another author.
+ */
+function addAuthor() {
+
+    saveCurrentArticle();
+
+
+    const article =
+        articles[currentArticleIndex];
+
+
+    if (!article) {
+        return;
+    }
+
+
+    if (!Array.isArray(article.authors)) {
+
+        article.authors = [];
+    }
+
+
+    article.authors.push({
+        firstName: "",
+        lastName: ""
+    });
+
+
+    renderAuthors();
+}
+
+
+/* =========================================================
+   REMOVE AUTHOR
+   ========================================================= */
+
+function requestDeleteAuthor(index) {
+
+    const article =
+        articles[currentArticleIndex];
+
+
+    if (
+        !article ||
+        !Array.isArray(article.authors)
+    ) {
+
+        return;
+    }
+
+
+    /*
+     * Do not allow the last author to be removed.
+     * Use custom message modal instead of alert().
+     */
+    if (article.authors.length <= 1) {
+
+        showMessage(
+            "Cannot Remove Author",
+            "At least one author is required."
+        );
+
+        return;
+    }
+
+
+    authorDeleteIndex =
+        index;
+
+
+    const modal =
+        document.getElementById(
+            "confirmationModal"
+        );
+
+    const title =
+        document.getElementById(
+            "confirmationTitle"
+        );
+
+    const message =
+        document.getElementById(
+            "confirmationMessage"
+        );
+
+    const confirmButton =
+        document.getElementById(
+            "confirmDeleteButton"
+        );
+
+
+    if (
+        !modal ||
+        !title ||
+        !message ||
+        !confirmButton
+    ) {
+
+        console.error(
+            "Confirmation modal elements not found."
+        );
+
+        return;
+    }
+
+
+    title.textContent =
+        "Remove Author?";
+
+
+    message.textContent =
+        "Are you sure you want to remove this author? This cannot be undone.";
+
+
+    confirmButton.textContent =
+        "Remove Author";
+
+
+    confirmButton.onclick =
+        function () {
+
+            deleteAuthor();
+        };
+
+
+    modal.classList.add(
+        "show"
+    );
+}
+
+
+/*
+ * Delete the selected author.
+ */
+function deleteAuthor() {
+
+    const article =
+        articles[currentArticleIndex];
+
+
+    if (
+        !article ||
+        !Array.isArray(article.authors)
+    ) {
+
+        closeConfirmationModal();
+
+        return;
+    }
+
+
+    /*
+     * Never allow zero authors.
+     */
+    if (article.authors.length <= 1) {
+
+        closeConfirmationModal();
+
+        showMessage(
+            "Cannot Remove Author",
+            "At least one author is required."
+        );
+
+        return;
+    }
+
+
+    if (
+        authorDeleteIndex === null ||
+        authorDeleteIndex < 0 ||
+        authorDeleteIndex >=
+            article.authors.length
+    ) {
+
+        closeConfirmationModal();
+
+        return;
+    }
+
+
+    article.authors.splice(
+        authorDeleteIndex,
+        1
+    );
+
+
+    authorDeleteIndex = null;
+
+
+    closeConfirmationModal();
+
+
+    renderAuthors();
+}
+
+
+/* =========================================================
+   ISSUE VALIDATION
+   ========================================================= */
+
+function validateIssueInformation() {
+
+    const year =
+        document.getElementById(
+            "year"
+        );
+
+    const volume =
+        document.getElementById(
+            "volume"
+        );
+
+    const number =
+        document.getElementById(
+            "number"
+        );
+
+
+    if (
+        !year ||
+        !year.value
+    ) {
+
+        showMessage(
+            "Incomplete Information",
+            "Please select a publication year."
+        );
+
+        return false;
+    }
+
+
+    if (
+        !volume ||
+        !volume.value ||
+        Number(volume.value) < 1
+    ) {
+
+        showMessage(
+            "Incomplete Information",
+            "Please enter a valid volume number."
+        );
+
+        return false;
+    }
+
+
+    if (
+        !number ||
+        !number.value ||
+        Number(number.value) < 1
+    ) {
+
+        showMessage(
+            "Incomplete Information",
+            "Please enter a valid issue number."
+        );
+
+        return false;
+    }
+
+
+    return true;
+}
+
+
+/* =========================================================
+   PUBLICATION PDF VALIDATION
+   ========================================================= */
+
+function validatePublicationPdfForPublishing() {
+
+    /*
+     * A new PDF is valid.
+     */
+    if (publicationPdfFile) {
+        return true;
+    }
+
+
+    /*
+     * An existing PDF is also valid when editing
+     * an existing draft.
+     */
+    if (existingPublicationPdf) {
+        return true;
+    }
+
+
+    showMessage(
+        "Publication PDF Required",
+        "Please upload the publication issue PDF before publishing."
+    );
+
+
+    return false;
+}
+
+
+/* =========================================================
+   ARTICLE VALIDATION FOR PUBLISHING
+   ========================================================= */
+
+function validateArticlesForPublishing() {
+
+    if (
+        !Array.isArray(articles) ||
+        articles.length === 0
+    ) {
+
+        showMessage(
+            "Article Required",
+            "At least one article is required before publishing."
+        );
+
+        return false;
+    }
+
+
+    for (
+        let i = 0;
+        i < articles.length;
+        i++
+    ) {
+
+        const article =
+            articles[i];
+
+
+        /*
+         * Article title is required.
+         */
+        if (
+            !article.title ||
+            article.title.trim() === ""
+        ) {
+
+            showMessage(
+                "Article Title Required",
+                `Please enter a title for Article ${i + 1}.`
+            );
+
+            return false;
+        }
+
+
+        /*
+         * Article PDF is required.
+         */
+        if (
+            !article.pdf &&
+            !article.existingPdf
+        ) {
+
+            showMessage(
+                "Article PDF Required",
+                `Please upload a PDF for Article ${i + 1}.`
+            );
+
+            return false;
+        }
+
+
+        /*
+         * At least one complete author is required.
+         */
+        if (
+            !Array.isArray(article.authors) ||
+            article.authors.length === 0
+        ) {
+
+            showMessage(
+                "Author Required",
+                `Please add at least one author for Article ${i + 1}.`
+            );
+
+            return false;
+        }
+
+
+        let hasCompleteAuthor = false;
+
+
+        for (
+            let j = 0;
+            j < article.authors.length;
+            j++
+        ) {
+
+            const author =
+                article.authors[j];
+
+
+            const firstName =
+                (author.firstName || "").trim();
+
+            const lastName =
+                (author.lastName || "").trim();
+
+
+            /*
+             * Completely blank author rows are ignored.
+             */
+            if (
+                firstName === "" &&
+                lastName === ""
+            ) {
+
+                continue;
+            }
+
+
+            /*
+             * Both first and last name are required
+             * for a non-empty author row.
+             */
+            if (
+                firstName === "" ||
+                lastName === ""
+            ) {
+
+                showMessage(
+                    "Incomplete Author",
+                    `Please complete the first name and last name for Author ${j + 1} of Article ${i + 1}.`
+                );
+
+                return false;
+            }
+
+
+            hasCompleteAuthor = true;
+        }
+
+
+        if (!hasCompleteAuthor) {
+
+            showMessage(
+                "Author Required",
+                `Please enter at least one complete author for Article ${i + 1}.`
+            );
+
+            return false;
+        }
+    }
+
+
+    return true;
+}
+
+
+/* =========================================================
+   BUILD ARTICLE DATA
+   ========================================================= */
+
+function buildArticleData() {
+
+    return articles.map(
+        function (article) {
+
+            return {
+
+                journalID:
+                    article.journalID ??
+                    null,
+
+                title:
+                    article.title || "",
+
+                authors:
+                    Array.isArray(article.authors)
+
+                        ? article.authors.map(
+                            function (author) {
+
+                                return {
+
+                                    firstName:
+                                        author.firstName ||
+                                        "",
+
+                                    lastName:
+                                        author.lastName ||
+                                        ""
+                                };
+                            }
+                        )
+
+                        : [],
+
+                existingPdf:
+                    article.existingPdf ||
+                    null
+            };
+        }
+    );
+}
+
+
+/* =========================================================
+   SAVE / PUBLISH
+   ========================================================= */
+
+function savePublication(mode) {
+
+    /*
+     * Save draft immediately.
+     *
+     * Publish first validates everything and then
+     * opens the publish confirmation modal.
+     */
+    if (mode === "publish") {
+
+        saveCurrentArticle();
+
+
+        if (!validateIssueInformation()) {
+            return;
+        }
+
+
+        if (
+            !validatePublicationPdfForPublishing()
+        ) {
+
+            return;
+        }
+
+
+        if (
+            !validateArticlesForPublishing()
+        ) {
+
+            return;
+        }
+
+
+        pendingPublicationMode =
+            "publish";
+
+
+        const modal =
+            document.getElementById(
+                "publishConfirmationModal"
+            );
+
+
+        if (!modal) {
+
+            console.error(
+                "Publish confirmation modal not found."
+            );
+
+            return;
+        }
+
+
+        modal.classList.add(
+            "show"
+        );
+
+
+        return;
+    }
+
+
+    /*
+     * Draft mode.
+     *
+     * Year, volume and number are still required.
+     *
+     * Article title, PDF and authors may remain
+     * incomplete when saving as a draft.
+     */
+    submitPublication("draft");
+}
+
+
+/* =========================================================
+   SUBMIT PUBLICATION TO API
+   ========================================================= */
+
+async function submitPublication(mode) {
+
+    saveCurrentArticle();
+
+
+    /*
+     * Year, volume and number are always required,
+     * including drafts.
+     */
+    if (!validateIssueInformation()) {
+        return;
+    }
+
+
+    /*
+     * Publishing requires complete information.
+     */
+    if (mode === "publish") {
+
+        if (
+            !validatePublicationPdfForPublishing()
+        ) {
+
+            return;
+        }
+
+
+        if (
+            !validateArticlesForPublishing()
+        ) {
+
+            return;
+        }
+    }
+
+
+    const year =
+        document.getElementById(
+            "year"
+        );
+
+    const volume =
+        document.getElementById(
+            "volume"
+        );
+
+    const number =
+        document.getElementById(
+            "number"
+        );
+
+
+    if (!year || !volume || !number) {
+
+        showMessage(
+            "Form Error",
+            "Publication information could not be read."
+        );
+
+        return;
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    /*
+     * Existing draft = update.
+     * New journal = add.
+     */
+    formData.append(
+        "action",
+        editingPublicationID
+            ? "update"
+            : "add"
+    );
+
+
+    formData.append(
+        "mode",
+        mode === "publish"
+            ? "publish"
+            : "draft"
+    );
+
+
+    /*
+     * Existing draft ID.
+     */
+    if (editingPublicationID) {
+
+        formData.append(
+            "publicationID",
+            String(
+                editingPublicationID
+            )
+        );
+    }
+
+
+    /*
+     * Publication information.
+     */
+    formData.append(
+        "year",
+        year.value
+    );
+
+    formData.append(
+        "volume",
+        volume.value
+    );
+
+    formData.append(
+        "number",
+        number.value
+    );
+
+
+    /*
+     * Only send a publication PDF if a new one
+     * was selected.
+     *
+     * Existing server PDF is preserved by the backend.
+     */
+    if (publicationPdfFile) {
+
+        formData.append(
+            "publicationPDF",
+            publicationPdfFile
+        );
+    }
+
+
+    /*
+     * Article information.
+     */
+    const articleData =
+        buildArticleData();
+
+
+    formData.append(
+        "articles",
+        JSON.stringify(
+            articleData
+        )
+    );
+
+
+    /*
+     * Attach newly selected article PDFs.
+     *
+     * The index matches the article array index.
+     */
+    articles.forEach(
+        function (article, index) {
+
+            if (article.pdf) {
+
+                formData.append(
+                    `pdf_${index}`,
+                    article.pdf
+                );
+            }
+        }
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                "manage_journal_api.php",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+
+            showMessage(
+                "Unable to Save",
+                result.message ||
+                "The journal issue could not be saved."
+            );
+
+            return;
+        }
+
+
+        /*
+         * Successful save.
+         */
+        window.location.href =
+            "manage_journal.php";
+
+
+    } catch (error) {
+
+        console.error(
+            "Error saving publication:",
+            error
+        );
+
+
+        showMessage(
+            "Save Error",
+            "An error occurred while saving the journal issue. Please try again."
+        );
+    }
+}
+
+
+/* =========================================================
+   DOM READY
+   ========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        initializeAddJournalPage();
+    }
+);

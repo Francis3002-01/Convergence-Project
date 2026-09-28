@@ -385,35 +385,22 @@ $pageTitle = "Add Journal - Convergence";
 
                         </div>
 
-
                         <!-- ARTICLE ACTIONS -->
                         <div class="form-actions article-actions">
-
-                            <button
-                                type="button"
-                                class="cancel-btn"
-                                onclick="cancelAddJournal()">
+                            <button type="button"class="cancel-btn"onclick="cancelAddJournal()">
                                 Cancel
                             </button>
 
 
                             <!-- SAVE AS DRAFT -->
-                            <button
-                                type="button"
-                                class="save-draft-btn"
-                                id="saveDraftButton"
-                                onclick="savePublication('draft')">
+                            <button type="button"class="save-draft-btn"id="saveDraftButton"onclick="savePublication('draft')">
                                 <i class="fa-solid fa-file-pen"></i>
                                 Save as Draft
                             </button>
 
 
                             <!-- PUBLISH -->
-                            <button
-                                type="button"
-                                class="publish-btn"
-                                id="publishButton"
-                                onclick="savePublication('publish')">
+                            <button type="button"class="publish-btn"id="publishButton" onclick="savePublication('publish')">
                                 <i class="fa-solid fa-upload"></i>
                                 Publish
                             </button>

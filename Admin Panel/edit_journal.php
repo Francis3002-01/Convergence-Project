@@ -51,112 +51,51 @@ if (!$publicationID || $publicationID <= 0) {
 $pageTitle = 'Edit Journal - Convergence';
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
-    <title>
-        <?= htmlspecialchars($pageTitle) ?>
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <link
-        rel="stylesheet"
-        href="../css/admin.css">
-
-    <link
-        rel="stylesheet"
-        href="../css/edit_journal.css">
-
-    <link
-        rel="stylesheet"
-        href="../css/edit_journal_modals.css">
-
-    <link
-        rel="stylesheet"
-        href="../css/header.css">
-
-    <link
-        rel="icon"
-        type="image/png"
-        href="../Images/Convergence Logo.png">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($pageTitle) ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/edit_journal.css">
+    <link rel="stylesheet" href="../css/edit_journal_modals.css">
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="icon" type="image/png"href="../Images/Convergence Logo.png">
 </head>
 
 <body>
-
     <?php include 'components/left_sidebar.php'; ?>
-
     <div class="main-area">
 
         <?php include 'components/header.php'; ?>
 
         <main class="content">
-
             <section class="edit-journal-container">
-
                 <div class="page-header">
-
                     <div class="page-heading">
-
-                        <h1 id="pageTitle">
-                            Edit Journal
-                        </h1>
-
-                        <p id="pageDescription">
-                            Update the publication issue and its articles
-                        </p>
-
+                        <h1 id="pageTitle">Edit Journal</h1>
+                        <p id="pageDescription">Update the publication issue and its articles</p>
                     </div>
-
                 </div>
 
 
                 <!-- LOADING MESSAGE -->
-
-                <div
-                    id="loading"
-                    class="status-message"
-                    role="status"
-                    aria-live="polite">
-
+                <div id="loading"class="status-message"role="status"aria-live="polite">
                     <i class="fa-solid fa-spinner fa-spin"></i>
-
                     Loading journal...
-
                 </div>
-
 
                 <!-- ERROR MESSAGE -->
 
-                <div
-                    id="errorMessage"
-                    class="status-message error-message"
-                    role="alert"
-                    aria-live="assertive"
+                <div id="errorMessage" class="status-message error-message" role="alert" aria-live="assertive"
                     style="display: none;">
                 </div>
 
 
                 <!-- EDIT FORM -->
-
-                <form
-                    id="editForm"
-                    data-publication-id="<?= htmlspecialchars((string) $publicationID) ?>"
-                    enctype="multipart/form-data"
-                    style="display: none;">
-
+                <form id="editForm" data-publication-id="<?= htmlspecialchars((string) $publicationID) ?>"enctype="multipart/form-data"style="display: none;">
                     <input
                         type="hidden"
                         id="publicationID"
@@ -351,24 +290,14 @@ $pageTitle = 'Edit Journal - Convergence';
                                         </label>
 
 
-                                        <button
-                                            type="button"
-                                            class="undo-pdf-btn"
-                                            id="publicationPdfUndo"
-                                            hidden>
-
+                                        <button type="button" class="undo-pdf-btn"id="publicationPdfUndo"hidden>
                                             Undo
-
                                         </button>
 
                                     </div>
 
                                 </div>
-
-                                <small class="form-help">
-                                    Optional. Leave empty to keep the current PDF.
-                                </small>
-
+                                <small class="form-help">Optional. Leave empty to keep the current PDF</small>
                             </div>
 
                         </div>
@@ -379,42 +308,20 @@ $pageTitle = 'Edit Journal - Convergence';
                     <!-- =====================================================
                          ARTICLES
                     ====================================================== -->
-
-                    <div
-                        class="form-step"
-                        id="articleStep">
-
+                    <div class="form-step"id="articleStep">
                         <div class="form-header">
-
                             <div>
-
-                                <h2>
-                                    Articles
-                                </h2>
-
-                                <p>
-                                    Select an article to edit its information.
-                                </p>
-
-                                <br>
-
+                                <h2>Articles</h2>
+                                <p>Select an article to edit its information.</p><br>
                             </div>
-
                         </div>
 
 
                         <div class="form-section">
-
-
                             <!-- ARTICLE SELECTOR -->
-
                             <div class="form-group">
-
                                 <div class="field-label-row">
-
-                                    <label for="articleSelect">
-                                        Select Article
-                                    </label>
+                                    <label for="articleSelect">Select Article</label>
 
                                     <button
                                         type="button"
@@ -674,48 +581,18 @@ $pageTitle = 'Edit Journal - Convergence';
                          This one stays here because it is handled by
                          edit_journal.js.
                     ====================================================== -->
-
-                    <div
-                        class="modal-overlay"
-                        id="removeArticleModal">
-
+                    <div class="modal-overlay" id="removeArticleModal">
                         <div class="modal-box">
-
                             <div class="modal-icon">
-
                                 <i class="fa-solid fa-trash"></i>
-
                             </div>
 
-                            <h2>
-                                Remove New Article?
-                            </h2>
-
-                            <p>
-                                Are you sure you want to remove this new article?
-                                Any information entered for this article will be lost.
-                            </p>
+                            <h2>Remove New Article?</h2>
+                            <p>Are you sure you want to remove this new article?Any information entered for this article will be lost</p>
 
                             <div class="modal-actions">
-
-                                <button
-                                    type="button"
-                                    class="modal-cancel-btn"
-                                    onclick="closeRemoveArticleModal()">
-
-                                    Cancel
-
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="modal-danger-btn"
-                                    onclick="confirmRemoveNewArticle()">
-
-                                    Remove Article
-
-                                </button>
-
+                                <button type="button" class="modal-cancel-btn"onclick="closeRemoveArticleModal()">Cancel</button>
+                                <button type="button" class="modal-danger-btn"onclick="confirmRemoveNewArticle()">Remove Article</button>
                             </div>
 
                         </div>
@@ -735,16 +612,13 @@ $pageTitle = 'Edit Journal - Convergence';
          SAVE / CANCEL / ERROR MODALS
          These are defined ONLY in edit_journal_modals.php.
     ============================================================= -->
-
     <?php include 'edit_journal_modals.php'; ?>
 
 
     <!-- =============================================================
          JAVASCRIPT
     ============================================================= -->
-
     <script src="../javascript/edit_journal_modal.js"></script>
-
     <script src="../javascript/edit_journal.js"></script>
 
 </body>

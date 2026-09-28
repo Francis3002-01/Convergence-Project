@@ -3,6 +3,8 @@ let draftIssueData = [];
 let archiveIssueData = [];
 let activeTab = "current";
 
+let pendingAction = null;
+
 /* -----------------------------------------
    ESCAPE HTML
    ----------------------------------------- */
@@ -17,14 +19,110 @@ function escapeHtml(value) {
 }
 
 /* -----------------------------------------
+   CONFIRMATION MODAL
+   ----------------------------------------- */
+
+function openConfirmationModal(title, message, buttonText, action) {
+  const modal = document.getElementById("confirmationModal");
+
+  const titleElement = document.getElementById("confirmationTitle");
+
+  const messageElement = document.getElementById("confirmationMessage");
+
+  const confirmButton = document.getElementById("confirmDeleteButton");
+
+  if (!modal || !titleElement || !messageElement || !confirmButton) {
+    console.error("Confirmation modal elements not found.");
+    return;
+  }
+
+  titleElement.textContent = title;
+
+  messageElement.textContent = message;
+
+  confirmButton.textContent = buttonText;
+
+  pendingAction = action;
+
+  confirmButton.onclick = async function () {
+    const actionToRun = pendingAction;
+
+    closeConfirmationModal();
+
+    pendingAction = null;
+
+    if (typeof actionToRun === "function") {
+      await actionToRun();
+    }
+  };
+
+  modal.classList.add("show");
+}
+
+/* -----------------------------------------
+   CLOSE CONFIRMATION MODAL
+   ----------------------------------------- */
+
+function closeConfirmationModal() {
+  const modal = document.getElementById("confirmationModal");
+
+  if (modal) {
+    modal.classList.remove("show");
+  }
+
+  pendingAction = null;
+}
+
+/* -----------------------------------------
+   MESSAGE MODAL
+   ----------------------------------------- */
+
+function showMessage(title, message) {
+  const modal = document.getElementById("messageModal");
+
+  const titleElement = document.getElementById("messageTitle");
+
+  const messageElement = document.getElementById("messageText");
+
+  if (!modal || !titleElement || !messageElement) {
+    console.error("Message modal elements not found.");
+    return;
+  }
+
+  titleElement.textContent = title;
+
+  messageElement.textContent = message;
+
+  modal.classList.add("show");
+}
+
+/* -----------------------------------------
+   CLOSE MESSAGE MODAL
+   ----------------------------------------- */
+
+function closeMessageModal() {
+  const modal = document.getElementById("messageModal");
+
+  if (modal) {
+    modal.classList.remove("show");
+  }
+}
+
+/* -----------------------------------------
    ADD JOURNAL BUTTON
    ----------------------------------------- */
 
 function setAddJournalButtonState() {
   const button = document.getElementById("addJournalButton");
-  if (!button) return;
+
+  if (!button) {
+    return;
+  }
+
   const hasDraft = draftIssueData.length > 0;
+
   button.disabled = hasDraft;
+
   button.title = hasDraft ? "A draft issue already exists." : "Add Journal";
 }
 
@@ -46,9 +144,13 @@ function updateDraftBadge() {
 
 function showTab(tabName, buttonElement) {
   activeTab = tabName;
+
   const currentContent = document.getElementById("currentJournalContent");
+
   const draftContent = document.getElementById("draftJournalContent");
+
   const currentTabButton = document.getElementById("currentTabButton");
+
   const draftTabButton = document.getElementById("draftTabButton");
 
   if (currentContent && draftContent) {
@@ -64,7 +166,9 @@ function showTab(tabName, buttonElement) {
   }
 
   if (buttonElement) {
-    buttonElement.classList.add("active");
+    currentTabButton?.classList.toggle("active", tabName === "current");
+
+    draftTabButton?.classList.toggle("active", tabName === "draft");
   }
 
   renderIssueLists();
@@ -73,6 +177,7 @@ function showTab(tabName, buttonElement) {
 /* -----------------------------------------
    TRANSFORM ISSUE
    ----------------------------------------- */
+
 function transformIssue(issue) {
   const cleaned = {
     ...issue,
@@ -81,8 +186,11 @@ function transformIssue(issue) {
   cleaned.articles = Array.isArray(cleaned.articles)
     ? cleaned.articles.map((article) => ({
         journalID: article.journalID ?? null,
+
         title: article.title ?? "",
+
         journalPDF: article.journalPDF ?? null,
+
         authors: Array.isArray(article.authors) ? article.authors : [],
       }))
     : [];
@@ -108,6 +216,7 @@ function renderIssueLists() {
   }
 
   updateDraftBadge();
+
   setAddJournalButtonState();
 }
 
@@ -116,7 +225,9 @@ function renderIssueLists() {
    ----------------------------------------- */
 
 function renderIssueContainer(container, issueList, tabName) {
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   container.innerHTML = "";
 
@@ -126,10 +237,10 @@ function renderIssueContainer(container, issueList, tabName) {
 
   if (cleanedList.length === 0) {
     container.innerHTML = `
-      <div class="empty-message">
-        No ${tabName} issue found.
-      </div>
-    `;
+            <div class="empty-message">
+                No ${tabName} issue found.
+            </div>
+        `;
 
     return;
   }
@@ -140,50 +251,52 @@ function renderIssueContainer(container, issueList, tabName) {
     issueSection.className = "publication-issue";
 
     /* -----------------------------------------
-       EDITORIAL NOTE
-       ----------------------------------------- */
+           EDITORIAL NOTE
+           ----------------------------------------- */
 
     let editorialNoteHtml = "";
 
     if (
       issue.publicationID &&
       Number(issue.publicationID) > 0 &&
-      issue.publicationPDF
+      issue.publicationPDF &&
+      Array.isArray(issue.articles) &&
+      issue.articles.length > 0
     ) {
       editorialNoteHtml = `
-        <div class="editorial-note-action">
+                <div class="editorial-note-action">
 
-          <button
-            type="button"
-            class="action-btn editorial-note-btn"
-            data-storage-path="${escapeHtml(issue.publicationPDF)}"
-            onclick="viewEditorNote(this)"
-            title="Read editorial note"
-            aria-label="Read editorial note"
-          >
-            <i class="fa-solid fa-file-pdf"></i>
-            Read Editorial Note
-          </button>
+                    <button
+                        type="button"
+                        class="action-btn editorial-note-btn"
+                        data-storage-path="${escapeHtml(issue.publicationPDF)}"
+                        onclick="viewEditorNote(this)"
+                        title="Read editorial note"
+                        aria-label="Read editorial note"
+                    >
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Read Editorial Note
+                    </button>
 
-          <button
-            type="button"
-            class="action-btn editorial-note-btn"
-            data-storage-path="${escapeHtml(issue.publicationPDF)}"
-            onclick="downloadEditorNote(this)"
-            title="Download editorial note"
-            aria-label="Download editorial note"
-          >
-            <i class="fa-solid fa-download"></i>
-            Download Editorial Note
-          </button>
+                    <button
+                        type="button"
+                        class="action-btn editorial-note-btn"
+                        data-storage-path="${escapeHtml(issue.publicationPDF)}"
+                        onclick="downloadEditorNote(this)"
+                        title="Download editorial note"
+                        aria-label="Download editorial note"
+                    >
+                        <i class="fa-solid fa-download"></i>
+                        Download Editorial Note
+                    </button>
 
-        </div>
-      `;
+                </div>
+            `;
     }
 
     /* -----------------------------------------
-       ARTICLES
-       ----------------------------------------- */
+           ARTICLES
+           ----------------------------------------- */
 
     const articleHtml = (issue.articles || []).length
       ? issue.articles
@@ -199,145 +312,155 @@ function renderIssueContainer(container, issueList, tabName) {
                 .join(", ") || "Unknown author";
 
             return `
-                <div class="article-item">
+                            <div class="article-item">
 
-                  <div class="article-info">
-                    <div class="article-title">
-                      ${escapeHtml(article.title || "Untitled Article")}
-                    </div>
-                  </div>
+                                <div class="article-info">
 
-                  <div class="article-authors">
-                    ${escapeHtml(authors)}
-                  </div>
+                                    <div class="article-title">
+                                        ${escapeHtml(
+                                          article.title || "Untitled Article",
+                                        )}
+                                    </div>
 
-                  <div class="article-item-actions">
+                                </div>
 
-                    <button
-                      type="button"
-                      class="action-btn view-btn"
-                      onclick="viewJournal(${Number(article.journalID)})"
-                      title="View article"
-                      aria-label="View article"
-                    >
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
+                                <div class="article-authors">
+                                    ${escapeHtml(authors)}
+                                </div>
 
-                    <button
-                      type="button"
-                      class="action-btn delete-btn"
-                      onclick="deleteJournalArticle(${Number(
-                        article.journalID,
-                      )})"
-                      title="Remove article"
-                      aria-label="Remove article"
-                    >
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
+                                <div class="article-item-actions">
 
-                  </div>
+                                    <button
+                                        type="button"
+                                        class="action-btn view-btn"
+                                        onclick="viewJournal(${Number(
+                                          article.journalID,
+                                        )})"
+                                        title="View article"
+                                        aria-label="View article"
+                                    >
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
 
-                </div>
-              `;
+                                    <button
+                                        type="button"
+                                        class="action-btn delete-btn"
+                                        onclick="deleteJournalArticle(${Number(
+                                          article.journalID,
+                                        )})"
+                                        title="Remove article"
+                                        aria-label="Remove article"
+                                    >
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        `;
           })
           .join("")
       : `
-          <div class="empty-message">
-            No articles in this issue.
-          </div>
-        `;
+                    <div class="empty-message">
+                        No articles in this issue.
+                    </div>
+                `;
 
     /* -----------------------------------------
-       ISSUE ACTIONS
-       ----------------------------------------- */
+           ISSUE ACTIONS
+           ----------------------------------------- */
 
     let actionsHtml = "";
 
     if (tabName === "draft") {
       actionsHtml = `
-        <div class="issue-actions">
+                <div class="issue-actions">
 
-          <button
-            type="button"
-            class="action-btn edit-btn"
-            onclick="editIssue(${Number(issue.publicationID)})"
-            title="Continue editing"
-            aria-label="Continue editing"
-          >
-            <i class="fa-solid fa-pen"></i>
-            Continue Editing
-          </button>
+                    <button
+                        type="button"
+                        class="continue-edit-btn"
+                        onclick="editIssue(${Number(issue.publicationID)})"
+                        title="Continue editing"
+                        aria-label="Continue editing"
+                    >
+                        <i class="fa-solid fa-pen"></i>
+                        Continue Editing
+                    </button>
 
-          <button
-            type="button"
-            class="action-btn publish-btn"
-            onclick="publishDraftIssue(${Number(issue.publicationID)})"
-            title="Publish draft"
-            aria-label="Publish draft"
-          >
-            <i class="fa-solid fa-upload"></i>
-            Publish
-          </button>
+                    <button
+                        type="button"
+                        class="action-btn publish-btn"
+                        onclick="publishDraftIssue(${Number(
+                          issue.publicationID,
+                        )})"
+                        title="Publish draft"
+                        aria-label="Publish draft"
+                    >
+                        <i class="fa-solid fa-upload"></i>
+                        Publish
+                    </button>
 
-        </div>
-      `;
+                </div>
+            `;
     } else {
       actionsHtml = `
-        <div class="issue-actions">
+                <div class="issue-actions">
 
-          <button
-            type="button"
-            class="action-btn edit-btn"
-            onclick="editIssue(${Number(issue.publicationID)})"
-            title="Edit issue"
-            aria-label="Edit issue"
-          >
-            <i class="fa-solid fa-pen"></i>
-          </button>
+                    <button
+                        type="button"
+                        class="action-btn edit-btn"
+                        onclick="editIssue(${Number(issue.publicationID)})"
+                        title="Edit issue"
+                        aria-label="Edit issue"
+                    >
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
 
-        </div>
-      `;
+                </div>
+            `;
     }
 
     /* -----------------------------------------
-       ISSUE HTML
-       ----------------------------------------- */
+           ISSUE HTML
+           ----------------------------------------- */
 
     issueSection.innerHTML = `
-      <div class="issue-details">
+            <div class="issue-details">
 
-        <div class="issue-information">
+                <div class="issue-information">
 
-          <span>Publication Issue</span>
+                    <span>Publication Issue</span>
 
-          <strong>
-            ${escapeHtml(issue.year || "-")}
-          </strong>
+                    <strong>
+                        ${escapeHtml(issue.year || "-")}
+                    </strong>
 
-          <span>Volume</span>
+                    <span>Volume</span>
 
-          <strong>
-            ${escapeHtml(issue.volume || "-")}
-          </strong>
+                    <strong>
+                        ${escapeHtml(issue.volume || "-")}
+                    </strong>
 
-          <span>Number</span>
+                    <span>Number</span>
 
-          <strong>
-            ${escapeHtml(issue.number || "-")}
-          </strong>
+                    <strong>
+                        ${escapeHtml(issue.number || "-")}
+                    </strong>
 
-        </div>
+                </div>
 
-        ${actionsHtml}
+                ${actionsHtml}
 
-      </div>
+            </div>
 
-      ${editorialNoteHtml}
+            ${editorialNoteHtml}
 
-      <div class="issue-articles">
-        ${articleHtml}
-      </div>
-    `;
+            <div class="issue-articles">
+
+                ${articleHtml}
+
+            </div>
+        `;
 
     container.appendChild(issueSection);
   });
@@ -375,21 +498,24 @@ async function loadJournals() {
 
     if (currentList) {
       currentList.innerHTML = `
-        <div class="empty-message">
-          Unable to load current issue.
-        </div>
-      `;
+                <div class="empty-message">
+                    Unable to load current issue.
+                </div>
+            `;
     }
 
     if (draftList) {
       draftList.innerHTML = `
-        <div class="empty-message">
-          Unable to load draft issue.
-        </div>
-      `;
+                <div class="empty-message">
+                    Unable to load draft issue.
+                </div>
+            `;
     }
 
-    alert(error.message || "Unable to load issues.");
+    showMessage(
+      "Unable to Load Journals",
+      error.message || "Unable to load issues.",
+    );
   }
 }
 
@@ -398,65 +524,56 @@ async function loadJournals() {
    ----------------------------------------- */
 
 function searchJournals() {
-    const searchInput = document.getElementById("searchInput");
+  const searchInput = document.getElementById("searchInput");
 
-    const searchTerm = (searchInput ? searchInput.value : "")
-        .trim()
-        .toLowerCase();
+  const searchTerm = (searchInput ? searchInput.value : "")
+    .trim()
+    .toLowerCase();
 
-    const issueSource =
-        activeTab === "draft"
-            ? draftIssueData
-            : currentIssueData;
+  const issueSource = activeTab === "draft" ? draftIssueData : currentIssueData;
 
-    /*
-     * If the search box is empty,
-     * show all issues normally.
-     */
-    if (searchTerm === "") {
-        renderIssueLists();
-        return;
-    }
+  /*
+   * If the search box is empty,
+   * show all issues normally.
+   */
 
-    /*
-     * Only keep articles whose TITLE matches
-     * the search term.
-     */
-    const filteredIssues = issueSource
-        .map((issue) => {
-            const matchingArticles = (issue.articles || []).filter((article) => {
-                const title = String(article.title || "").toLowerCase();
+  if (searchTerm === "") {
+    renderIssueLists();
 
-                return title.includes(searchTerm);
-            });
+    return;
+  }
 
-            /*
-             * Keep the issue only if at least one
-             * article title matches.
-             */
-            if (matchingArticles.length === 0) {
-                return null;
-            }
+  /*
+   * Only search article titles.
+   */
 
-            return {
-                ...issue,
-                articles: matchingArticles
-            };
-        })
-        .filter(Boolean);
+  const filteredIssues = issueSource
+    .map((issue) => {
+      const matchingArticles = (issue.articles || []).filter((article) => {
+        const title = String(article.title || "").toLowerCase();
 
-    const container =
-        activeTab === "draft"
-            ? document.getElementById("draftJournalList")
-            : document.getElementById("currentJournalList");
+        return title.includes(searchTerm);
+      });
 
-    if (container) {
-        renderIssueContainer(
-            container,
-            filteredIssues,
-            activeTab
-        );
-    }
+      if (matchingArticles.length === 0) {
+        return null;
+      }
+
+      return {
+        ...issue,
+        articles: matchingArticles,
+      };
+    })
+    .filter(Boolean);
+
+  const container =
+    activeTab === "draft"
+      ? document.getElementById("draftJournalList")
+      : document.getElementById("currentJournalList");
+
+  if (container) {
+    renderIssueContainer(container, filteredIssues, activeTab);
+  }
 }
 
 /* -----------------------------------------
@@ -477,39 +594,48 @@ function openAddJournalPage() {
    PUBLISH DRAFT
    ----------------------------------------- */
 
-async function publishDraftIssue(publicationID) {
-  const confirmed = confirm("Publish this draft?");
+function publishDraftIssue(publicationID) {
+  openConfirmationModal(
+    "Publish Journal Issue?",
+    "Are you sure you want to publish this draft? The current issue will be moved to the archive.",
+    "Publish",
+    async function () {
+      try {
+        const formData = new FormData();
 
-  if (!confirmed) return;
+        formData.append("action", "publish");
 
-  try {
-    const formData = new FormData();
+        formData.append("publicationID", String(publicationID));
 
-    formData.append("action", "publish");
+        const response = await fetch("manage_journal_api.php", {
+          method: "POST",
+          body: formData,
+        });
 
-    formData.append("publicationID", String(publicationID));
+        const result = await response.json();
 
-    const response = await fetch("manage_journal_api.php", {
-      method: "POST",
-      body: formData,
-    });
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Unable to publish the draft.");
+        }
 
-    const result = await response.json();
+        await loadJournals();
 
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Unable to publish the draft.");
-    }
+        showTab("current");
 
-    await loadJournals();
+        showMessage(
+          "Published Successfully",
+          "The draft journal issue has been published successfully.",
+        );
+      } catch (error) {
+        console.error(error);
 
-    showTab("current");
-
-    alert("Draft published successfully.");
-  } catch (error) {
-    console.error(error);
-
-    alert(error.message || "Unable to publish the draft.");
-  }
+        showMessage(
+          "Unable to Publish",
+          error.message || "Unable to publish the draft.",
+        );
+      }
+    },
+  );
 }
 
 /* -----------------------------------------
@@ -517,21 +643,52 @@ async function publishDraftIssue(publicationID) {
    ----------------------------------------- */
 
 function editIssue(publicationID) {
-  const issue = currentIssueData
-    .concat(draftIssueData)
-    .find((item) => Number(item.publicationID) === Number(publicationID));
+  /*
+   * Check if the selected issue is a draft.
+   */
+  const draftIssue = draftIssueData.find(
+    (issue) => Number(issue.publicationID) === Number(publicationID),
+  );
 
-  if (!issue) return;
-
-  if (!issue.publicationID || Number(issue.publicationID) <= 0) {
-    alert("Unable to load the publication for editing.");
+  if (draftIssue) {
+    /*
+     * Draft issues are continued through
+     * the Add Journal form.
+     */
+    window.location.href = `add_journal.php?publicationID=${encodeURIComponent(
+      publicationID,
+    )}`;
 
     return;
   }
 
-  window.location.href = `edit_journal.php?publicationID=${encodeURIComponent(
-    issue.publicationID,
-  )}`;
+  /*
+   * Check if the selected issue is the
+   * current published issue.
+   */
+  const currentIssue = currentIssueData.find(
+    (issue) => Number(issue.publicationID) === Number(publicationID),
+  );
+
+  if (currentIssue) {
+    /*
+     * Current issues are edited through
+     * the Update Journal page.
+     */
+    window.location.href = `edit_journal.php?publicationID=${encodeURIComponent(
+      publicationID,
+    )}`;
+
+    return;
+  }
+
+  /*
+   * Issue was not found.
+   */
+  showMessage(
+    "Unable to Edit",
+    "The selected journal issue could not be found.",
+  );
 }
 
 /* -----------------------------------------
@@ -552,7 +709,10 @@ async function viewEditorNote(button) {
   const storagePath = button?.dataset?.storagePath || "";
 
   if (!storagePath) {
-    alert("Editorial note PDF is not available.");
+    showMessage(
+      "Editorial Note Unavailable",
+      "The editorial note PDF is not available.",
+    );
 
     return;
   }
@@ -574,7 +734,10 @@ async function viewEditorNote(button) {
   } catch (error) {
     console.error(error);
 
-    alert(error.message || "Unable to open the editorial note.");
+    showMessage(
+      "Unable to Open Editorial Note",
+      error.message || "Unable to open the editorial note.",
+    );
   }
 }
 
@@ -586,13 +749,18 @@ async function downloadEditorNote(button) {
   const storagePath = button?.dataset?.storagePath || "";
 
   if (!storagePath) {
-    alert("Editorial note PDF is not available.");
+    showMessage(
+      "Editorial Note Unavailable",
+      "The editorial note PDF is not available.",
+    );
 
     return;
   }
 
   try {
-    /* Get the signed Supabase URL */
+    /*
+     * Get the signed Supabase URL.
+     */
 
     const response = await fetch(
       `manage_journal_api.php?action=pdfUrl&type=publication&storagePath=${encodeURIComponent(
@@ -606,7 +774,9 @@ async function downloadEditorNote(button) {
       throw new Error(result.message || "Unable to get the editorial note.");
     }
 
-    /* Fetch the actual PDF */
+    /*
+     * Fetch the actual PDF.
+     */
 
     const pdfResponse = await fetch(result.data.pdfUrl);
 
@@ -614,15 +784,21 @@ async function downloadEditorNote(button) {
       throw new Error("Unable to download the editorial note PDF.");
     }
 
-    /* Convert PDF to Blob */
+    /*
+     * Convert PDF to Blob.
+     */
 
     const pdfBlob = await pdfResponse.blob();
 
-    /* Create temporary local URL */
+    /*
+     * Create temporary local URL.
+     */
 
     const blobUrl = window.URL.createObjectURL(pdfBlob);
 
-    /* Create download link */
+    /*
+     * Create download link.
+     */
 
     const link = document.createElement("a");
 
@@ -632,11 +808,15 @@ async function downloadEditorNote(button) {
 
     document.body.appendChild(link);
 
-    /* Trigger download */
+    /*
+     * Trigger download.
+     */
 
     link.click();
 
-    /* Clean up */
+    /*
+     * Clean up.
+     */
 
     document.body.removeChild(link);
 
@@ -644,52 +824,85 @@ async function downloadEditorNote(button) {
   } catch (error) {
     console.error(error);
 
-    alert(error.message || "Unable to download the editorial note.");
+    showMessage(
+      "Unable to Download Editorial Note",
+      error.message || "Unable to download the editorial note.",
+    );
   }
 }
 
-/* =========================================================
+/* -----------------------------------------
    DELETE JOURNAL ARTICLE
-   ========================================================= */
+   ----------------------------------------- */
 
-async function deleteJournalArticle(journalID) {
-  const confirmed = confirm("Remove this article? This cannot be undone.");
+function deleteJournalArticle(journalID) {
+  openConfirmationModal(
+    "Remove Article?",
+    "Are you sure you want to remove this article? This cannot be undone.",
+    "Remove Article",
+    async function () {
+      try {
+        const formData = new FormData();
 
-  if (!confirmed) return;
+        formData.append("action", "deleteArticle");
 
-  try {
-    const formData = new FormData();
+        formData.append("journalID", String(journalID));
 
-    formData.append("action", "deleteArticle");
+        const response = await fetch("manage_journal_api.php", {
+          method: "POST",
+          body: formData,
+        });
 
-    formData.append("journalID", String(journalID));
+        const result = await response.json();
 
-    const response = await fetch("manage_journal_api.php", {
-      method: "POST",
-      body: formData,
-    });
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Unable to remove article.");
+        }
 
-    const result = await response.json();
+        await loadJournals();
 
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Unable to remove article.");
-    }
+        /*
+         * If the backend deleted the entire
+         * empty draft issue, inform the admin.
+         */
 
-    await loadJournals();
-  } catch (error) {
-    console.error(error);
+        if (result.data && result.data.draftIssueDeleted) {
+          showMessage(
+            "Article Removed",
+            "The article was removed. Since no articles remained, the empty draft issue was also removed.",
+          );
+        } else {
+          showMessage(
+            "Article Removed",
+            "The article was removed successfully.",
+          );
+        }
+      } catch (error) {
+        console.error(error);
 
-    alert(error.message || "Unable to remove article");
-  }
+        showMessage(
+          "Unable to Remove Article",
+          error.message || "Unable to remove article.",
+        );
+      }
+    },
+  );
 }
 
 /* -----------------------------------------
    INITIALIZE MANAGE JOURNAL PAGE
    ----------------------------------------- */
+
 function initializeManageJournalPage() {
   const currentTabButton = document.getElementById("currentTabButton");
+
   const draftTabButton = document.getElementById("draftTabButton");
+
   const addJournalButton = document.getElementById("addJournalButton");
+
+  /*
+   * Current tab.
+   */
 
   if (currentTabButton) {
     currentTabButton.onclick = function () {
@@ -697,15 +910,27 @@ function initializeManageJournalPage() {
     };
   }
 
+  /*
+   * Draft tab.
+   */
+
   if (draftTabButton) {
     draftTabButton.onclick = function () {
       showTab("draft", draftTabButton);
     };
   }
 
+  /*
+   * Add Journal button.
+   */
+
   if (addJournalButton) {
     addJournalButton.onclick = openAddJournalPage;
   }
+
+  /*
+   * Search.
+   */
 
   const searchInput = document.getElementById("searchInput");
 
@@ -713,11 +938,21 @@ function initializeManageJournalPage() {
     searchInput.addEventListener("input", searchJournals);
   }
 
+  /*
+   * Initial rendering.
+   */
+
   renderIssueLists();
+
   updateDraftBadge();
+
   setAddJournalButtonState();
 
   loadJournals();
 }
+
+/* -----------------------------------------
+   START PAGE
+   ----------------------------------------- */
 
 initializeManageJournalPage();

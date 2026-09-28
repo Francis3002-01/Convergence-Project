@@ -47,7 +47,7 @@ $pageTitle = "Manage Journals - Convergence";
                     </div>
 
                     <!-- ADD JOURNAL -->
-                    <button type="button" class="add-button"id="addJournalButton">Add Journal</button>
+                    <button type="button" class="add-button" id="addJournalButton">Add Journal</button>
                 </div>
             </div>
 
@@ -56,8 +56,8 @@ $pageTitle = "Manage Journals - Convergence";
                 <div class="journal-tabs">
                     <button type="button" class="journal-tab active" id="currentTabButton" onclick="showTab('current', this)">Current</button>
 
-                    <button type="button" class="journal-tab" id="draftTabButton"onclick="showTab('draft', this)">Draft
-                        
+                    <button type="button" class="journal-tab" id="draftTabButton" onclick="showTab('draft', this)">Draft
+
                     </button>
 
                 </div>
@@ -75,7 +75,7 @@ $pageTitle = "Manage Journals - Convergence";
 
 
                 <!-- DRAFT TAB -->
-                <div id="draftJournalContent" class="journal-tab-content"style="display: none;">
+                <div id="draftJournalContent" class="journal-tab-content" style="display: none;">
                     <div class="journal-list-header">
                         <div>Title</div>
                         <div>Authors</div>
@@ -85,8 +85,7 @@ $pageTitle = "Manage Journals - Convergence";
 
                     <div
                         id="draftJournalList"
-                        class="journal-list"
-                    ></div>
+                        class="journal-list"></div>
 
                 </div>
 
@@ -112,7 +111,7 @@ $pageTitle = "Manage Journals - Convergence";
             <p id="confirmationMessage">Are you sure you want to remove this article?</p>
 
             <div class="confirmation-actions">
-                <button type="button"class="modal-cancel-btn"onclick="closeConfirmationModal()">Cancel
+                <button type="button" class="modal-cancel-btn" onclick="closeConfirmationModal()">Cancel
                 </button>
                 <button type="button" class="modal-confirm-btn" id="confirmDeleteButton">Remove Article</button>
             </div>
@@ -120,6 +119,88 @@ $pageTitle = "Manage Journals - Convergence";
         </div>
 
     </div>
+
+    <!-- REMOVE ARTICLE CONFIRMATION MODAL -->
+    <div class="confirmation-modal" id="confirmationModal">
+
+        <div
+            class="confirmation-overlay"
+            onclick="closeConfirmationModal()"></div>
+
+        <div class="confirmation-dialog">
+
+            <div class="confirmation-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+
+            <h3 id="confirmationTitle">
+                Remove Article?
+            </h3>
+
+            <p id="confirmationMessage">
+                Are you sure you want to remove this article?
+                This cannot be undone.
+            </p>
+
+            <div class="confirmation-actions">
+
+                <button
+                    type="button"
+                    class="modal-cancel-btn"
+                    onclick="closeConfirmationModal()">
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="modal-confirm-btn"
+                    id="confirmDeleteButton">
+                    Remove Article
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MESSAGE MODAL -->
+    <div class="confirmation-modal" id="messageModal">
+
+        <div
+            class="confirmation-overlay"
+            onclick="closeMessageModal()"></div>
+
+        <div class="confirmation-dialog">
+
+            <div class="confirmation-icon">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+
+            <h3 id="messageTitle">
+                Notice
+            </h3>
+
+            <p id="messageText">
+                Something happened.
+            </p>
+
+            <div class="confirmation-actions">
+
+                <button
+                    type="button"
+                    class="modal-confirm-btn"
+                    onclick="closeMessageModal()">
+                    OK
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
 
 
     <script src="../javascript/manage_journal.js"></script>

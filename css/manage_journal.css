@@ -434,6 +434,63 @@
     transform: translateY(1px);
 }
 
+.continue-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: auto;
+    min-width: 130px;
+    height: 34px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 5px;
+    background: #f0f0f0;
+    color: #444;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.continue-edit-btn:hover {
+    background: #ddd;
+}
+
+.continue-edit-btn:active {
+    transform: translateY(1px);
+}
+
+.confirmation-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}
+
+.confirmation-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirmation-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.confirmation-dialog {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 450px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 25px;
+    box-sizing: border-box;
+}
+
 @media (max-width: 1100px) {
 
     .journal-list-container {
