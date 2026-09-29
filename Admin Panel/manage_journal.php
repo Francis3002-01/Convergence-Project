@@ -76,17 +76,15 @@ $pageTitle = "Manage Journals - Convergence";
 
                 <!-- DRAFT TAB -->
                 <div id="draftJournalContent" class="journal-tab-content" style="display: none;">
+
                     <div class="journal-list-header">
                         <div>Title</div>
                         <div>Authors</div>
                         <div>Actions</div>
-
                     </div>
 
-                    <div
-                        id="draftJournalList"
-                        class="journal-list"></div>
-
+                    <div id="draftJournalList"class="journal-list"></div>
+                    
                 </div>
 
             </div>

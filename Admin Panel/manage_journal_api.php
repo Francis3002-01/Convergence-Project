@@ -25,19 +25,8 @@ if ($bucket === '') {
     throw new Exception('SUPABASE_BUCKET is not configured.');
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| RESPONSE
-|--------------------------------------------------------------------------
-*/
-
-function sendResponse(
-    bool $success,
-    string $message = '',
-    array $data = [],
-    int $status = 200
-): never {
+function sendResponse(bool $success, string $message = '', array $data = [], int $status = 200): never
+{
     http_response_code($status);
     header('Content-Type: application/json');
 
@@ -51,12 +40,7 @@ function sendResponse(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| STORAGE PATH HELPERS
-|--------------------------------------------------------------------------
-*/
-
+/*STORAGE PATH HELPERS*/
 function normalizeStoragePath(string $storagePath): string
 {
     global $bucket;
@@ -75,26 +59,17 @@ function normalizeStoragePath(string $storagePath): string
         );
 
         if (!is_string($parsedPath)) {
-            throw new Exception(
-                'Unable to extract the storage path from the PDF URL.'
-            );
+            throw new Exception('Unable to extract the storage path from the PDF URL.');
         }
 
         $storagePath = $parsedPath;
-
         $objectMarker = '/storage/v1/object/';
 
-        $markerPosition = strpos(
-            $storagePath,
-            $objectMarker
-        );
+        $markerPosition = strpos($storagePath, $objectMarker);
 
         if ($markerPosition !== false) {
 
-            $storagePath = substr(
-                $storagePath,
-                $markerPosition + strlen($objectMarker)
-            );
+            $storagePath = substr($storagePath, $markerPosition + strlen($objectMarker));
 
             $storagePath = preg_replace(
                 '#^(public|sign)/#',
@@ -104,73 +79,37 @@ function normalizeStoragePath(string $storagePath): string
         }
     }
 
-    $storagePath = ltrim(
-        $storagePath,
-        '/'
-    );
-
-    $bucketName = trim(
-        $bucket,
-        '/'
-    );
-
+    $storagePath = ltrim($storagePath, '/');
+    $bucketName = trim($bucket, '/');
     $bucketPrefix = $bucketName . '/';
 
-    if (
-        str_starts_with(
-            $storagePath,
-            $bucketPrefix
-        )
-    ) {
-        $storagePath = substr(
-            $storagePath,
-            strlen($bucketPrefix)
-        );
+    if (str_starts_with($storagePath, $bucketPrefix)) {
+        $storagePath = substr($storagePath, strlen($bucketPrefix));
     }
 
-    $storagePath = preg_replace(
-        '#/+#',
-        '/',
-        $storagePath
-    );
+    $storagePath = preg_replace('#/+#', '/', $storagePath);
 
-    $storagePath = rtrim(
-        $storagePath,
-        '/'
-    );
+    $storagePath = rtrim($storagePath, '/');
 
     if ($storagePath === '') {
-        throw new Exception(
-            'The storage path is empty.'
-        );
+        throw new Exception('The storage path is empty.');
     }
 
     return $storagePath;
 }
 
 
-function createSignedPdfUrl(
-    string $storagePath,
-    int $expiresIn = 3600
-): string {
+function createSignedPdfUrl(string $storagePath, int $expiresIn = 3600): string
+{
 
     global $supabaseUrl, $supabaseKey, $bucket;
 
-    $storagePath =
-        normalizeStoragePath(
-            $storagePath
-        );
+    $storagePath = normalizeStoragePath($storagePath);
 
-    $bucketName =
-        trim(
-            $bucket,
-            '/'
-        );
+    $bucketName = trim($bucket, '/');
 
     if ($bucketName === '') {
-        throw new Exception(
-            'Supabase storage bucket is not configured.'
-        );
+        throw new Exception('Supabase storage bucket is not configured.');
     }
 
     $encodedPath = implode(
@@ -224,21 +163,12 @@ function createSignedPdfUrl(
     curl_close($ch);
 
     if ($response === false) {
-        throw new Exception(
-            'Unable to create signed PDF URL: ' .
-                ($curlError ?: 'Unknown cURL error.')
-        );
+        throw new Exception('Unable to create signed PDF URL: ' . ($curlError ?: 'Unknown cURL error.'));
     }
 
-    $result = json_decode(
-        $response,
-        true
-    );
+    $result = json_decode($response, true);
 
-    if (
-        $httpCode < 200 ||
-        $httpCode >= 300
-    ) {
+    if ($httpCode < 200 || $httpCode >= 300) {
 
         $errorMessage = '';
 
@@ -253,12 +183,7 @@ function createSignedPdfUrl(
             $errorMessage = $response;
         }
 
-        throw new Exception(
-            'Supabase Storage error (HTTP ' .
-                $httpCode .
-                '): ' .
-                $errorMessage
-        );
+        throw new Exception('Supabase Storage error (HTTP ' . $httpCode . '): ' . $errorMessage);
     }
 
     if (!is_array($result)) {
@@ -275,17 +200,10 @@ function createSignedPdfUrl(
         );
 
     if ($signedUrl === '') {
-        throw new Exception(
-            'Supabase did not return a signed PDF URL.'
-        );
+        throw new Exception('Supabase did not return a signed PDF URL.');
     }
 
-    if (
-        str_starts_with(
-            $signedUrl,
-            '/'
-        )
-    ) {
+    if (str_starts_with($signedUrl, '/')) {
 
         $signedUrl =
             rtrim(
@@ -300,18 +218,12 @@ function createSignedPdfUrl(
 }
 
 
-function createPublicPdfUrl(
-    string $storagePath
-): string {
+function createPublicPdfUrl(string $storagePath): string
+{
 
     global $supabaseUrl, $bucket;
 
-    if (
-        filter_var(
-            $storagePath,
-            FILTER_VALIDATE_URL
-        )
-    ) {
+    if (filter_var($storagePath, FILTER_VALIDATE_URL)) {
         return $storagePath;
     }
 
@@ -322,15 +234,10 @@ function createPublicPdfUrl(
         );
 
     if ($bucketName === '') {
-        throw new Exception(
-            'Supabase storage bucket is not configured.'
-        );
+        throw new Exception('Supabase storage bucket is not configured.');
     }
 
-    $storagePath =
-        normalizeStoragePath(
-            $storagePath
-        );
+    $storagePath = normalizeStoragePath($storagePath);
 
     $encodedPath = implode(
         '/',
@@ -354,73 +261,34 @@ function createPublicPdfUrl(
         $encodedPath;
 }
 
+function validatePdf(array $file, string $description): void
+{
 
-/*
-|--------------------------------------------------------------------------
-| PDF VALIDATION
-|--------------------------------------------------------------------------
-*/
-
-function validatePdf(
-    array $file,
-    string $description
-): void {
-
-    if (
-        !isset($file['error']) ||
-        $file['error'] !== UPLOAD_ERR_OK
-    ) {
-        throw new Exception(
-            $description . ' upload failed.'
-        );
+    if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception($description . ' upload failed.');
     }
 
-    if (
-        !isset($file['tmp_name']) ||
-        !is_uploaded_file(
-            $file['tmp_name']
-        )
-    ) {
-        throw new Exception(
-            $description . ' is invalid.'
-        );
+    if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+        throw new Exception($description . ' is invalid.');
     }
 
-    $mimeType =
-        mime_content_type(
-            $file['tmp_name']
-        );
+    $mimeType = mime_content_type($file['tmp_name']);
 
     if ($mimeType !== 'application/pdf') {
-        throw new Exception(
-            $description . ' must be a PDF.'
-        );
+        throw new Exception($description . ' must be a PDF.');
     }
 
-    $maxFileSize =
-        40 * 1024 * 1024;
+    $maxFileSize = 40 * 1024 * 1024;
 
-    if (
-        $file['size'] >
-        $maxFileSize
-    ) {
-        throw new Exception(
-            $description .
-                ' exceeds the 40 MB limit.'
-        );
+    if ($file['size'] > $maxFileSize) {
+        throw new Exception($description . ' exceeds the 40 MB limit.');
     }
 }
 
+function createStorageFilename(string $originalName, string $prefix): string
+{
 
-function createStorageFilename(
-    string $originalName,
-    string $prefix
-): string {
-
-    $originalName =
-        basename(
-            $originalName
-        );
+    $originalName = basename($originalName);
 
     $safeFileName =
         preg_replace(
@@ -441,15 +309,9 @@ function createStorageFilename(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| SUPABASE STORAGE UPLOAD
-|--------------------------------------------------------------------------
-*/
-
-function uploadPdfsConcurrently(
-    array $uploads
-): void {
+/*SUPABASE STORAGE UPLOAD*/
+function uploadPdfsConcurrently(array $uploads): void
+{
 
     global $supabaseUrl, $supabaseKey, $bucket;
 
@@ -457,19 +319,14 @@ function uploadPdfsConcurrently(
         return;
     }
 
-    $multiHandle =
-        curl_multi_init();
-
+    $multiHandle = curl_multi_init();
     $handles = [];
 
     try {
 
-        foreach (
-            $uploads as $index => $upload
-        ) {
+        foreach ($uploads as $index => $upload) {
 
-            $localFile =
-                $upload['localFile'];
+            $localFile = $upload['localFile'];
 
             $storagePath =
                 normalizeStoragePath(
@@ -482,9 +339,7 @@ function uploadPdfsConcurrently(
                 );
 
             if ($fileContents === false) {
-                throw new Exception(
-                    'Unable to read PDF file.'
-                );
+                throw new Exception('Unable to read PDF file.');
             }
 
             $encodedPath = implode(
@@ -544,7 +399,6 @@ function uploadPdfsConcurrently(
         $running = null;
 
         do {
-
             $status =
                 curl_multi_exec(
                     $multiHandle,
@@ -552,26 +406,13 @@ function uploadPdfsConcurrently(
                 );
 
             if ($running) {
-
-                curl_multi_select(
-                    $multiHandle,
-                    1.0
-                );
+                curl_multi_select($multiHandle, 1.0);
             }
-        } while (
-            $running &&
-            $status === CURLM_OK
-        );
+        } while ($running && $status === CURLM_OK);
 
+        foreach ($handles as $index => $ch) {
 
-        foreach (
-            $handles as $index => $ch
-        ) {
-
-            $response =
-                curl_multi_getcontent(
-                    $ch
-                );
+            $response = curl_multi_getcontent($ch);
 
             $httpCode =
                 curl_getinfo(
@@ -582,45 +423,26 @@ function uploadPdfsConcurrently(
             $curlError =
                 curl_error($ch);
 
-            if (
-                $response === false ||
-                $httpCode < 200 ||
-                $httpCode >= 300
-            ) {
-
-                throw new Exception(
-                    'PDF upload failed for ' .
-                        $uploads[$index]['description'] .
-                        ': ' .
-                        ($curlError ?: $response)
-                );
+            if ($response === false || $httpCode < 200 || $httpCode >= 300) {
+                throw new Exception('PDF upload failed for ' . $uploads[$index]['description'] . ': ' . ($curlError ?: $response));
             }
 
-            curl_multi_remove_handle(
-                $multiHandle,
-                $ch
-            );
+            curl_multi_remove_handle($multiHandle, $ch);
 
             curl_close($ch);
         }
     } finally {
-
-        curl_multi_close(
-            $multiHandle
-        );
+        curl_multi_close($multiHandle);
     }
 }
 
 
-function deletePdf(
-    string $storagePath
-): void {
+function deletePdf(string $storagePath): void
+{
 
     global $supabaseUrl, $supabaseKey, $bucket;
 
-    if (
-        trim($storagePath) === ''
-    ) {
+    if (trim($storagePath) === '') {
         return;
     }
 
@@ -673,21 +495,13 @@ function deletePdf(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| ARTICLE DATA
-|--------------------------------------------------------------------------
-*/
-
-function normalizeArticleData(
-    array $articles
-): array {
+/*ARTICLE DATA*/
+function normalizeArticleData(array $articles): array
+{
 
     $normalized = [];
 
-    foreach (
-        $articles as $article
-    ) {
+    foreach ($articles as $article) {
 
         $normalized[] = [
 
@@ -725,10 +539,8 @@ function normalizeArticleData(
 }
 
 
-function getIssueByPublicationId(
-    PDO $pdo,
-    int $publicationID
-): ?array {
+function getIssueByPublicationId(PDO $pdo, int $publicationID): ?array
+{
 
     $statement =
         $pdo->prepare(
@@ -750,9 +562,8 @@ function getIssueByPublicationId(
 }
 
 
-function ensureOneDraft(
-    PDO $pdo
-): void {
+function ensureOneDraft(PDO $pdo): void
+{
 
     $draft =
         $pdo->query(
@@ -770,19 +581,9 @@ function ensureOneDraft(
     }
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| AUTHORS
-|--------------------------------------------------------------------------
-*/
-
-function saveArticleAuthors(
-    PDO $pdo,
-    int $journalID,
-    array $authors,
-    bool $isDraft = false
-): void {
+/*AUTHORS*/
+function saveArticleAuthors(PDO $pdo, int $journalID, array $authors, bool $isDraft = false): void
+{
 
     $pdo->prepare(
         'DELETE FROM "ArticleAuthor"
@@ -794,9 +595,7 @@ function saveArticleAuthors(
 
     $validAuthors = [];
 
-    foreach (
-        $authors as $author
-    ) {
+    foreach ($authors as $author) {
 
         $firstName =
             trim(
@@ -816,10 +615,7 @@ function saveArticleAuthors(
          * Completely blank author rows
          * are allowed in drafts.
          */
-        if (
-            $firstName === '' &&
-            $lastName === ''
-        ) {
+        if ($firstName === '' && $lastName === '') {
             continue;
         }
 
@@ -827,13 +623,7 @@ function saveArticleAuthors(
          * Drafts can temporarily contain
          * incomplete author information.
          */
-        if (
-            $isDraft &&
-            (
-                $firstName === '' ||
-                $lastName === ''
-            )
-        ) {
+        if ($isDraft && ($firstName === '' || $lastName === '')) {
             continue;
         }
 
@@ -841,13 +631,8 @@ function saveArticleAuthors(
          * Published articles require
          * complete author names.
          */
-        if (
-            $firstName === '' ||
-            $lastName === ''
-        ) {
-            throw new Exception(
-                'Author first name and last name are required.'
-            );
+        if ($firstName === '' || $lastName === '') {
+            throw new Exception('Author first name and last name are required.');
         }
 
         $validAuthors[] = [
@@ -868,14 +653,10 @@ function saveArticleAuthors(
             return;
         }
 
-        throw new Exception(
-            'An article must have at least one author.'
-        );
+        throw new Exception('An article must have at least one author.');
     }
 
-    foreach (
-        $validAuthors as $author
-    ) {
+    foreach ($validAuthors as $author) {
 
         $findAuthor =
             $pdo->prepare(
@@ -945,17 +726,8 @@ function saveArticleAuthors(
     }
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| ISSUE PAYLOAD
-|--------------------------------------------------------------------------
-*/
-
-function getIssuePayload(
-    PDO $pdo,
-    int $publicationID
-): array {
+function getIssuePayload(PDO $pdo, int $publicationID): array
+{
 
     $issue =
         getIssueByPublicationId(
@@ -964,9 +736,7 @@ function getIssuePayload(
         );
 
     if (!$issue) {
-        throw new Exception(
-            'Issue not found.'
-        );
+        throw new Exception('Issue not found.');
     }
 
     $statement =
@@ -996,18 +766,11 @@ function getIssuePayload(
 
     $articles = [];
 
-    foreach (
-        $statement->fetchAll() as $row
-    ) {
+    foreach ($statement->fetchAll() as $row) {
 
-        $journalID =
-            (int) $row['journalID'];
+        $journalID = (int) $row['journalID'];
 
-        if (
-            !isset(
-                $articles[$journalID]
-            )
-        ) {
+        if (!isset($articles[$journalID])) {
 
             $pdfPath =
                 trim(
@@ -1035,10 +798,7 @@ function getIssuePayload(
             ];
         }
 
-        if (
-            !empty($row['firstName']) ||
-            !empty($row['lastName'])
-        ) {
+        if (!empty($row['firstName']) || !empty($row['lastName'])) {
 
             $articles[$journalID]['authors'][] = [
 
@@ -1060,17 +820,13 @@ function getIssuePayload(
 
     return [
 
-        'publicationID' =>
-        (int) $issue['publicationID'],
+        'publicationID' => (int) $issue['publicationID'],
 
-        'year' =>
-        (int) $issue['year'],
+        'year' => (int) $issue['year'],
 
-        'volume' =>
-        (int) $issue['volume'],
+        'volume' => (int) $issue['volume'],
 
-        'number' =>
-        (int) $issue['number'],
+        'number' => (int) $issue['number'],
 
         'publicationPDF' =>
         $publicationPdfPath !== ''
@@ -1089,16 +845,8 @@ function getIssuePayload(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| ARTICLE PAYLOAD
-|--------------------------------------------------------------------------
-*/
-
-function getArticlePayload(
-    PDO $pdo,
-    int $journalID
-): array {
+function getArticlePayload(PDO $pdo, int $journalID): array
+{
 
     $statement =
         $pdo->prepare(
@@ -1128,10 +876,7 @@ function getArticlePayload(
         $statement->fetch();
 
     if (!$article) {
-
-        throw new Exception(
-            'Journal article not found.'
-        );
+        throw new Exception('Journal article not found.');
     }
 
     $authorStatement =
@@ -1155,10 +900,7 @@ function getArticlePayload(
 
     $authors = [];
 
-    foreach (
-        $authorStatement->fetchAll()
-        as $author
-    ) {
+    foreach ($authorStatement->fetchAll() as $author) {
 
         $authors[] = [
 
@@ -1172,25 +914,16 @@ function getArticlePayload(
 
     $pdfUrl = '';
 
-    if (
-        !empty($article['journalPDF'])
-    ) {
-
-        $pdfUrl =
-            createPublicPdfUrl(
-                (string) $article['journalPDF']
-            );
+    if (!empty($article['journalPDF'])) {
+        $pdfUrl = createPublicPdfUrl((string) $article['journalPDF']);
     }
-
 
     /*
      * Build APA author information.
      */
     $citationAuthors = [];
 
-    foreach (
-        $authors as $author
-    ) {
+    foreach ($authors as $author) {
 
         $firstName =
             trim(
@@ -1206,10 +939,7 @@ function getArticlePayload(
                 )
             );
 
-        if (
-            $firstName === '' &&
-            $lastName === ''
-        ) {
+        if ($firstName === '' && $lastName === '') {
             continue;
         }
 
@@ -1248,25 +978,16 @@ function getArticlePayload(
                 trim($initials);
         }
 
-        if (
-            $lastName !== '' &&
-            $initials !== ''
-        ) {
-
+        if ($lastName !== '' && $initials !== '') {
             $citationAuthors[] =
                 $lastName .
                 ', ' .
                 $initials;
-        } elseif (
-            $lastName !== ''
-        ) {
-
+        } elseif ($lastName !== '') {
             $citationAuthors[] =
                 $lastName;
         } else {
-
-            $citationAuthors[] =
-                $initials;
+            $citationAuthors[] = $initials;
         }
     }
 
@@ -1410,15 +1131,8 @@ function getArticlePayload(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| ISSUE LIST
-|--------------------------------------------------------------------------
-*/
-
-function loadIssueList(
-    PDO $pdo
-): array {
+function loadIssueList(PDO $pdo): array
+{
 
     $statement =
         $pdo->query(
@@ -1433,9 +1147,7 @@ function loadIssueList(
 
     $issues = [];
 
-    foreach (
-        $statement->fetchAll() as $row
-    ) {
+    foreach ($statement->fetchAll() as $row) {
 
         $issues[(int) $row['publicationID']] = [
 
@@ -1474,8 +1186,7 @@ function loadIssueList(
         ];
     }
 
-    $publicationIDs =
-        array_keys($issues);
+    $publicationIDs = array_keys($issues);
 
     $placeholders =
         implode(
@@ -1510,13 +1221,9 @@ function loadIssueList(
                 a."authorID"'
         );
 
-    $statement->execute(
-        $publicationIDs
-    );
+    $statement->execute($publicationIDs);
 
-    foreach (
-        $statement->fetchAll() as $row
-    ) {
+    foreach ($statement->fetchAll() as $row) {
 
         $publicationID =
             (int) $row['publicationID'];
@@ -1524,11 +1231,7 @@ function loadIssueList(
         $journalID =
             (int) $row['journalID'];
 
-        if (
-            !isset(
-                $issues[$publicationID]['articles'][$journalID]
-            )
-        ) {
+        if (!isset($issues[$publicationID]['articles'][$journalID])) {
 
             $issues[$publicationID]['articles'][$journalID] = [
 
@@ -1546,10 +1249,7 @@ function loadIssueList(
             ];
         }
 
-        if (
-            !empty($row['firstName']) ||
-            !empty($row['lastName'])
-        ) {
+        if (!empty($row['firstName']) || !empty($row['lastName'])) {
 
             $issues[$publicationID]['articles'][$journalID]['authors'][] = [
 
@@ -1575,14 +1275,8 @@ function loadIssueList(
      * update/deleteArticle, the draft issue
      * itself is deleted.
      */
-    foreach (
-        $issues as $publicationID => &$issue
-    ) {
-
-        $issue['articles'] =
-            array_values(
-                $issue['articles']
-            );
+    foreach ($issues as $publicationID => &$issue) {
+        $issue['articles'] = array_values($issue['articles']);
     }
 
     unset($issue);
@@ -1592,28 +1286,13 @@ function loadIssueList(
     $draft = [];
     $archive = [];
 
-    foreach (
-        $issues as $issue
-    ) {
-
-        if (
-            $issue['is_current'] &&
-            !$issue['is_draft']
-        ) {
-
-            $current[] =
-                $issue;
-        } elseif (
-            !$issue['is_current'] &&
-            $issue['is_draft']
-        ) {
-
-            $draft[] =
-                $issue;
+    foreach ($issues as $issue) {
+        if ($issue['is_current'] && !$issue['is_draft']) {
+            $current[] = $issue;
+        } elseif (!$issue['is_current'] && $issue['is_draft']) {
+            $draft[] = $issue;
         } else {
-
-            $archive[] =
-                $issue;
+            $archive[] = $issue;
         }
     }
 
@@ -1630,22 +1309,8 @@ function loadIssueList(
     ];
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| CREATE ISSUE RECORD
-|--------------------------------------------------------------------------
-*/
-
-function createIssueRecord(
-    PDO $pdo,
-    int $year,
-    int $volume,
-    int $number,
-    string $publicationPDF,
-    bool $isCurrent,
-    bool $isDraft
-): int {
+function createIssueRecord(PDO $pdo, int $year, int $volume, int $number, string $publicationPDF, bool $isCurrent, bool $isDraft): int
+{
 
     $statement =
         $pdo->prepare(
@@ -1672,17 +1337,13 @@ function createIssueRecord(
 
     $statement->execute([
 
-        ':year' =>
-        $year,
+        ':year' => $year,
 
-        ':volume' =>
-        $volume,
+        ':volume' => $volume,
 
-        ':number' =>
-        $number,
+        ':number' => $number,
 
-        ':publicationPDF' =>
-        $publicationPDF,
+        ':publicationPDF' => $publicationPDF,
 
         ':is_current' =>
         $isCurrent
@@ -1708,29 +1369,10 @@ function createIssueRecord(
     return (int) $publicationID;
 }
 
+function saveIssue(PDO $pdo, int $year, int $volume, int $number, array $articleList, array $publicationFile, bool $isDraft, ?int $publicationID = null): int
+{
 
-/*
-|--------------------------------------------------------------------------
-| SAVE ISSUE
-|--------------------------------------------------------------------------
-*/
-
-function saveIssue(
-    PDO $pdo,
-    int $year,
-    int $volume,
-    int $number,
-    array $articleList,
-    array $publicationFile,
-    bool $isDraft,
-    ?int $publicationID = null
-): int {
-
-    $articleList =
-        normalizeArticleData(
-            $articleList
-        );
-
+    $articleList = normalizeArticleData($articleList);
 
     /*
      * Published/current issue:
@@ -1739,82 +1381,37 @@ function saveIssue(
     if (!$isDraft) {
 
         if (empty($articleList)) {
-
-            throw new Exception(
-                'At least one article is required.'
-            );
+            throw new Exception('At least one article is required.');
         }
 
-        if (
-            !isset(
-                $publicationFile['tmp_name']
-            ) ||
-            !is_uploaded_file(
-                $publicationFile['tmp_name']
-            )
-        ) {
-
-            throw new Exception(
-                'Publication issue PDF is required.'
-            );
+        if (!isset($publicationFile['tmp_name']) || !is_uploaded_file($publicationFile['tmp_name'])) {
+            throw new Exception('Publication issue PDF is required.');
         }
 
-        validatePdf(
-            $publicationFile,
-            'Publication issue PDF'
-        );
+        validatePdf($publicationFile, 'Publication issue PDF');
     }
-
 
     /*
      * A new draft is only allowed if
      * there is no existing draft.
      */
-    if (
-        $publicationID === null &&
-        $isDraft
-    ) {
-
-        ensureOneDraft(
-            $pdo
-        );
+    if ($publicationID === null && $isDraft) {
+        ensureOneDraft($pdo);
     }
-
 
     $pdo->beginTransaction();
 
     try {
-
         $existingIssue = null;
 
-        /*
-         * CREATE NEW ISSUE
-         */
+        /* CREATE NEW ISSUE*/
         if ($publicationID === null) {
 
-            $publicationID =
-                createIssueRecord(
-                    $pdo,
-                    $year,
-                    $volume,
-                    $number,
-                    '',
-                    false,
-                    $isDraft
-                );
+            $publicationID = createIssueRecord($pdo, $year, $volume, $number, '', false, $isDraft);
         } else {
-
-            $existingIssue =
-                getIssueByPublicationId(
-                    $pdo,
-                    $publicationID
-                );
-
+            $existingIssue = getIssueByPublicationId($pdo, $publicationID);
             if (!$existingIssue) {
-
-                throw new Exception(
-                    'Issue not found.'
-                );
+                throw new Exception('Issue not found.');
             }
         }
 
@@ -1824,10 +1421,7 @@ function saveIssue(
          */
         $publicationPath = '';
 
-        if (
-            $existingIssue !== null
-        ) {
-
+        if ($existingIssue !== null) {
             $publicationPath =
                 trim(
                     (string) (
@@ -1836,39 +1430,16 @@ function saveIssue(
                     )
                 );
 
-            if (
-                $publicationPath !== ''
-            ) {
-
-                $publicationPath =
-                    normalizeStoragePath(
-                        $publicationPath
-                    );
+            if ($publicationPath !== '') {
+                $publicationPath = normalizeStoragePath($publicationPath);
             }
         }
 
+        $oldPublicationPath = $publicationPath;
 
-        /*
-         * Publication PDF is optional
-         * for drafts.
-         */
-        $oldPublicationPath =
-            $publicationPath;
+        if (isset($publicationFile['tmp_name']) && is_uploaded_file($publicationFile['tmp_name'])) {
 
-
-        if (
-            isset(
-                $publicationFile['tmp_name']
-            ) &&
-            is_uploaded_file(
-                $publicationFile['tmp_name']
-            )
-        ) {
-
-            validatePdf(
-                $publicationFile,
-                'Publication issue PDF'
-            );
+            validatePdf($publicationFile, 'Publication issue PDF');
 
             $newPublicationPath =
                 $year .
@@ -1893,10 +1464,8 @@ function saveIssue(
                 ]
             ]);
 
-            $publicationPath =
-                $newPublicationPath;
+            $publicationPath = $newPublicationPath;
         }
-
 
         /*
          * Update issue information.
@@ -1911,29 +1480,22 @@ function saveIssue(
              WHERE "publicationID" = :publicationID'
         )->execute([
 
-            ':year' =>
-            $year,
+            ':year' => $year,
 
-            ':volume' =>
-            $volume,
+            ':volume' => $volume,
 
-            ':number' =>
-            $number,
+            ':number' => $number,
 
-            ':publicationPDF' =>
-            $publicationPath,
+            ':publicationPDF' => $publicationPath,
 
-            ':publicationID' =>
-            $publicationID
+            ':publicationID' => $publicationID
         ]);
 
 
         /*
          * SAVE ARTICLES
          */
-        foreach (
-            $articleList as $index => $article
-        ) {
+        foreach ($articleList as $index => $article) {
 
             $title =
                 trim(
@@ -1942,13 +1504,9 @@ function saveIssue(
                     )
                 );
 
-            $authors =
-                $article['authors'] ??
-                [];
+            $authors = $article['authors'] ?? [];
 
-            $pdfInput =
-                $_FILES['pdf_' . $index] ?? null;
-
+            $pdfInput = $_FILES['pdf_' . $index] ?? null;
 
             /*
              * ------------------------------------------------------
@@ -1957,20 +1515,13 @@ function saveIssue(
              */
             if ($isDraft) {
 
-                $hasPdf =
-                    is_array($pdfInput) &&
-                    !empty($pdfInput['tmp_name']);
-
+                $hasPdf = is_array($pdfInput) && !empty($pdfInput['tmp_name']);
 
                 /*
                  * Completely empty article slots
                  * are not stored.
                  */
-                if (
-                    $title === '' &&
-                    empty($authors) &&
-                    !$hasPdf
-                ) {
+                if ($title === '' && empty($authors) && !$hasPdf) {
                     continue;
                 }
 
@@ -1979,7 +1530,6 @@ function saveIssue(
 
 
                 if ($hasPdf) {
-
                     validatePdf(
                         $pdfInput,
                         'PDF for Article ' .
@@ -2046,10 +1596,7 @@ function saveIssue(
                     $insert->fetchColumn();
 
                 if ($journalID === false) {
-
-                    throw new Exception(
-                        'Unable to create journal article.'
-                    );
+                    throw new Exception('Unable to create journal article.');
                 }
 
 
@@ -2073,43 +1620,18 @@ function saveIssue(
              */
 
             if ($title === '') {
-
-                throw new Exception(
-                    'Title for Article ' .
-                        ($index + 1) .
-                        ' is required.'
-                );
+                throw new Exception('Title for Article ' . ($index + 1) . ' is required.');
             }
 
-            if (
-                !is_array($authors) ||
-                empty($authors)
-            ) {
-
-                throw new Exception(
-                    'Article ' .
-                        ($index + 1) .
-                        ' must have at least one author.'
-                );
+            if (!is_array($authors) || empty($authors)) {
+                throw new Exception('Article ' . ($index + 1) . ' must have at least one author.');
             }
 
-            if (
-                !is_array($pdfInput) ||
-                empty($pdfInput['tmp_name'])
-            ) {
-
-                throw new Exception(
-                    'PDF for Article ' .
-                        ($index + 1) .
-                        ' is required.'
-                );
+            if (!is_array($pdfInput) || empty($pdfInput['tmp_name'])) {
+                throw new Exception('PDF for Article ' . ($index + 1) . ' is required.');
             }
 
-            validatePdf(
-                $pdfInput,
-                'PDF for Article ' .
-                    ($index + 1)
-            );
+            validatePdf($pdfInput, 'PDF for Article ' . ($index + 1));
 
             $pdfPath =
                 $year .
@@ -2155,32 +1677,21 @@ function saveIssue(
 
             $insert->execute([
 
-                ':title' =>
-                $title,
+                ':title' => $title,
 
-                ':journalPDF' =>
-                $pdfPath,
+                ':journalPDF' => $pdfPath,
 
-                ':publicationID' =>
-                $publicationID
+                ':publicationID' => $publicationID
             ]);
 
             $journalID =
                 $insert->fetchColumn();
 
             if ($journalID === false) {
-
-                throw new Exception(
-                    'Unable to create journal article.'
-                );
+                throw new Exception('Unable to create journal article.');
             }
 
-            saveArticleAuthors(
-                $pdo,
-                (int) $journalID,
-                $authors,
-                false
-            );
+            saveArticleAuthors($pdo, (int) $journalID, $authors, false);
         }
 
 
@@ -2191,37 +1702,19 @@ function saveIssue(
          * Delete old publication PDF only
          * after the database transaction succeeds.
          */
-        if (
-            $oldPublicationPath !== '' &&
-            $publicationPath !== '' &&
-            normalizeStoragePath(
-                $oldPublicationPath
-            ) !== normalizeStoragePath(
-                $publicationPath
-            )
-        ) {
+        if ($oldPublicationPath !== '' && $publicationPath !== '' && normalizeStoragePath($oldPublicationPath) !== normalizeStoragePath($publicationPath)) {
 
             try {
-
-                deletePdf(
-                    $oldPublicationPath
-                );
+                deletePdf($oldPublicationPath);
             } catch (Throwable $e) {
-
-                error_log(
-                    'Old publication PDF cleanup error: ' .
-                        $e->getMessage()
-                );
+                error_log('Old publication PDF cleanup error: ' . $e->getMessage());
             }
         }
 
 
         return (int) $publicationID;
     } catch (Throwable $e) {
-
-        if (
-            $pdo->inTransaction()
-        ) {
+        if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
 
@@ -2229,17 +1722,9 @@ function saveIssue(
     }
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| UPDATE HELPERS
-|--------------------------------------------------------------------------
-*/
-
-function getExistingArticles(
-    PDO $pdo,
-    int $publicationID
-): array {
+/*UPDATE HELPERS*/
+function getExistingArticles(PDO $pdo, int $publicationID): array
+{
 
     $statement =
         $pdo->prepare(
@@ -2259,10 +1744,7 @@ function getExistingArticles(
 
     $articles = [];
 
-    foreach (
-        $statement->fetchAll() as $article
-    ) {
-
+    foreach ($statement->fetchAll() as $article) {
         $articles[(int) $article['journalID']] = $article;
     }
 
@@ -2270,25 +1752,14 @@ function getExistingArticles(
 }
 
 
-function uploadReplacementArticlePdf(
-    int $year,
-    int $publicationID,
-    int $articleNumber,
-    ?array $pdfInput
-): ?string {
+function uploadReplacementArticlePdf(int $year, int $publicationID, int $articleNumber, ?array $pdfInput): ?string
+{
 
-    if (
-        !is_array($pdfInput) ||
-        empty($pdfInput['tmp_name'])
-    ) {
+    if (!is_array($pdfInput) || empty($pdfInput['tmp_name'])) {
         return null;
     }
 
-    validatePdf(
-        $pdfInput,
-        'PDF for Article ' .
-            $articleNumber
-    );
+    validatePdf($pdfInput, 'PDF for Article ' . $articleNumber);
 
     $path =
         $year .
@@ -2318,24 +1789,8 @@ function uploadReplacementArticlePdf(
     return $path;
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| UPDATE EXISTING ARTICLE
-|--------------------------------------------------------------------------
-*/
-
-function updateExistingArticle(
-    PDO $pdo,
-    array $article,
-    array $existingArticle,
-    int $year,
-    int $publicationID,
-    int $articleNumber,
-    bool $isDraft
-): void {
-
-
+function updateExistingArticle(PDO $pdo, array $article, array $existingArticle, int $year, int $publicationID, int $articleNumber, bool $isDraft): void
+{
 
     $journalID = (int) $existingArticle['journalID'];
 
@@ -2349,24 +1804,12 @@ function updateExistingArticle(
      * Published/current article validation.
      */
     if (!$isDraft) {
-
         if ($title === '') {
-            throw new Exception(
-                'Title for Article ' .
-                    $articleNumber .
-                    ' is required.'
-            );
+            throw new Exception('Title for Article ' . $articleNumber . ' is required.');
         }
 
-        if (
-            !is_array($authors) ||
-            empty($authors)
-        ) {
-            throw new Exception(
-                'Article ' .
-                    $articleNumber .
-                    ' must have at least one author.'
-            );
+        if (!is_array($authors) || empty($authors)) {
+            throw new Exception('Article ' . $articleNumber . ' must have at least one author.');
         }
     }
 
@@ -2390,13 +1833,7 @@ function updateExistingArticle(
      * Check for replacement PDF.
      */
 
-    $newPdf = uploadReplacementArticlePdf(
-        $year,
-        $publicationID,
-        $articleNumber,
-        $_FILES['pdf_' . ($articleNumber - 1)] ?? null
-    );
-
+    $newPdf = uploadReplacementArticlePdf($year, $publicationID, $articleNumber, $_FILES['pdf_' . ($articleNumber - 1)] ?? null);
 
     if ($newPdf !== null) {
         $pdfPath = $newPdf;
@@ -2405,15 +1842,8 @@ function updateExistingArticle(
     /*
      * Published/current article requires a PDF.
      */
-    if (
-        !$isDraft &&
-        $pdfPath === ''
-    ) {
-        throw new Exception(
-            'PDF for Article ' .
-                $articleNumber .
-                ' is required.'
-        );
+    if (!$isDraft && $pdfPath === '') {
+        throw new Exception('PDF for Article ' . $articleNumber . ' is required.');
     }
 
     /*
@@ -2423,35 +1853,18 @@ function updateExistingArticle(
      * manage_journal_api.php.
      */
     $journalArticle = new JournalArticle();
-
-    $journalArticle->updateJournal(
-        $pdo,
-        $journalID,
-        $title,
-        $pdfPath
-    );
+    $journalArticle->updateJournal($pdo, $journalID, $title, $pdfPath);
 
     /*
      * Save authors.
      */
-    saveArticleAuthors(
-        $pdo,
-        $journalID,
-        is_array($authors)
-            ? $authors
-            : [],
-        $isDraft
-    );
+    saveArticleAuthors($pdo, $journalID, is_array($authors) ? $authors : [], $isDraft);
 
     /*
      * Delete the old PDF only after the database
      * update succeeds.
      */
-    if (
-        $newPdf !== null &&
-        $oldPdf !== '' &&
-        normalizeStoragePath($oldPdf) !== $newPdf
-    ) {
+    if ($newPdf !== null && $oldPdf !== '' && normalizeStoragePath($oldPdf) !== $newPdf) {
         try {
 
             deletePdf($oldPdf);
@@ -2465,26 +1878,8 @@ function updateExistingArticle(
     }
 }
 
-
-
-
-
-
-
-/*
-|--------------------------------------------------------------------------
-| INSERT NEW ARTICLE
-|--------------------------------------------------------------------------
-*/
-
-function insertNewArticle(
-    PDO $pdo,
-    array $article,
-    int $publicationID,
-    int $year,
-    int $articleNumber,
-    bool $isDraft
-): void {
+function insertNewArticle(PDO $pdo, array $article, int $publicationID, int $year, int $articleNumber, bool $isDraft): void
+{
 
     $title =
         trim(
@@ -2493,10 +1888,7 @@ function insertNewArticle(
             )
         );
 
-    $authors =
-        $article['authors'] ??
-        [];
-
+    $authors = $article['authors'] ?? [];
 
     /*
      * Draft:
@@ -2504,24 +1896,15 @@ function insertNewArticle(
      */
     if ($isDraft) {
 
-        $pdfInput =
-            $_FILES['pdf_' .
-                ($articleNumber - 1)] ?? null;
+        $pdfInput = $_FILES['pdf_' . ($articleNumber - 1)] ?? null;
 
-        $hasPdf =
-            is_array($pdfInput) &&
-            !empty($pdfInput['tmp_name']);
-
+        $hasPdf = is_array($pdfInput) && !empty($pdfInput['tmp_name']);
 
         /*
          * If absolutely nothing exists,
          * do not create a database row.
          */
-        if (
-            $title === '' &&
-            empty($authors) &&
-            !$hasPdf
-        ) {
+        if ($title === '' && empty($authors) && !$hasPdf) {
             return;
         }
 
@@ -2559,37 +1942,21 @@ function insertNewArticle(
 
         $insert->execute([
 
-            ':title' =>
-            $title,
+            ':title' => $title,
 
-            ':journalPDF' =>
-            $pdfPath,
+            ':journalPDF' => $pdfPath,
 
-            ':publicationID' =>
-            $publicationID
+            ':publicationID' => $publicationID
         ]);
 
         $journalID =
             $insert->fetchColumn();
 
         if ($journalID === false) {
-
-            throw new Exception(
-                'Unable to create Article ' .
-                    $articleNumber .
-                    '.'
-            );
+            throw new Exception('Unable to create Article ' . $articleNumber . '.');
         }
 
-
-        saveArticleAuthors(
-            $pdo,
-            (int) $journalID,
-            is_array($authors)
-                ? $authors
-                : [],
-            true
-        );
+        saveArticleAuthors($pdo, (int) $journalID, is_array($authors) ? $authors : [], true);
 
         return;
     }
@@ -2600,7 +1967,6 @@ function insertNewArticle(
      * everything is required.
      */
     if ($title === '') {
-
         throw new Exception(
             'Title for Article ' .
                 $articleNumber .
@@ -2608,16 +1974,8 @@ function insertNewArticle(
         );
     }
 
-    if (
-        !is_array($authors) ||
-        empty($authors)
-    ) {
-
-        throw new Exception(
-            'Article ' .
-                $articleNumber .
-                ' must have at least one author.'
-        );
+    if (!is_array($authors) || empty($authors)) {
+        throw new Exception('Article ' . $articleNumber . ' must have at least one author.');
     }
 
 
@@ -2632,14 +1990,8 @@ function insertNewArticle(
 
 
     if ($pdfPath === null) {
-
-        throw new Exception(
-            'PDF for Article ' .
-                $articleNumber .
-                ' is required.'
-        );
+        throw new Exception('PDF for Article ' . $articleNumber . ' is required.');
     }
-
 
     $insert =
         $pdo->prepare(
@@ -2692,17 +2044,8 @@ function insertNewArticle(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| VALIDATE DRAFT BEFORE PUBLISHING
-|--------------------------------------------------------------------------
-*/
-
-function validateDraftForPublishing(
-    PDO $pdo,
-    int $publicationID
-): void {
-
+function validateDraftForPublishing(PDO $pdo, int $publicationID): void
+{
     $issue =
         getIssueByPublicationId(
             $pdo,
@@ -2710,70 +2053,33 @@ function validateDraftForPublishing(
         );
 
     if (!$issue) {
-
-        throw new Exception(
-            'Draft issue not found.'
-        );
+        throw new Exception('Draft issue not found.');
     }
 
-    if (
-        !(bool) $issue['is_draft']
-    ) {
-
-        throw new Exception(
-            'Only a draft issue can be published.'
-        );
+    if (!(bool) $issue['is_draft']) {
+        throw new Exception('Only a draft issue can be published.');
     }
-
 
     /*
      * YEAR
      */
-    if (
-        !isset($issue['year']) ||
-        !is_numeric($issue['year']) ||
-        (int) $issue['year'] <= 0
-    ) {
-
-        throw new Exception(
-            'Year is required before publishing.'
-        );
+    if (!isset($issue['year']) || !is_numeric($issue['year']) || (int) $issue['year'] <= 0) {
+        throw new Exception('Year is required before publishing.');
     }
-
 
     /*
      * VOLUME
      */
-    if (
-        !isset($issue['volume']) ||
-        !is_numeric($issue['volume']) ||
-        (int) $issue['volume'] <= 0
-    ) {
-
-        throw new Exception(
-            'Volume is required before publishing.'
-        );
+    if (!isset($issue['volume']) || !is_numeric($issue['volume']) || (int) $issue['volume'] <= 0) {
+        throw new Exception('Volume is required before publishing.');
     }
 
-
-    /*
-     * NUMBER
-     */
-    if (
-        !isset($issue['number']) ||
-        !is_numeric($issue['number']) ||
-        (int) $issue['number'] <= 0
-    ) {
-
-        throw new Exception(
-            'Number is required before publishing.'
-        );
+    /*NUMBER*/
+    if (!isset($issue['number']) || !is_numeric($issue['number']) || (int) $issue['number'] <= 0) {
+        throw new Exception('Number is required before publishing.');
     }
 
-
-    /*
-     * PUBLICATION PDF
-     */
+    /*PUBLICATION PDF*/
     $publicationPDF =
         trim(
             (string) (
@@ -2783,12 +2089,8 @@ function validateDraftForPublishing(
         );
 
     if ($publicationPDF === '') {
-
-        throw new Exception(
-            'Publication issue PDF is required before publishing.'
-        );
+        throw new Exception('Publication issue PDF is required before publishing.');
     }
-
 
     /*
      * ARTICLES
@@ -2813,19 +2115,12 @@ function validateDraftForPublishing(
         $statement->fetchAll();
 
     if (empty($articles)) {
-
-        throw new Exception(
-            'At least one article is required before publishing.'
-        );
+        throw new Exception('At least one article is required before publishing.');
     }
 
+    foreach ($articles as $index => $article) {
 
-    foreach (
-        $articles as $index => $article
-    ) {
-
-        $articleNumber =
-            $index + 1;
+        $articleNumber = $index + 1;
 
 
         /*
@@ -2839,14 +2134,8 @@ function validateDraftForPublishing(
             );
 
         if ($title === '') {
-
-            throw new Exception(
-                'Title for Article ' .
-                    $articleNumber .
-                    ' is required before publishing.'
-            );
+            throw new Exception('Title for Article ' . $articleNumber . ' is required before publishing.');
         }
-
 
         /*
          * ARTICLE PDF
@@ -2859,12 +2148,7 @@ function validateDraftForPublishing(
             );
 
         if ($articlePDF === '') {
-
-            throw new Exception(
-                'PDF for Article ' .
-                    $articleNumber .
-                    ' is required before publishing.'
-            );
+            throw new Exception('PDF for Article ' . $articleNumber . ' is required before publishing.');
         }
 
 
@@ -2893,20 +2177,12 @@ function validateDraftForPublishing(
             $authorStatement->fetchAll();
 
         if (empty($authors)) {
-
-            throw new Exception(
-                'Article ' .
-                    $articleNumber .
-                    ' must have at least one author before publishing.'
-            );
+            throw new Exception('Article ' . $articleNumber . ' must have at least one author before publishing.');
         }
 
-        $hasCompleteAuthor =
-            false;
+        $hasCompleteAuthor = false;
 
-        foreach (
-            $authors as $author
-        ) {
+        foreach ($authors as $autho) {
 
             $firstName =
                 trim(
@@ -2922,20 +2198,13 @@ function validateDraftForPublishing(
                     )
                 );
 
-            if (
-                $firstName !== '' &&
-                $lastName !== ''
-            ) {
-
-                $hasCompleteAuthor =
-                    true;
-
+            if ($firstName !== '' && $lastName !== '') {
+                $hasCompleteAuthor = true;
                 break;
             }
         }
 
         if (!$hasCompleteAuthor) {
-
             throw new Exception(
                 'Article ' .
                     $articleNumber .
@@ -2946,37 +2215,16 @@ function validateDraftForPublishing(
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| PUBLISH EXISTING DRAFT
-|--------------------------------------------------------------------------
-*/
+function publishExistingDraft(PDO $pdo, int $publicationID): void
+{
 
-function publishExistingDraft(
-    PDO $pdo,
-    int $publicationID
-): void {
+    $issue = getIssueByPublicationId($pdo, $publicationID);
 
-    $issue =
-        getIssueByPublicationId(
-            $pdo,
-            $publicationID
-        );
-
-    if (
-        !$issue ||
-        !(bool) $issue['is_draft']
-    ) {
-
-        throw new Exception(
-            'Only a draft issue can be published.'
-        );
+    if (!$issue || !(bool) $issue['is_draft']) {
+        throw new Exception('Only a draft issue can be published.');
     }
 
-    validateDraftForPublishing(
-        $pdo,
-        $publicationID
-    );
+    validateDraftForPublishing($pdo, $publicationID);
 
     $pdo->beginTransaction();
 
@@ -3035,9 +2283,7 @@ function publishExistingDraft(
         $pdo->commit();
     } catch (Throwable $e) {
 
-        if (
-            $pdo->inTransaction()
-        ) {
+        if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
 
@@ -3045,17 +2291,8 @@ function publishExistingDraft(
     }
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| DELETE ISSUE
-|--------------------------------------------------------------------------
-*/
-
-function deleteIssue(
-    PDO $pdo,
-    int $publicationID
-): void {
+function deleteIssue(PDO $pdo, int $publicationID): void
+{
 
     $issue =
         getIssueByPublicationId(
@@ -3064,10 +2301,7 @@ function deleteIssue(
         );
 
     if (!$issue) {
-
-        throw new Exception(
-            'Issue not found.'
-        );
+        throw new Exception('Issue not found.');
     }
 
 
@@ -3093,11 +2327,7 @@ function deleteIssue(
     $pdo->beginTransaction();
 
     try {
-
-        foreach (
-            $articles as $article
-        ) {
-
+        foreach ($articles as $article) {
             $pdo->prepare(
                 'DELETE FROM "ArticleAuthor"
                  WHERE "journalID" =
@@ -3135,9 +2365,7 @@ function deleteIssue(
         $pdo->commit();
     } catch (Throwable $e) {
 
-        if (
-            $pdo->inTransaction()
-        ) {
+        if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
 
@@ -3148,25 +2376,14 @@ function deleteIssue(
     /*
      * Delete article PDFs from storage.
      */
-    foreach (
-        $articles as $article
-    ) {
+    foreach ($articles as $article) {
 
-        if (
-            !empty($article['journalPDF'])
-        ) {
+        if (!empty($article['journalPDF'])) {
 
             try {
-
-                deletePdf(
-                    (string) $article['journalPDF']
-                );
+                deletePdf((string) $article['journalPDF']);
             } catch (Throwable $e) {
-
-                error_log(
-                    'Journal PDF cleanup error: ' .
-                        $e->getMessage()
-                );
+                error_log('Journal PDF cleanup error: ' . $e->getMessage());
             }
         }
     }
@@ -3175,38 +2392,18 @@ function deleteIssue(
     /*
      * Delete publication PDF.
      */
-    if (
-        !empty($issue['publicationPDF'])
-    ) {
-
+    if (!empty($issue['publicationPDF'])) {
         try {
-
-            deletePdf(
-                (string) $issue['publicationPDF']
-            );
+            deletePdf((string) $issue['publicationPDF']);
         } catch (Throwable $e) {
-
-            error_log(
-                'Publication PDF cleanup error: ' .
-                    $e->getMessage()
-            );
+            error_log('Publication PDF cleanup error: ' . $e->getMessage());
         }
     }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| DATABASE CONNECTION
-|--------------------------------------------------------------------------
-*/
-
-$database =
-    new Database();
-
-$pdo =
-    $database->getConnection();
-
+$database = new Database();
+$pdo = $database->getConnection();
 
 try {
 
@@ -3218,32 +2415,11 @@ try {
 
     switch ($action) {
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | LIST
-        |--------------------------------------------------------------------------
-        */
-
         case 'list':
-
-            sendResponse(
-                true,
-                'Issues retrieved successfully.',
-                loadIssueList($pdo)
-            );
-
+            sendResponse(true, 'Issues retrieved successfully.', loadIssueList($pdo));
             break;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | ADD
-        |--------------------------------------------------------------------------
-        */
-
         case 'add':
-
             $year =
                 filter_input(
                     INPUT_POST,
@@ -3547,19 +2723,9 @@ try {
              * Current/published issues cannot
              * have zero submitted articles.
              */
-            if (
-                !$isDraft &&
-                empty($articleList)
-            ) {
-
-                sendResponse(
-                    false,
-                    'At least one article is required.',
-                    [],
-                    400
-                );
+            if (!$isDraft && empty($articleList)) {
+                sendResponse(false, 'At least one article is required.', [], 400);
             }
-
 
             /*
              * Load existing articles.
@@ -3589,23 +2755,15 @@ try {
                 );
 
 
-            if (
-                $oldPublicationPdf !== ''
-            ) {
-
-                $oldPublicationPdf =
-                    normalizeStoragePath(
-                        $oldPublicationPdf
-                    );
+            if ($oldPublicationPdf !== '') {
+                $oldPublicationPdf = normalizeStoragePath($oldPublicationPdf);
             }
 
 
             /*
              * Current editorial PDF path.
              */
-            $publicationPdfPath =
-                $oldPublicationPdf;
-
+            $publicationPdfPath = $oldPublicationPdf;
 
             /*
              * Track PDFs that need to be
@@ -3613,40 +2771,26 @@ try {
              */
             $pdfsToDelete = [];
 
-
             /*
              * Tracks whether the entire draft
              * issue is deleted.
              */
-            $deleteDraftIssue =
-                false;
-
+            $deleteDraftIssue = false;
 
             /*
              * Track whether a replacement
              * editorial PDF was uploaded.
              */
-            $newPublicationPdfUploaded =
-                false;
-
-
-            $publicationFile =
-                $_FILES['publicationPDF'] ?? null;
-
+            $newPublicationPdfUploaded = false;
+            $publicationFile = $_FILES['publicationPDF'] ?? null;
 
             /*
              * Upload replacement editorial PDF
              * if one was selected.
              */
-            if (
-                is_array($publicationFile) &&
-                !empty($publicationFile['tmp_name'])
-            ) {
+            if (is_array($publicationFile) && !empty($publicationFile['tmp_name'])) {
 
-                validatePdf(
-                    $publicationFile,
-                    'Publication issue PDF'
-                );
+                validatePdf($publicationFile, 'Publication issue PDF');
 
                 $newPublicationPath =
                     $year .
@@ -3671,31 +2815,17 @@ try {
                     ]
                 ]);
 
-                $publicationPdfPath =
-                    $newPublicationPath;
-
-                $newPublicationPdfUploaded =
-                    true;
+                $publicationPdfPath = $newPublicationPath;
+                $newPublicationPdfUploaded = true;
             }
-
 
             /*
              * Published/current issue requires
              * an editorial PDF.
              */
-            if (
-                !$isDraft &&
-                $publicationPdfPath === ''
-            ) {
-
-                sendResponse(
-                    false,
-                    'Publication issue PDF is required.',
-                    [],
-                    400
-                );
+            if (!$isDraft && $publicationPdfPath === '') {
+                sendResponse(false, 'Publication issue PDF is required.', [], 400);
             }
-
 
             $pdo->beginTransaction();
 
@@ -3741,9 +2871,7 @@ try {
                 /*
                  * Process submitted articles.
                  */
-                foreach (
-                    $articleList as $index => $article
-                ) {
+                foreach ($articleList as $index => $article) {
 
                     $journalID =
                         isset(
@@ -3757,37 +2885,20 @@ try {
                     /*
                      * EXISTING ARTICLE
                      */
-                    if (
-                        $journalID > 0
-                    ) {
+                    if ($journalID > 0) {
 
-                        if (
-                            !isset(
-                                $existingArticles[$journalID]
-                            )
-                        ) {
-
-                            throw new Exception(
-                                'Article ' .
-                                    ($index + 1) .
-                                    ' was not found in this publication issue.'
-                            );
+                        if (!isset($existingArticles[$journalID])) {
+                            throw new Exception('Article ' . ($index + 1) . ' was not found in this publication issue.');
                         }
 
-
-                        $submittedExistingIDs[] =
-                            $journalID;
-
+                        $submittedExistingIDs[] = $journalID;
 
                         updateExistingArticle(
                             $pdo,
                             $article,
                             $existingArticles[$journalID],
                             (int) $year,
-                            (int) $volume,
-                            (int) $number,
                             (int) $publicationID,
-                            $publicationPdfPath,
                             $index + 1,
                             $isDraft
                         );
@@ -3795,38 +2906,19 @@ try {
                         continue;
                     }
 
-
                     /*
                      * NEW ARTICLE
                      */
-                    insertNewArticle(
-                        $pdo,
-                        $article,
-                        (int) $publicationID,
-                        (int) $year,
-                        $index + 1,
-                        $isDraft
-                    );
+                    insertNewArticle($pdo, $article, (int) $publicationID, (int) $year, $index + 1, $isDraft);
                 }
-
 
                 /*
                  * DELETE EXISTING ARTICLES that were
                  * removed from the submitted list.
                  */
-                foreach (
-                    $existingArticles
-                    as $existingJournalID =>
-                    $existingArticle
-                ) {
+                foreach ($existingArticles as $existingJournalID => $existingArticle) {
 
-                    if (
-                        !in_array(
-                            (int) $existingJournalID,
-                            $submittedExistingIDs,
-                            true
-                        )
-                    ) {
+                    if (!in_array((int) $existingJournalID,$submittedExistingIDs,true)) {
 
                         /*
                          * Delete author links first.
@@ -3841,7 +2933,6 @@ try {
                             (int) $existingJournalID
                         ]);
 
-
                         /*
                          * Delete article.
                          */
@@ -3855,23 +2946,15 @@ try {
                             (int) $existingJournalID
                         ]);
 
-
                         /*
                          * Store old article PDF
                          * for cleanup after commit.
                          */
-                        if (
-                            !empty($existingArticle['journalPDF'])
-                        ) {
-
-                            $pdfsToDelete[] =
-                                (string) (
-                                    $existingArticle['journalPDF']
-                                );
+                        if (!empty($existingArticle['journalPDF'])) {
+                            $pdfsToDelete[] =(string) ($existingArticle['journalPDF']);
                         }
                     }
                 }
-
 
                 /*
                  * Count the articles that remain
@@ -3909,11 +2992,7 @@ try {
                  * - publicationPDF database reference
                  * - PublicationIssue row
                  */
-                if (
-                    $isDraft &&
-                    $remainingArticles === 0
-                ) {
-
+                if ($isDraft && $remainingArticles === 0) {
                     $deleteIssueStatement =
                         $pdo->prepare(
                             'DELETE FROM "PublicationIssue"
@@ -3927,27 +3006,22 @@ try {
                         (int) $publicationID
                     ]);
 
-                    $deleteDraftIssue =
-                        true;
+                    $deleteDraftIssue =true;
                 }
-
 
                 /*
                  * Commit database changes.
                  */
                 $pdo->commit();
-            } catch (Throwable $e) {
-
-                if (
-                    $pdo->inTransaction()
-                ) {
-
+            } 
+            
+            catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
 
                 throw $e;
             }
-
 
             /*
              * ------------------------------------------------------
@@ -3959,26 +3033,12 @@ try {
             /*
              * Delete old article PDFs.
              */
-            if (
-                !empty($pdfsToDelete) &&
-                is_array($pdfsToDelete)
-            ) {
-
-                foreach (
-                    $pdfsToDelete as $oldArticlePdf
-                ) {
-
+            if (!empty($pdfsToDelete) && is_array($pdfsToDelete)) {
+                foreach ($pdfsToDelete as $oldArticlePdf) {
                     try {
-
-                        deletePdf(
-                            $oldArticlePdf
-                        );
+                        deletePdf($oldArticlePdf);
                     } catch (Throwable $e) {
-
-                        error_log(
-                            'Removed article PDF cleanup error: ' .
-                                $e->getMessage()
-                        );
+                        error_log('Removed article PDF cleanup error: ' . $e->getMessage());
                     }
                 }
             }
@@ -3993,28 +3053,16 @@ try {
              * replacement must also be deleted because
              * the entire draft no longer exists.
              */
-            if (
-                $deleteDraftIssue
-            ) {
+            if ($deleteDraftIssue) {
 
                 /*
                  * Delete the original editorial PDF.
                  */
-                if (
-                    $oldPublicationPdf !== ''
-                ) {
-
+                if ($oldPublicationPdf !== '') {
                     try {
-
-                        deletePdf(
-                            $oldPublicationPdf
-                        );
+                        deletePdf($oldPublicationPdf);
                     } catch (Throwable $e) {
-
-                        error_log(
-                            'Deleted draft editorial PDF cleanup error: ' .
-                                $e->getMessage()
-                        );
+                        error_log('Deleted draft editorial PDF cleanup error: ' . $e->getMessage());
                     }
                 }
 
@@ -4090,9 +3138,7 @@ try {
              * tell the frontend that the issue no
              * longer exists.
              */
-            if (
-                $deleteDraftIssue
-            ) {
+            if ($deleteDraftIssue) {
 
                 sendResponse(
                     true,
@@ -4139,47 +3185,19 @@ try {
 
             break;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | PUBLISH
-        |--------------------------------------------------------------------------
-        */
-
         case 'publish':
 
-            $publicationID =
-                filter_input(
-                    INPUT_POST,
-                    'publicationID',
-                    FILTER_VALIDATE_INT
-                );
+            $publicationID = filter_input(INPUT_POST, 'publicationID', FILTER_VALIDATE_INT);
 
-
-            if (
-                $publicationID === false ||
-                $publicationID === null ||
-                $publicationID <= 0
-            ) {
-
-                sendResponse(
-                    false,
-                    'Invalid publication ID.',
-                    [],
-                    400
-                );
+            if ($publicationID === false || $publicationID === null || $publicationID <= 0) {
+                sendResponse(false, 'Invalid publication ID.', [], 400);
             }
-
 
             /*
              * Complete validation occurs
              * inside publishExistingDraft().
              */
-            publishExistingDraft(
-                $pdo,
-                (int) $publicationID
-            );
-
+            publishExistingDraft($pdo, (int) $publicationID);
 
             sendResponse(
                 true,
@@ -4201,68 +3219,25 @@ try {
 
         case 'delete':
 
-            $publicationID =
-                filter_input(
-                    INPUT_POST,
-                    'publicationID',
-                    FILTER_VALIDATE_INT
-                );
+            $publicationID = filter_input(INPUT_POST, 'publicationID', FILTER_VALIDATE_INT);
 
-
-            if (
-                $publicationID === false ||
-                $publicationID === null ||
-                $publicationID <= 0
-            ) {
-
-                sendResponse(
-                    false,
-                    'Invalid publication ID.',
-                    [],
-                    400
-                );
+            if ($publicationID === false || $publicationID === null || $publicationID <= 0) {
+                sendResponse(false, 'Invalid publication ID.', [], 400);
             }
 
-
-            deleteIssue(
-                $pdo,
-                (int) $publicationID
-            );
-
-
-            sendResponse(
-                true,
-                'Issue deleted successfully.',
-                []
-            );
+            deleteIssue($pdo, (int) $publicationID);
+            sendResponse(true, 'Issue deleted successfully.', []);
 
             break;
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE ARTICLE
-        |--------------------------------------------------------------------------
-        */
+
         case 'deleteArticle':
 
-            $journalID = filter_input(
-                INPUT_POST,
-                'journalID',
-                FILTER_VALIDATE_INT
-            );
+            $journalID = filter_input(INPUT_POST, 'journalID', FILTER_VALIDATE_INT);
 
-            if (
-                $journalID === false ||
-                $journalID === null ||
-                $journalID <= 0
-            ) {
-                sendResponse(
-                    false,
-                    'Invalid journal ID.',
-                    [],
-                    400
-                );
+            if ($journalID === false || $journalID === null || $journalID <= 0) {
+                sendResponse(false, 'Invalid journal ID.', [], 400);
             }
 
             /*
@@ -4295,12 +3270,7 @@ try {
             $article = $statement->fetch(PDO::FETCH_ASSOC);
 
             if (!$article) {
-                sendResponse(
-                    false,
-                    'Article not found.',
-                    [],
-                    404
-                );
+                sendResponse(false, 'Article not found.', [], 404);
             }
 
             $publicationID = (int) $article['publicationID'];
@@ -4461,10 +3431,7 @@ try {
                      LIMIT 1'
                         );
 
-                        $previousIssue =
-                            $previousIssueStatement->fetch(
-                                PDO::FETCH_ASSOC
-                            );
+                        $previousIssue = $previousIssueStatement->fetch(PDO::FETCH_ASSOC);
 
                         /*
                  * Delete the now-empty current issue.
@@ -4548,20 +3515,11 @@ try {
      * If the entire issue was deleted,
      * also delete its editorial note PDF.
      */
-            if (
-                $issueDeleted &&
-                $publicationPdfPath !== ''
-            ) {
-
+            if ($issueDeleted && $publicationPdfPath !== '') {
                 try {
-
                     deletePdf($publicationPdfPath);
                 } catch (Throwable $e) {
-
-                    error_log(
-                        'Editorial note PDF cleanup error: ' .
-                            $e->getMessage()
-                    );
+                    error_log('Editorial note PDF cleanup error: ' . $e->getMessage());
                 }
             }
 
@@ -4617,11 +3575,7 @@ try {
                     ]
                 );
             } elseif ($isCurrent) {
-
-                if (
-                    $issueDeleted &&
-                    $previousIssueActivated
-                ) {
+                if ($issueDeleted && $previousIssueActivated) {
 
                     sendResponse(
                         true,
@@ -4675,20 +3629,15 @@ try {
                     true,
                     'Article removed successfully.',
                     [
-                        'publicationID' =>
-                        $publicationID,
+                        'publicationID' => $publicationID,
 
-                        'remainingArticles' =>
-                        $remainingArticles,
+                        'remainingArticles' => $remainingArticles,
 
-                        'issueDeleted' =>
-                        false,
+                        'issueDeleted' => false,
 
-                        'previousIssueActivated' =>
-                        false,
+                        'previousIssueActivated' => false,
 
-                        'editorialNoteRemoved' =>
-                        false
+                        'editorialNoteRemoved' => false
                     ]
                 );
             }
@@ -4697,81 +3646,27 @@ try {
 
 
         case 'view':
-
-            $journalID =
-                filter_input(
-                    INPUT_GET,
-                    'journalID',
-                    FILTER_VALIDATE_INT
-                );
-
-
-            $publicationID =
-                filter_input(
-                    INPUT_GET,
-                    'publicationID',
-                    FILTER_VALIDATE_INT
-                );
-
+            $journalID = filter_input(INPUT_GET, 'journalID', FILTER_VALIDATE_INT);
+            $publicationID = filter_input(INPUT_GET, 'publicationID', FILTER_VALIDATE_INT);
 
             /*
              * Article view.
              */
-            if (
-                $journalID !== false &&
-                $journalID !== null &&
-                $journalID > 0
-            ) {
-
-                sendResponse(
-                    true,
-                    'Journal article retrieved successfully.',
-                    getArticlePayload(
-                        $pdo,
-                        (int) $journalID
-                    )
-                );
+            if ($journalID !== false && $journalID !== null && $journalID > 0) {
+                sendResponse(true, 'Journal article retrieved successfully.', getArticlePayload($pdo, (int) $journalID));
             }
-
 
             /*
              * Publication issue view.
              */
-            if (
-                $publicationID !== false &&
-                $publicationID !== null &&
-                $publicationID > 0
-            ) {
-
-                sendResponse(
-                    true,
-                    'Issue retrieved successfully.',
-                    getIssuePayload(
-                        $pdo,
-                        (int) $publicationID
-                    )
-                );
+            if ($publicationID !== false && $publicationID !== null && $publicationID > 0) {
+                sendResponse(true, 'Issue retrieved successfully.', getIssuePayload($pdo, (int) $publicationID));
             }
 
-
-            sendResponse(
-                false,
-                'Invalid journal ID or publication ID.',
-                [],
-                400
-            );
-
+            sendResponse(false, 'Invalid journal ID or publication ID.', [], 400);
             break;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | PDF URL
-        |--------------------------------------------------------------------------
-        */
-
         case 'pdfUrl':
-
             $type =
                 strtolower(
                     trim(
@@ -4794,38 +3689,16 @@ try {
                 );
 
 
-            if (
-                $type !== 'article' &&
-                $type !== 'publication'
-            ) {
-
-                sendResponse(
-                    false,
-                    'Invalid PDF type.',
-                    [],
-                    400
-                );
+            if ($type !== 'article' && $type !== 'publication') {
+                sendResponse(false, 'Invalid PDF type.', [], 400);
             }
 
 
-            if (
-                $storagePath === ''
-            ) {
-
-                sendResponse(
-                    false,
-                    'Invalid storage path.',
-                    [],
-                    400
-                );
+            if ($storagePath === '') {
+                sendResponse(false, 'Invalid storage path.', [], 400);
             }
 
-
-            $signedUrl =
-                createSignedPdfUrl(
-                    $storagePath
-                );
-
+            $signedUrl = createSignedPdfUrl($storagePath);
 
             sendResponse(
                 true,
@@ -4838,35 +3711,11 @@ try {
 
             break;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DEFAULT
-        |--------------------------------------------------------------------------
-        */
-
         default:
-
-            sendResponse(
-                false,
-                'Invalid action.',
-                [],
-                400
-            );
-
+            sendResponse(false, 'Invalid action.', [], 400);
             break;
     }
 } catch (Throwable $e) {
-
-    error_log(
-        'Manage Journal API Error: ' .
-            $e->getMessage()
-    );
-
-    sendResponse(
-        false,
-        $e->getMessage(),
-        [],
-        500
-    );
+    error_log('Manage Journal API Error: ' . $e->getMessage());
+    sendResponse(false, $e->getMessage(), [], 500);
 }
