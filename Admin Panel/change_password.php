@@ -162,7 +162,7 @@ if (empty($_SESSION['csrf_token'])) {
               aria-label="Show password"
               aria-pressed="false"
             >
-              <i class="fa-solid fa-eye" aria-hidden="true"></i>
+              <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
             </button>
 
           </div>
@@ -194,7 +194,7 @@ if (empty($_SESSION['csrf_token'])) {
               aria-label="Show password"
               aria-pressed="false"
             >
-              <i class="fa-solid fa-eye" aria-hidden="true"></i>
+              <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
             </button>
 
           </div>
@@ -226,7 +226,7 @@ if (empty($_SESSION['csrf_token'])) {
               aria-label="Show password"
               aria-pressed="false"
             >
-              <i class="fa-solid fa-eye" aria-hidden="true"></i>
+              <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
             </button>
 
           </div>
@@ -280,8 +280,8 @@ if (empty($_SESSION['csrf_token'])) {
 
         var icon = this.querySelector('i');
 
-        icon.classList.toggle('fa-eye', !show);
-        icon.classList.toggle('fa-eye-slash', show);
+        icon.classList.toggle('fa-eye', show);
+        icon.classList.toggle('fa-eye-slash', !show);
 
       });
 
