@@ -3,8 +3,7 @@
 
     <div
         class="confirmation-overlay"
-        onclick="closeCancelConfirmationModal()"
-    ></div>
+        onclick="closeCancelConfirmationModal()"></div>
 
     <div class="confirmation-dialog">
 
@@ -26,16 +25,14 @@
             <button
                 type="button"
                 class="modal-cancel-btn"
-                onclick="closeCancelConfirmationModal()"
-            >
+                onclick="closeCancelConfirmationModal()">
                 Keep Editing
             </button>
 
             <button
                 type="button"
                 class="modal-confirm-btn"
-                onclick="confirmCancelAddJournal()"
-            >
+                onclick="confirmCancelAddJournal()">
                 Cancel
             </button>
 
@@ -51,8 +48,7 @@
 
     <div
         class="confirmation-overlay"
-        onclick="closePublishConfirmationModal()"
-    ></div>
+        onclick="closePublishConfirmationModal()"></div>
 
     <div class="confirmation-dialog">
 
@@ -74,16 +70,14 @@
             <button
                 type="button"
                 class="modal-cancel-btn"
-                onclick="closePublishConfirmationModal()"
-            >
+                onclick="closePublishConfirmationModal()">
                 Cancel
             </button>
 
             <button
                 type="button"
                 class="modal-confirm-btn"
-                id="confirmPublishButton"
-            >
+                id="confirmPublishButton">
                 Publish
             </button>
 
@@ -99,8 +93,7 @@
 
     <div
         class="confirmation-overlay"
-        onclick="closeConfirmationModal()"
-    ></div>
+        onclick="closeConfirmationModal()"></div>
 
     <div class="confirmation-dialog">
 
@@ -121,16 +114,14 @@
             <button
                 type="button"
                 class="modal-cancel-btn"
-                onclick="closeConfirmationModal()"
-            >
+                onclick="closeConfirmationModal()">
                 Cancel
             </button>
 
             <button
                 type="button"
                 class="modal-confirm-btn"
-                id="confirmDeleteButton"
-            >
+                id="confirmDeleteButton">
                 Confirm
             </button>
 
@@ -144,10 +135,7 @@
 <!-- MESSAGE MODAL -->
 <div class="confirmation-modal" id="messageModal">
 
-    <div
-        class="confirmation-overlay"
-        onclick="closeMessageModal()"
-    ></div>
+    <div class="confirmation-overlay" onclick="closeMessageModal()"></div>
 
     <div class="confirmation-dialog">
 
@@ -155,23 +143,13 @@
             <i class="fa-solid fa-circle-info"></i>
         </div>
 
-        <h3 id="messageTitle">
-            Notice
-        </h3>
+        <h3 id="messageTitle">Notice</h3>
 
-        <p id="messageText">
-            Something happened.
-        </p>
+        <p id="messageText">Something happened.</p>
 
         <div class="confirmation-actions">
 
-            <button
-                type="button"
-                class="modal-confirm-btn"
-                onclick="closeMessageModal()"
-            >
-                OK
-            </button>
+            <button type="button" class="modal-confirm-btn" onclick="closeMessageModal()">OK</button>
 
         </div>
 

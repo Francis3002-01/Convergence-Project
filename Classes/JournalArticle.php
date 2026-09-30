@@ -17,43 +17,35 @@ class JournalArticle
         $this->journalPDF = $journalPDF;
     }
 
-    public function getJournalID(): int
-    {
+    public function getJournalID(): int{
         return $this->journalID;
     }
 
-    public function getPublicationID(): int
-    {
+    public function getPublicationID(): int{
         return $this->publicationID;
     }
 
-    public function getTitle(): string
-    {
+    public function getTitle(): string{
         return $this->title;
     }
 
-    public function getJournalPDF(): string
-    {
+    public function getJournalPDF(): string{
         return $this->journalPDF;
     }
 
-    public function setJournalID(int $journalID): void
-    {
+    public function setJournalID(int $journalID): void{
         $this->journalID = $journalID;
     }
 
-    public function setPublicationID(int $publicationID): void
-    {
+    public function setPublicationID(int $publicationID): void{
         $this->publicationID = $publicationID;
     }
 
-    public function setTitle(string $title): void
-    {
+    public function setTitle(string $title): void{
         $this->title = $title;
     }
 
-    public function setJournalPDF(string $journalPDF): void
-    {
+    public function setJournalPDF(string $journalPDF): void{
         $this->journalPDF = $journalPDF;
     }
 
@@ -72,9 +64,7 @@ class JournalArticle
         }
 
         if (empty($articles)) {
-            throw new InvalidArgumentException(
-                'At least one article is required.'
-            );
+            throw new InvalidArgumentException('At least one article is required.');
         }
 
         foreach ($articles as $article) {
@@ -153,20 +143,13 @@ class JournalArticle
 
 
 
-public function updateJournal(
-    PDO $pdo,
-    int $journalID,
-    string $title,
-    ?string $journalPDF = null
-): bool {
+public function updateJournal(PDO $pdo,int $journalID,string $title,?string $journalPDF = null): bool {
     if ($journalID <= 0) {
         throw new InvalidArgumentException('Invalid journal ID.');
     }
 
     if (trim($title) === '') {
-        throw new InvalidArgumentException(
-            'Article title cannot be empty.'
-        );
+        throw new InvalidArgumentException('Article title cannot be empty.');
     }
 
     // Get the existing article.

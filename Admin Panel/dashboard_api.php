@@ -144,7 +144,11 @@ try {
     $downloads = supabaseRequest($downloadEndpoint);
 
     /*Get issues and their articles for the selector*/
-    $issues = supabaseRequest('PublicationIssue?select=publicationID,year,volume,number&order=year.desc,volume.desc,number.desc');
+    //$issues = supabaseRequest('PublicationIssue?select=publicationID,year,volume,number&order=year.desc,volume.desc,number.desc');
+    $issues = supabaseRequest(
+    'PublicationIssue?select=publicationID,year,volume,number&is_draft=eq.false&order=year.desc,volume.desc,number.desc'
+);
+    
     $articles = supabaseRequest('JournalArticle?select=journalID,title,publicationID&order=journalID.asc');
 
     $issueOptions = [];

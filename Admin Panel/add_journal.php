@@ -69,40 +69,20 @@ $pageTitle = "Add Journal - Convergence";
                                     </label>
 
                                     <select id="year" name="year" required>
-                                        <option value="">
-                                            Select year
-                                        </option>
+                                        <option value="">Select year</option>
                                     </select>
                                 </div>
 
 
                                 <div class="form-group">
-                                    <label for="volume">
-                                        Volume
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        id="volume"
-                                        name="volume"
-                                        min="1"
-                                        placeholder="e.g. 11"
-                                        required>
+                                    <label for="volume">Volume</label>
+                                    <input type="number"id="volume"name="volume"min="1"placeholder="e.g. 11"required>
                                 </div>
 
 
                                 <div class="form-group">
-                                    <label for="number">
-                                        Number
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        id="number"
-                                        name="number"
-                                        min="1"
-                                        placeholder="e.g. 1"
-                                        required>
+                                    <label for="number">Number</label>
+                                    <input type="number"id="number"name="number"min="1"placeholder="e.g. 1"required>
                                 </div>
 
                             </div>
@@ -111,20 +91,11 @@ $pageTitle = "Add Journal - Convergence";
                             <!-- EDITORIAL NOTE PDF -->
                             <div class="form-group">
 
-                                <label>
-                                    Editorial Note PDF
-                                </label>
+                                <label>Editorial Note PDF</label>
 
-                                <div
-                                    class="pdf-upload-box"
-                                    id="publicationPdfUploadBox">
+                                <div class="pdf-upload-box"id="publicationPdfUploadBox">
 
-                                    <input
-                                        type="file"
-                                        id="publicationPDF"
-                                        name="publicationPDF"
-                                        accept="application/pdf,.pdf"
-                                        hidden>
+                                    <input type="file"id="publicationPDF"name="publicationPDF"accept="application/pdf,.pdf"hidden>
 
                                     <label
                                         for="publicationPDF"
@@ -231,17 +202,11 @@ $pageTitle = "Add Journal - Convergence";
 
 
                             <div>
-                                <span class="summary-label">
-                                    Number
-                                </span>
-
-                                <strong id="displayNumber">
-                                    —
-                                </strong>
+                                <span class="summary-label">Number</span>
+                                <strong id="displayNumber">— </strong>
                             </div>
 
                         </div>
-
 
                         <!-- ARTICLE TABS -->
                         <div class="article-tabs-wrapper">
@@ -362,9 +327,7 @@ $pageTitle = "Add Journal - Convergence";
 
                                 <div class="field-label-row">
 
-                                    <label>
-                                        Authors
-                                    </label>
+                                    <label>Authors</label>
 
                                     <button
                                         type="button"
@@ -417,10 +380,8 @@ $pageTitle = "Add Journal - Convergence";
 
     </div>
 
-
     <!-- ADD JOURNAL MODALS -->
     <?php include 'components/add_journal_modals.php'; ?>
-
     <script src="../javascript/add_journal.js"></script>
 </body>
 

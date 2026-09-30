@@ -2,12 +2,7 @@
 let draftIssueData = [];
 let archiveIssueData = [];
 let activeTab = "current";
-
 let pendingAction = null;
-
-/* -----------------------------------------
-   ESCAPE HTML
-   ----------------------------------------- */
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -18,17 +13,10 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-/* -----------------------------------------
-   CONFIRMATION MODAL
-   ----------------------------------------- */
-
-function openConfirmationModal(title, message, buttonText, action) {
+/*function openConfirmationModal(title, message, buttonText, action) {
   const modal = document.getElementById("confirmationModal");
-
   const titleElement = document.getElementById("confirmationTitle");
-
   const messageElement = document.getElementById("confirmationMessage");
-
   const confirmButton = document.getElementById("confirmDeleteButton");
 
   if (!modal || !titleElement || !messageElement || !confirmButton) {
@@ -37,13 +25,9 @@ function openConfirmationModal(title, message, buttonText, action) {
   }
 
   titleElement.textContent = title;
-
   messageElement.textContent = message;
-
   confirmButton.textContent = buttonText;
-
   pendingAction = action;
-
   confirmButton.onclick = async function () {
     const actionToRun = pendingAction;
 
@@ -57,11 +41,42 @@ function openConfirmationModal(title, message, buttonText, action) {
   };
 
   modal.classList.add("show");
-}
+}*/
 
-/* -----------------------------------------
-   CLOSE CONFIRMATION MODAL
-   ----------------------------------------- */
+function openConfirmationModal(title, message, buttonText, action) {
+
+  const modal = document.getElementById("confirmationModal");
+  const titleElement = document.getElementById("confirmationTitle");
+  const messageElement = document.getElementById("confirmationMessage");
+  const confirmButton = document.getElementById("confirmDeleteButton");
+
+  if (!modal || !titleElement || !messageElement || !confirmButton) {
+    console.error("Confirmation modal elements not found.");
+    return;
+  }
+
+  titleElement.textContent = title;
+  messageElement.textContent = message;
+  confirmButton.textContent = buttonText;
+
+  pendingAction = action;
+
+  confirmButton.onclick = async function (event) {
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const actionToRun = pendingAction;
+
+    closeConfirmationModal();
+
+    if (typeof actionToRun === "function") {
+      await actionToRun();
+    }
+  };
+
+  modal.classList.add("show");
+}
 
 function closeConfirmationModal() {
   const modal = document.getElementById("confirmationModal");
@@ -73,15 +88,9 @@ function closeConfirmationModal() {
   pendingAction = null;
 }
 
-/* -----------------------------------------
-   MESSAGE MODAL
-   ----------------------------------------- */
-
 function showMessage(title, message) {
   const modal = document.getElementById("messageModal");
-
   const titleElement = document.getElementById("messageTitle");
-
   const messageElement = document.getElementById("messageText");
 
   if (!modal || !titleElement || !messageElement) {
@@ -90,9 +99,7 @@ function showMessage(title, message) {
   }
 
   titleElement.textContent = title;
-
   messageElement.textContent = message;
-
   modal.classList.add("show");
 }
 
@@ -108,10 +115,6 @@ function closeMessageModal() {
   }
 }
 
-/* -----------------------------------------
-   ADD JOURNAL BUTTON
-   ----------------------------------------- */
-
 function setAddJournalButtonState() {
   const button = document.getElementById("addJournalButton");
 
@@ -126,10 +129,6 @@ function setAddJournalButtonState() {
   button.title = hasDraft ? "A draft issue already exists." : "Add Journal";
 }
 
-/* -----------------------------------------
-   DRAFT BADGE
-   ----------------------------------------- */
-
 function updateDraftBadge() {
   const badge = document.getElementById("draftCount");
 
@@ -138,45 +137,31 @@ function updateDraftBadge() {
   }
 }
 
-/* -----------------------------------------
-   TABS
-   ----------------------------------------- */
-
 function showTab(tabName, buttonElement) {
   activeTab = tabName;
 
   const currentContent = document.getElementById("currentJournalContent");
-
   const draftContent = document.getElementById("draftJournalContent");
-
   const currentTabButton = document.getElementById("currentTabButton");
-
   const draftTabButton = document.getElementById("draftTabButton");
 
   if (currentContent && draftContent) {
     currentContent.style.display = tabName === "current" ? "block" : "none";
-
     draftContent.style.display = tabName === "draft" ? "block" : "none";
   }
 
   if (currentTabButton && draftTabButton) {
     currentTabButton.classList.toggle("active", tabName === "current");
-
     draftTabButton.classList.toggle("active", tabName === "draft");
   }
 
   if (buttonElement) {
     currentTabButton?.classList.toggle("active", tabName === "current");
-
     draftTabButton?.classList.toggle("active", tabName === "draft");
   }
 
   renderIssueLists();
 }
-
-/* -----------------------------------------
-   TRANSFORM ISSUE
-   ----------------------------------------- */
 
 function transformIssue(issue) {
   const cleaned = {
@@ -198,10 +183,6 @@ function transformIssue(issue) {
   return cleaned;
 }
 
-/* -----------------------------------------
-   RENDER ISSUE LISTS
-   ----------------------------------------- */
-
 function renderIssueLists() {
   const currentList = document.getElementById("currentJournalList");
 
@@ -216,13 +197,8 @@ function renderIssueLists() {
   }
 
   updateDraftBadge();
-
   setAddJournalButtonState();
 }
-
-/* -----------------------------------------
-   RENDER ISSUE CONTAINER
-   ----------------------------------------- */
 
 function renderIssueContainer(container, issueList, tabName) {
   if (!container) {
@@ -481,11 +457,8 @@ async function loadJournals() {
     }
 
     const payload = result.data || {};
-
     currentIssueData = Array.isArray(payload.current) ? payload.current : [];
-
     draftIssueData = Array.isArray(payload.draft) ? payload.draft : [];
-
     archiveIssueData = Array.isArray(payload.archive) ? payload.archive : [];
 
     renderIssueLists();
@@ -522,8 +495,7 @@ async function loadJournals() {
 /* -----------------------------------------
    SEARCH JOURNALS
    ----------------------------------------- */
-
-function searchJournals() {
+/*function searchJournals() {
   const searchInput = document.getElementById("searchInput");
 
   const searchTerm = (searchInput ? searchInput.value : "")
@@ -532,10 +504,7 @@ function searchJournals() {
 
   const issueSource = activeTab === "draft" ? draftIssueData : currentIssueData;
 
-  /*
-   * If the search box is empty,
-   * show all issues normally.
-   */
+ 
 
   if (searchTerm === "") {
     renderIssueLists();
@@ -543,9 +512,7 @@ function searchJournals() {
     return;
   }
 
-  /*
-   * Only search article titles.
-   */
+  
 
   const filteredIssues = issueSource
     .map((issue) => {
@@ -574,6 +541,120 @@ function searchJournals() {
   if (container) {
     renderIssueContainer(container, filteredIssues, activeTab);
   }
+}*/
+
+function searchJournals() {
+  const searchInput = document.getElementById("searchInput");
+
+  const searchTerm = (searchInput ? searchInput.value : "")
+    .trim()
+    .toLowerCase();
+
+  /*
+   * If the search box is empty,
+   * return to the normal tab view.
+   */
+  if (searchTerm === "") {
+    renderIssueLists();
+    showTab(activeTab);
+    return;
+  }
+
+  /*
+   * Search ONLY Current and Draft issues.
+   * Archive issues are intentionally excluded.
+   */
+  const searchableIssues = [
+    ...(Array.isArray(currentIssueData)
+      ? currentIssueData.map((issue) => ({
+          ...issue,
+          searchTab: "current",
+        }))
+      : []),
+
+    ...(Array.isArray(draftIssueData)
+      ? draftIssueData.map((issue) => ({
+          ...issue,
+          searchTab: "draft",
+        }))
+      : []),
+  ];
+
+  const searchResults = [];
+
+  searchableIssues.forEach((issue) => {
+    /*
+     * Search article TITLE only.
+     * Authors, year, volume, and number are not searched.
+     */
+    const matchingArticles = (issue.articles || []).filter((article) => {
+      const title = String(article.title || "").toLowerCase();
+
+      return title.includes(searchTerm);
+    });
+
+    if (matchingArticles.length > 0) {
+      searchResults.push({
+        ...issue,
+        articles: matchingArticles,
+      });
+    }
+  });
+
+  /*
+   * Hide the normal Current/Draft tab contents
+   * while displaying search results.
+   */
+  const currentContent = document.getElementById("currentJournalContent");
+
+  const draftContent = document.getElementById("draftJournalContent");
+
+  if (currentContent) {
+    currentContent.style.display = "none";
+  }
+
+  if (draftContent) {
+    draftContent.style.display = "none";
+  }
+
+  /*
+   * Use the Current list as the search-results area.
+   */
+  const currentList = document.getElementById("currentJournalList");
+
+  if (!currentList) {
+    return;
+  }
+
+  /*
+   * No matching articles.
+   */
+  if (searchResults.length === 0) {
+    currentList.innerHTML = `
+            <div class="empty-message">
+                No articles found matching "${escapeHtml(searchTerm)}".
+            </div>
+        `;
+
+    if (currentContent) {
+      currentContent.style.display = "block";
+    }
+
+    return;
+  }
+
+  /*
+   * Display all matching Current and Draft articles.
+   */
+  currentList.innerHTML = "";
+
+  searchResults.forEach((issue) => {
+    renderIssueContainer(currentList, [issue], issue.searchTab);
+  });
+
+  if (currentContent) {
+    currentContent.style.display = "block";
+  }
 }
 
 /* -----------------------------------------
@@ -593,49 +674,73 @@ function openAddJournalPage() {
 /* -----------------------------------------
    PUBLISH DRAFT
    ----------------------------------------- */
-
 function publishDraftIssue(publicationID) {
-  openConfirmationModal(
-    "Publish Journal Issue?",
-    "Are you sure you want to publish this draft? The current issue will be moved to the archive.",
-    "Publish",
-    async function () {
-      try {
-        const formData = new FormData();
+  const modal = document.getElementById("publishConfirmationModal");
+  const confirmButton = document.getElementById("confirmPublishButton");
 
-        formData.append("action", "publish");
+  if (!modal || !confirmButton) {
+    console.error("Publish confirmation modal elements not found.");
+    return;
+  }
 
-        formData.append("publicationID", String(publicationID));
+  // Remove any previous click handler
+  confirmButton.onclick = null;
 
-        const response = await fetch("manage_journal_api.php", {
-          method: "POST",
-          body: formData,
-        });
+  // Set the publish action
+  confirmButton.onclick = async function (event) {
+    event.preventDefault();
+    event.stopPropagation();
 
-        const result = await response.json();
+    closePublishConfirmationModal();
 
-        if (!response.ok || !result.success) {
-          throw new Error(result.message || "Unable to publish the draft.");
-        }
+    try {
+      const formData = new FormData();
 
-        await loadJournals();
+      formData.append("action", "publish");
+      formData.append("publicationID", String(publicationID));
 
-        showTab("current");
+      const response = await fetch("manage_journal_api.php", {
+        method: "POST",
+        body: formData,
+      });
 
-        showMessage(
-          "Published Successfully",
-          "The draft journal issue has been published successfully.",
-        );
-      } catch (error) {
-        console.error(error);
+      const result = await response.json();
 
-        showMessage(
-          "Unable to Publish",
-          error.message || "Unable to publish the draft.",
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || "Unable to publish the draft."
         );
       }
-    },
-  );
+
+      await loadJournals();
+
+      showTab("current");
+
+      showMessage(
+        "Published Successfully",
+        "The draft journal issue has been published successfully."
+      );
+
+    } catch (error) {
+      console.error(error);
+
+      showMessage(
+        "Unable to Publish",
+        error.message || "Unable to publish the draft."
+      );
+    }
+  };
+
+  // Open the dedicated Publish modal
+  modal.classList.add("show");
+}
+
+function closePublishConfirmationModal() {
+    const modal = document.getElementById("publishConfirmationModal");
+
+    if (modal) {
+        modal.classList.remove("show");
+    }
 }
 
 /* -----------------------------------------
@@ -694,7 +799,6 @@ function editIssue(publicationID) {
 /* -----------------------------------------
    VIEW ARTICLE
    ----------------------------------------- */
-
 function viewJournal(id) {
   window.location.href = `journal_details.php?journalID=${encodeURIComponent(
     id,
@@ -704,7 +808,6 @@ function viewJournal(id) {
 /* -----------------------------------------
    VIEW EDITORIAL NOTE
    ----------------------------------------- */
-
 async function viewEditorNote(button) {
   const storagePath = button?.dataset?.storagePath || "";
 
@@ -823,7 +926,6 @@ async function downloadEditorNote(button) {
     window.URL.revokeObjectURL(blobUrl);
   } catch (error) {
     console.error(error);
-
     showMessage(
       "Unable to Download Editorial Note",
       error.message || "Unable to download the editorial note.",
@@ -895,9 +997,7 @@ function deleteJournalArticle(journalID) {
 
 function initializeManageJournalPage() {
   const currentTabButton = document.getElementById("currentTabButton");
-
   const draftTabButton = document.getElementById("draftTabButton");
-
   const addJournalButton = document.getElementById("addJournalButton");
 
   /*
@@ -932,27 +1032,52 @@ function initializeManageJournalPage() {
    * Search.
    */
 
-  const searchInput = document.getElementById("searchInput");
+  /*const searchInput = document.getElementById("searchInput");
 
   if (searchInput) {
     searchInput.addEventListener("input", searchJournals);
-  }
+  }*/
+ const searchInput = document.getElementById("searchInput");
+const searchButton = document.getElementById("searchButton");
+
+/*
+ * Magnifying glass performs the search.
+ */
+if (searchButton) {
+    searchButton.addEventListener("click", searchJournals);
+}
+
+/*
+ * Pressing Enter also performs the search.
+ */
+if (searchInput) {
+    searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            searchJournals();
+        }
+    });
+
+    /*
+     * When the search input becomes empty,
+     * immediately restore all Current/Draft articles.
+     */
+    searchInput.addEventListener("input", function () {
+        if (searchInput.value.trim() === "") {
+            renderIssueLists();
+            showTab(activeTab);
+        }
+    });
+}
 
   /*
    * Initial rendering.
    */
-
   renderIssueLists();
-
   updateDraftBadge();
-
   setAddJournalButtonState();
-
   loadJournals();
 }
 
-/* -----------------------------------------
-   START PAGE
-   ----------------------------------------- */
-
+/*START PAGE*/
 initializeManageJournalPage();

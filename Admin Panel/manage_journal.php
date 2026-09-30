@@ -83,8 +83,8 @@ $pageTitle = "Manage Journals - Convergence";
                         <div>Actions</div>
                     </div>
 
-                    <div id="draftJournalList"class="journal-list"></div>
-                    
+                    <div id="draftJournalList" class="journal-list"></div>
+
                 </div>
 
             </div>
@@ -95,7 +95,7 @@ $pageTitle = "Manage Journals - Convergence";
 
 
     <!-- REMOVE ARTICLE CONFIRMATION MODAL -->
-    <div class="confirmation-modal" id="confirmationModal">
+    <!--<div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-overlay"></div>
 
         <div class="confirmation-dialog">
@@ -116,7 +116,9 @@ $pageTitle = "Manage Journals - Convergence";
 
         </div>
 
-    </div>
+    </div>-->
+
+
 
     <!-- REMOVE ARTICLE CONFIRMATION MODAL -->
     <div class="confirmation-modal" id="confirmationModal">
@@ -154,6 +156,51 @@ $pageTitle = "Manage Journals - Convergence";
                     class="modal-confirm-btn"
                     id="confirmDeleteButton">
                     Remove Article
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PUBLISH CONFIRMATION MODAL -->
+    <div class="confirmation-modal" id="publishConfirmationModal">
+
+        <div
+            class="confirmation-overlay"
+            onclick="closePublishConfirmationModal()">
+        </div>
+
+        <div class="confirmation-dialog">
+
+            <div class="confirmation-icon">
+                <i class="fa-solid fa-upload"></i>
+            </div>
+
+            <h3>
+                Publish Journal Issue?
+            </h3>
+
+            <p id="publishConfirmationMessage">
+                Are you sure you want to publish this journal issue?
+                The current issue will be moved to the archive.
+            </p>
+
+            <div class="confirmation-actions">
+
+                <button
+                    type="button"
+                    class="modal-cancel-btn"
+                    onclick="closePublishConfirmationModal()">
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="modal-confirm-btn"
+                    id="confirmPublishButton">
+                    Publish
                 </button>
 
             </div>
