@@ -151,13 +151,13 @@ class JournalArticle
 
 
 
-    public function updateJournal(PDO $pdo, int $journalID, string $title, ?string $journalPDF = null): bool
+    public function updateJournal(PDO $pdo, int $journalID, string $title, ?string $journalPDF = null, bool $isDraft): bool
     {
         if ($journalID <= 0) {
             throw new InvalidArgumentException('Invalid journal ID.');
         }
 
-        if (trim($title) === '') {
+         if (!$isDraft && trim($title) === '') {
             throw new InvalidArgumentException('Article title cannot be empty.');
         }
 

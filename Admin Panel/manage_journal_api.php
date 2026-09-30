@@ -53,10 +53,7 @@ function normalizeStoragePath(string $storagePath): string
 
     if (filter_var($storagePath, FILTER_VALIDATE_URL)) {
 
-        $parsedPath = parse_url(
-            $storagePath,
-            PHP_URL_PATH
-        );
+        $parsedPath = parse_url($storagePath,PHP_URL_PATH);
 
         if (!is_string($parsedPath)) {
             throw new Exception('Unable to extract the storage path from the PDF URL.');
@@ -70,12 +67,7 @@ function normalizeStoragePath(string $storagePath): string
         if ($markerPosition !== false) {
 
             $storagePath = substr($storagePath, $markerPosition + strlen($objectMarker));
-
-            $storagePath = preg_replace(
-                '#^(public|sign)/#',
-                '',
-                $storagePath
-            );
+            $storagePath = preg_replace('#^(public|sign)/#','',$storagePath);
         }
     }
 
@@ -98,10 +90,8 @@ function normalizeStoragePath(string $storagePath): string
     return $storagePath;
 }
 
-
 function createSignedPdfUrl(string $storagePath, int $expiresIn = 3600): string
 {
-
     global $supabaseUrl, $supabaseKey, $bucket;
 
     $storagePath = normalizeStoragePath($storagePath);
@@ -1819,31 +1809,19 @@ function updateExistingArticle(PDO $pdo, array $article, array $existingArticle,
         $pdfPath = $newPdf;
     }
 
-    /*
-     * Published/current article requires a PDF.
-     */
+    
     if (!$isDraft && $pdfPath === '') {
         throw new Exception('PDF for Article ' . $articleNumber . ' is required.');
     }
 
-    /*
-     * Update the JournalArticle record ONLY.
-     *
-     * PublicationIssue is updated separately by
-     * manage_journal_api.php.
-     */
+  
     $journalArticle = new JournalArticle();
-    $journalArticle->updateJournal($pdo, $journalID, $title, $pdfPath);
+    $journalArticle->updateJournal($pdo, $journalID, $title, $pdfPath, $isDraft);
 
-    /*
-     * Save authors.
-     */
+    
     saveArticleAuthors($pdo, $journalID, is_array($authors) ? $authors : [], $isDraft);
 
-    /*
-     * Delete the old PDF only after the database
-     * update succeeds.
-     */
+   
     if ($newPdf !== null && $oldPdf !== '' && normalizeStoragePath($oldPdf) !== $newPdf) {
         try {
 
@@ -1870,20 +1848,14 @@ function insertNewArticle(PDO $pdo, array $article, int $publicationID, int $yea
 
     $authors = $article['authors'] ?? [];
 
-    /*
-     * Draft:
-     * all article information is optional.
-     */
+  
     if ($isDraft) {
 
         $pdfInput = $_FILES['pdf_' . ($articleNumber - 1)] ?? null;
 
         $hasPdf = is_array($pdfInput) && !empty($pdfInput['tmp_name']);
 
-        /*
-         * If absolutely nothing exists,
-         * do not create a database row.
-         */
+        
         if ($title === '' && empty($authors) && !$hasPdf) {
             return;
         }
@@ -1921,11 +1893,8 @@ function insertNewArticle(PDO $pdo, array $article, int $publicationID, int $yea
             );
 
         $insert->execute([
-
             ':title' => $title,
-
             ':journalPDF' => $pdfPath,
-
             ':publicationID' => $publicationID
         ]);
 
@@ -1941,11 +1910,7 @@ function insertNewArticle(PDO $pdo, array $article, int $publicationID, int $yea
         return;
     }
 
-
-    /*
-     * Published/current:
-     * everything is required.
-     */
+   
     if ($title === '') {
         throw new Exception(
             'Title for Article ' .
@@ -2002,12 +1967,7 @@ function insertNewArticle(PDO $pdo, array $article, int $publicationID, int $yea
     $journalID = $insert->fetchColumn();
 
     if ($journalID === false) {
-
-        throw new Exception(
-            'Unable to create Article ' .
-                $articleNumber .
-                '.'
-        );
+        throw new Exception('Unable to create Article ' .$articleNumber .'.');
     }
 
     saveArticleAuthors($pdo, (int) $journalID, $authors, false);
@@ -2015,11 +1975,7 @@ function insertNewArticle(PDO $pdo, array $article, int $publicationID, int $yea
 
 function validateDraftForPublishing(PDO $pdo, int $publicationID): void
 {
-    $issue =
-        getIssueByPublicationId(
-            $pdo,
-            $publicationID
-        );
+    $issue =getIssueByPublicationId($pdo,$publicationID);
 
     if (!$issue) {
         throw new Exception('Draft issue not found.');
@@ -2029,16 +1985,11 @@ function validateDraftForPublishing(PDO $pdo, int $publicationID): void
         throw new Exception('Only a draft issue can be published.');
     }
 
-    /*
-     * YEAR
-     */
     if (!isset($issue['year']) || !is_numeric($issue['year']) || (int) $issue['year'] <= 0) {
         throw new Exception('Year is required before publishing.');
     }
 
-    /*
-     * VOLUME
-     */
+
     if (!isset($issue['volume']) || !is_numeric($issue['volume']) || (int) $issue['volume'] <= 0) {
         throw new Exception('Volume is required before publishing.');
     }
@@ -2886,18 +2837,6 @@ try {
                 }
 
 
-                /*
-         * --------------------------------------------------
-         * COUNT REMAINING ARTICLES
-         * --------------------------------------------------
-         *
-         * We do NOT delete the issue here when the count
-         * is zero.
-         *
-         * If the administrator wants to remove an article,
-         * the deleteArticle action handles that explicitly.
-         */
-
                 $remainingStatement =
                     $pdo->prepare(
                         'SELECT COUNT(*)
@@ -2914,11 +2853,6 @@ try {
                     (int) $remainingStatement->fetchColumn();
 
 
-                /*
-         * --------------------------------------------------
-         * COMMIT
-         * --------------------------------------------------
-         */
 
                 $pdo->commit();
             } catch (Throwable $e) {
@@ -2931,59 +2865,16 @@ try {
             }
 
 
-            /*
-     * ------------------------------------------------------
-     * STORAGE CLEANUP
-     * ------------------------------------------------------
-     *
-     * No article-PDF cleanup is performed here.
-     *
-     * updateExistingArticle() already handles replacement
-     * article PDFs after the database update succeeds.
-     *
-     * deleteArticle handles PDFs when an article is
-     * explicitly removed.
-     */
-
-
-            /*
-     * ------------------------------------------------------
-     * OLD PUBLICATION PDF CLEANUP
-     * ------------------------------------------------------
-     *
-     * If the editorial/publication PDF was replaced,
-     * remove the old one only after the database
-     * transaction has succeeded.
-     */
-
-            if (
-                $newPublicationPdfUploaded &&
-                $oldPublicationPdf !== '' &&
-                $publicationPdfPath !== '' &&
-                normalizeStoragePath($oldPublicationPdf) !==
-                normalizeStoragePath($publicationPdfPath)
-            ) {
+            if ($newPublicationPdfUploaded &&$oldPublicationPdf !== '' &&$publicationPdfPath !== '' &&normalizeStoragePath($oldPublicationPdf) !==normalizeStoragePath($publicationPdfPath)) {
 
                 try {
-
-                    deletePdf(
-                        $oldPublicationPdf
-                    );
+                    deletePdf($oldPublicationPdf);
                 } catch (Throwable $e) {
-
-                    error_log(
-                        'Old publication PDF cleanup error: ' .
-                            $e->getMessage()
-                    );
+                    error_log('Old publication PDF cleanup error: ' .$e->getMessage());
                 }
             }
 
-
-            /*
-     * ------------------------------------------------------
-     * SUCCESS RESPONSE
-     * ------------------------------------------------------
-     */
+         
 
             sendResponse(
                 true,
@@ -2991,17 +2882,10 @@ try {
                     ? 'Draft updated successfully.'
                     : 'Journal updated successfully.',
                 [
-                    'publicationID' =>
-                    (int) $publicationID,
-
-                    'remainingArticles' =>
-                    $remainingArticles,
-
-                    'draftIssueDeleted' =>
-                    false,
-
-                    'editorialNoteRemoved' =>
-                    false
+                    'publicationID' =>(int) $publicationID,
+                    'remainingArticles' =>$remainingArticles,
+                    'draftIssueDeleted' =>false,
+                    'editorialNoteRemoved' =>false
                 ]
             );
 
@@ -3015,10 +2899,6 @@ try {
                 sendResponse(false, 'Invalid publication ID.', [], 400);
             }
 
-            /*
-             * Complete validation occurs
-             * inside publishExistingDraft().
-             */
             publishExistingDraft($pdo, (int) $publicationID);
 
             sendResponse(
@@ -3048,33 +2928,12 @@ try {
 
         case 'deleteArticle':
 
-            $journalID = filter_input(
-                INPUT_POST,
-                'journalID',
-                FILTER_VALIDATE_INT
-            );
+            $journalID = filter_input(INPUT_POST,'journalID',FILTER_VALIDATE_INT);
 
-            if (
-                $journalID === false ||
-                $journalID === null ||
-                $journalID <= 0
-            ) {
-                sendResponse(
-                    false,
-                    'Invalid journal ID.',
-                    [],
-                    400
-                );
+            if ($journalID === false ||$journalID === null ||$journalID <= 0) {
+                sendResponse(false,'Invalid journal ID.',[],400);
             }
 
-            /*
-     * Get the article and its publication issue.
-     *
-     * We need to know whether the article belongs to:
-     * - a draft issue
-     * - the current issue
-     * - an archived issue
-     */
             $statement = $pdo->prepare(
                 'SELECT
             ja."journalID",
@@ -3097,12 +2956,7 @@ try {
             $article = $statement->fetch(PDO::FETCH_ASSOC);
 
             if (!$article) {
-                sendResponse(
-                    false,
-                    'Article not found.',
-                    [],
-                    404
-                );
+                sendResponse(false,'Article not found.',[], 404);
             }
 
             $publicationID = (int) $article['publicationID'];
@@ -3110,67 +2964,24 @@ try {
             $isDraft = (bool) $article['is_draft'];
             $isCurrent = (bool) $article['is_current'];
 
-            /*
-     * Archived articles cannot be removed.
-     *
-     * Only Draft and Current Issue articles can be removed.
-     */
+        
             if (!$isDraft && !$isCurrent) {
-                sendResponse(
-                    false,
-                    'Archived articles cannot be removed.',
-                    [],
-                    400
-                );
+                sendResponse(false,'Archived articles cannot be removed.',[],400);
             }
 
-            /*
-     * Save the article PDF path before deleting
-     * the database row.
-     */
-            $articlePdfPath = trim(
-                (string) (
-                    $article['journalPDF'] ?? ''
-                )
-            );
+            $articlePdfPath = trim((string) ($article['journalPDF'] ?? ''));
 
-            /*
-     * Save the editorial note PDF path before
-     * potentially deleting the entire issue.
-     */
-            $publicationPdfPath = trim(
-                (string) (
-                    $article['publicationPDF'] ?? ''
-                )
-            );
+            $publicationPdfPath = trim((string) ($article['publicationPDF'] ?? ''));
 
             $remainingArticles = 0;
             $issueDeleted = false;
             $previousIssueActivated = false;
 
-            /*
-     * ------------------------------------------------------
-     * DATABASE TRANSACTION
-     * ------------------------------------------------------
-     */
+           
             $pdo->beginTransaction();
 
             try {
 
-                /*
-         * --------------------------------------------------
-         * DELETE DOWNLOAD RECORDS FIRST
-         * --------------------------------------------------
-         *
-         * Download.journalID references
-         * JournalArticle.journalID.
-         *
-         * Therefore, Download records must be removed
-         * before deleting the JournalArticle record.
-         *
-         * This also removes the download history of an
-         * article that is being permanently deleted.
-         */
                 $deleteDownloadsStatement = $pdo->prepare(
                     'DELETE FROM "Download"
              WHERE "journalID" = :journalID'
@@ -3180,11 +2991,7 @@ try {
                     ':journalID' => $journalID
                 ]);
 
-                /*
-         * --------------------------------------------------
-         * REMOVE AUTHOR RELATIONSHIPS
-         * --------------------------------------------------
-         */
+             
                 $deleteAuthorsStatement = $pdo->prepare(
                     'DELETE FROM "ArticleAuthor"
              WHERE "journalID" = :journalID'
@@ -3194,11 +3001,7 @@ try {
                     ':journalID' => $journalID
                 ]);
 
-                /*
-         * --------------------------------------------------
-         * REMOVE THE ARTICLE
-         * --------------------------------------------------
-         */
+         
                 $deleteArticleStatement = $pdo->prepare(
                     'DELETE FROM "JournalArticle"
              WHERE "journalID" = :journalID'
@@ -3476,16 +3279,12 @@ try {
             $journalID = filter_input(INPUT_GET, 'journalID', FILTER_VALIDATE_INT);
             $publicationID = filter_input(INPUT_GET, 'publicationID', FILTER_VALIDATE_INT);
 
-            /*
-             * Article view.
-             */
+           
             if ($journalID !== false && $journalID !== null && $journalID > 0) {
                 sendResponse(true, 'Journal article retrieved successfully.', getArticlePayload($pdo, (int) $journalID));
             }
 
-            /*
-             * Publication issue view.
-             */
+            
             if ($publicationID !== false && $publicationID !== null && $publicationID > 0) {
                 sendResponse(true, 'Issue retrieved successfully.', getIssuePayload($pdo, (int) $publicationID));
             }
