@@ -74,8 +74,8 @@ $error = '';
           <label for="pw">Password</label>
           <div class="pw">
             <input id="pw" name="password" type="password" autocomplete="current-password" required>
-            <button type="button" id="tg" aria-label="Show password" aria-pressed="false">
-              <i class="fa-solid fa-eye" aria-hidden="true"></i>
+            <button type="button" id="tg" aria-label="Show password" aria-pressed="true">
+              <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
             </button>
           </div>
           <div class="err" id="ep">Enter your password.</div>
@@ -111,8 +111,8 @@ $error = '';
         tg.setAttribute('aria-pressed', show);
         tg.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
         var icon = tg.querySelector('i');
-        icon.classList.toggle('fa-eye', !show);
-        icon.classList.toggle('fa-eye-slash', show);
+        icon.classList.toggle('fa-eye-slash', !show);
+        icon.classList.toggle('fa-eye', show);
       });
 
       function flag(id, input, bad) {

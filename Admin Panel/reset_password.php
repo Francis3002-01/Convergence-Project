@@ -281,7 +281,7 @@ if ($urlError === 'empty') {
                             >
 
                                 <i
-                                    class="fa-solid fa-eye"
+                                    class="fa-solid fa-eye-slash"
                                     aria-hidden="true"
                                 ></i>
 
@@ -325,7 +325,7 @@ if ($urlError === 'empty') {
                             >
 
                                 <i
-                                    class="fa-solid fa-eye"
+                                    class="fa-solid fa-eye-slash"
                                     aria-hidden="true"
                                 ></i>
 
@@ -421,13 +421,13 @@ if ($urlError === 'empty') {
 
                         icon.classList.toggle(
                             'fa-eye',
-                            !show
+                            show
                         );
 
 
                         icon.classList.toggle(
                             'fa-eye-slash',
-                            show
+                            !show
                         );
 
                     }
