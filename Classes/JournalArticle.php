@@ -17,35 +17,43 @@ class JournalArticle
         $this->journalPDF = $journalPDF;
     }
 
-    public function getJournalID(): int{
+    public function getJournalID(): int
+    {
         return $this->journalID;
     }
 
-    public function getPublicationID(): int{
+    public function getPublicationID(): int
+    {
         return $this->publicationID;
     }
 
-    public function getTitle(): string{
+    public function getTitle(): string
+    {
         return $this->title;
     }
 
-    public function getJournalPDF(): string{
+    public function getJournalPDF(): string
+    {
         return $this->journalPDF;
     }
 
-    public function setJournalID(int $journalID): void{
+    public function setJournalID(int $journalID): void
+    {
         $this->journalID = $journalID;
     }
 
-    public function setPublicationID(int $publicationID): void{
+    public function setPublicationID(int $publicationID): void
+    {
         $this->publicationID = $publicationID;
     }
 
-    public function setTitle(string $title): void{
+    public function setTitle(string $title): void
+    {
         $this->title = $title;
     }
 
-    public function setJournalPDF(string $journalPDF): void{
+    public function setJournalPDF(string $journalPDF): void
+    {
         $this->journalPDF = $journalPDF;
     }
 
@@ -143,66 +151,67 @@ class JournalArticle
 
 
 
-public function updateJournal(PDO $pdo,int $journalID,string $title,?string $journalPDF = null): bool {
-    if ($journalID <= 0) {
-        throw new InvalidArgumentException('Invalid journal ID.');
-    }
+    public function updateJournal(PDO $pdo, int $journalID, string $title, ?string $journalPDF = null): bool
+    {
+        if ($journalID <= 0) {
+            throw new InvalidArgumentException('Invalid journal ID.');
+        }
 
-    if (trim($title) === '') {
-        throw new InvalidArgumentException('Article title cannot be empty.');
-    }
+        if (trim($title) === '') {
+            throw new InvalidArgumentException('Article title cannot be empty.');
+        }
 
-    // Get the existing article.
-    $stmt = $pdo->prepare(
-        'SELECT
+        // Get the existing article.
+        $stmt = $pdo->prepare(
+            'SELECT
             "journalID",
             "title",
             "journalPDF"
          FROM "JournalArticle"
          WHERE "journalID" = :journalID
          LIMIT 1'
-    );
-
-    $stmt->execute([
-        ':journalID' => $journalID
-    ]);
-
-    $existingArticle = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$existingArticle) {
-        throw new RuntimeException(
-            'Journal article not found.'
         );
-    }
 
-    // Keep the existing PDF if no replacement PDF was provided.
-    if ($journalPDF === null || trim($journalPDF) === '') {
-        $journalPDF = $existingArticle['journalPDF'];
-    }
+        $stmt->execute([
+            ':journalID' => $journalID
+        ]);
 
-    /*
+        $existingArticle = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$existingArticle) {
+            throw new RuntimeException(
+                'Journal article not found.'
+            );
+        }
+
+        // Keep the existing PDF if no replacement PDF was provided.
+        if ($journalPDF === null || trim($journalPDF) === '') {
+            $journalPDF = $existingArticle['journalPDF'];
+        }
+
+        /*
      * Update ONLY the article.
      *
      * PublicationIssue is NOT updated here because
      * manage_journal_api.php already updates the issue
      * once before processing the articles.
      */
-    $stmt = $pdo->prepare(
-        'UPDATE "JournalArticle"
+        $stmt = $pdo->prepare(
+            'UPDATE "JournalArticle"
          SET
             "title" = :title,
             "journalPDF" = :journalPDF
          WHERE "journalID" = :journalID'
-    );
+        );
 
-    $stmt->execute([
-        ':title' => trim($title),
-        ':journalPDF' => $journalPDF,
-        ':journalID' => $journalID
-    ]);
+        $stmt->execute([
+            ':title' => trim($title),
+            ':journalPDF' => $journalPDF,
+            ':journalID' => $journalID
+        ]);
 
-    return true;
-}
+        return true;
+    }
 
 
 
@@ -475,6 +484,91 @@ public function updateJournal(PDO $pdo,int $journalID,string $title,?string $jou
                         true
                     )
                 ) {
+                    $results[$journalID]['authors'][] = $authorName;
+                }
+            }
+        }
+
+        return array_values($results);
+    }
+
+    /**
+     * Search archived journal articles by title only.
+     */
+    public function searchArchivedJournal(PDO $pdo, string $keyword): array
+    {
+        $keyword = trim($keyword);
+
+        if (mb_strlen($keyword) < 2) {
+            return [];
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT
+            ja."journalID",
+            ja."title",
+            ja."journalPDF",
+            ja."publicationID",
+            pi."year",
+            pi."volume",
+            pi."number",
+            pi."is_current",
+            a."firstName",
+            a."lastName"
+         FROM "JournalArticle" ja
+         INNER JOIN "PublicationIssue" pi
+            ON ja."publicationID" = pi."publicationID"
+         LEFT JOIN "ArticleAuthor" aa
+            ON aa."journalID" = ja."journalID"
+         LEFT JOIN "Author" a
+            ON a."authorID" = aa."authorID"
+         WHERE
+            ja."title" ILIKE :keyword
+            AND pi."is_current" = FALSE
+            AND pi."is_draft" = FALSE
+         ORDER BY
+            pi."year" DESC,
+            pi."volume" DESC,
+            pi."number" DESC,
+            ja."journalID" ASC'
+        );
+
+        $stmt->execute([
+            ':keyword' => $keyword . '%'
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $results = [];
+
+        foreach ($rows as $row) {
+            $journalID = (int) $row['journalID'];
+
+            if (!isset($results[$journalID])) {
+                $results[$journalID] = [
+                    'journalID' => $journalID,
+                    'title' => $row['title'] ?? '',
+                    'journalPDF' => $row['journalPDF'] ?? '',
+                    'publicationID' => (int) ($row['publicationID'] ?? 0),
+                    'year' => $row['year'] ?? '',
+                    'volume' => $row['volume'] ?? '',
+                    'number' => $row['number'] ?? '',
+                    'is_current' => false,
+                    'authors' => []
+                ];
+            }
+
+            $firstName = trim((string) ($row['firstName'] ?? ''));
+            $lastName = trim((string) ($row['lastName'] ?? ''));
+
+            if ($firstName !== '' || $lastName !== '') {
+                $authorName = trim($firstName . ' ' . $lastName);
+
+                if (!in_array(
+                    $authorName,
+                    $results[$journalID]['authors'],
+                    true
+                )) {
                     $results[$journalID]['authors'][] = $authorName;
                 }
             }

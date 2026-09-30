@@ -504,12 +504,9 @@
 
 .article-title {
     min-width: 0;
-
     font-size: 14px;
     font-weight: 600;
-
     color: #222;
-
     line-height: 1.4;
 
     overflow-wrap: anywhere;
@@ -517,26 +514,57 @@
 
 .article-authors {
     min-width: 0;
-
     font-size: 13px;
     color: #666;
-
     line-height: 1.4;
-
     overflow-wrap: anywhere;
 }
 
 .article-actions {
     display: flex;
-
     align-items: center;
     justify-content: flex-end;
-
     gap: 7px;
-
     min-width: 0;
 }
 
 .article-actions .read-button {
     display: inline-flex;
+}
+
+/* =========================================================
+   ARCHIVE ARTICLE SEARCH RESULTS
+   ========================================================= */
+
+.archive-search-container .archive-list-header {
+    grid-template-columns:
+        minmax(220px, 2fr)
+        minmax(180px, 1.5fr)
+        120px;
+}
+
+.archive-search-container .archive-list-row {
+    grid-template-columns:
+        minmax(220px, 2fr)
+        minmax(180px, 1.5fr)
+        120px;
+}
+
+.archive-search-container .archive-list-header > div,
+.archive-search-container .archive-list-row > div {
+    padding: 0 8px;
+}
+
+.archive-search-container .archive-list-header > div:last-child,
+.archive-search-container .archive-list-row > div:last-child {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.archive-search-container .read-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }

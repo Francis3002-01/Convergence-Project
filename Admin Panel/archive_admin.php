@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../Classes/JournalArticle.php';
 
 use Dotenv\Dotenv;
 
@@ -10,6 +11,7 @@ $dotenv->load();
 
 $database = new Database();
 $pdo = $database->getConnection();
+
 
 /**
  * --------------------------------------------------------------------------
@@ -39,10 +41,8 @@ function createPublicPdfUrl(?string $storagePath): string
         return '';
     }
 
-    /*
-     * Encode each path segment separately so that
-     * slashes remain directory separators.
-     */
+    // Encode each path segment separately so slashes remain
+    // directory separators.
     $encodedPath = implode(
         '/',
         array_map(
@@ -58,6 +58,7 @@ function createPublicPdfUrl(?string $storagePath): string
         $encodedPath;
 }
 
+
 /**
  * --------------------------------------------------------------------------
  * Get selected publication ID
@@ -69,8 +70,55 @@ $publicationID = filter_input(
     FILTER_VALIDATE_INT
 );
 
+
+/**
+ * --------------------------------------------------------------------------
+ * Get search keyword
+ * --------------------------------------------------------------------------
+ */
+$searchKeyword = trim($_GET['search'] ?? '');
+
+/**
+ * If the search parameter exists but is empty,
+ * return to the normal Archive page.
+ *
+ * Example:
+ * archive_admin.php?search=
+ *
+ * becomes:
+ * archive_admin.php
+ */
+if (array_key_exists('search', $_GET) && $searchKeyword === '') {
+    header('Location: archive_admin.php');
+    exit;
+}
+
+
 $selectedIssue = null;
 $articles = [];
+$searchResults = [];
+
+
+/**
+ * --------------------------------------------------------------------------
+ * Search archived articles
+ * --------------------------------------------------------------------------
+ *
+ * Search only when a keyword is entered.
+ * publicationID is ignored while searching.
+ */
+if ($searchKeyword !== '') {
+
+    $publicationID = null;
+
+    $journalArticle = new JournalArticle();
+
+    $searchResults = $journalArticle->searchArchivedJournal(
+        $pdo,
+        $searchKeyword
+    );
+}
+
 
 /**
  * --------------------------------------------------------------------------
@@ -93,7 +141,8 @@ $archiveStmt = $pdo->query(
         "number" DESC'
 );
 
-$archiveIssues = $archiveStmt->fetchAll();
+$archiveIssues = $archiveStmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 /**
  * --------------------------------------------------------------------------
@@ -125,7 +174,8 @@ if ($publicationID && $publicationID > 0) {
         ':publicationID' => $publicationID
     ]);
 
-    $selectedIssue = $issueStmt->fetch();
+    $selectedIssue = $issueStmt->fetch(PDO::FETCH_ASSOC);
+
 
     /**
      * ----------------------------------------------------------------------
@@ -157,7 +207,8 @@ if ($publicationID && $publicationID > 0) {
             ':publicationID' => $publicationID
         ]);
 
-        $rows = $articleStmt->fetchAll();
+        $rows = $articleStmt->fetchAll(PDO::FETCH_ASSOC);
+
 
         /**
          * ------------------------------------------------------------------
@@ -192,8 +243,15 @@ if ($publicationID && $publicationID > 0) {
                     $firstName . ' ' . $lastName
                 );
 
-                $articles[$journalID]['authors'][] =
-                    $authorName;
+                if (
+                    !in_array(
+                        $authorName,
+                        $articles[$journalID]['authors'],
+                        true
+                    )
+                ) {
+                    $articles[$journalID]['authors'][] = $authorName;
+                }
             }
         }
 
@@ -208,55 +266,42 @@ if ($publicationID && $publicationID > 0) {
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive - Convergence</title>
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <link
-        rel="stylesheet"
-        href="../css/admin.css">
-
-    <link
-        rel="stylesheet"
-        href="../css/archive_admin.css">
-
-    <link
-        rel="stylesheet"
-        href="../css/header.css">
-
-    <link
-        rel="icon"
-        type="image/png"
-        href="../Images/Convergence Logo.png">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/archive_admin.css">
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
 </head>
+
 
 <body>
 
+
     <?php include 'components/left_sidebar.php'; ?>
+
 
     <div class="main-area">
 
+
         <?php include 'components/header.php'; ?>
+
 
         <main class="content">
 
+
             <?php if (!$selectedIssue): ?>
 
+
                 <!-- =====================================================
-                     ARCHIVE LIST PAGE
+                     ARCHIVE LIST / SEARCH PAGE
                      ===================================================== -->
 
+
                 <section id="archiveListPage">
+
 
                     <!-- PAGE HEADER -->
 
@@ -264,9 +309,7 @@ if ($publicationID && $publicationID > 0) {
 
                         <div class="page-heading">
 
-                            <h1>
-                                Archive
-                            </h1>
+                            <h1>Archive</h1>
 
                             <p>
                                 View previously published journal issues
@@ -274,147 +317,374 @@ if ($publicationID && $publicationID > 0) {
 
                         </div>
 
+
                         <!-- SEARCH -->
 
                         <div class="page-actions">
 
-                            <div class="search-box">
+                            <form method="GET" action="archive_admin.php"
+                                class="search-box"
+                                id="archiveSearchForm">
 
                                 <input
                                     type="text"
+                                    name="search"
                                     id="searchInput"
-                                    placeholder="Search archive issues..."
+                                    value="<?= htmlspecialchars(
+                                                $searchKeyword,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                    placeholder="Search articles..."
                                     autocomplete="off"
-                                    aria-label="Search archive issues">
+                                    aria-label="Search articles">
 
                                 <button
-                                    type="button"
+                                    type="submit"
                                     id="searchButton"
                                     aria-label="Search">
-
                                     <i class="fa-solid fa-magnifying-glass"></i>
-
                                 </button>
 
-                            </div>
+                            </form>
 
                         </div>
 
                     </div>
 
-                    <div class="archive-list-container">
 
-                        <div class="archive-list-header">
+                    <?php if ($searchKeyword !== ''): ?>
 
-                            <div>
-                                Year
+
+                        <!-- =================================================
+                             ARTICLE SEARCH RESULTS
+                             ================================================= -->
+
+
+                        <div class="archive-list-container archive-search-container">
+
+
+                            <!-- SEARCH RESULT HEADER -->
+
+                            <div class="archive-list-header">
+
+                                <div>
+                                    Title
+                                </div>
+
+                                <div>
+                                    Authors
+                                </div>
+
+                                <div>
+                                    Actions
+                                </div>
+
                             </div>
 
-                            <div>
-                                Volume
-                            </div>
 
-                            <div>
-                                Number
-                            </div>
+                            <!-- SEARCH RESULTS -->
 
-                            <div>
-                                Actions
-                            </div>
+                            <div
+                                id="archiveSearchResults"
+                                class="archive-list">
 
-                        </div>
 
-                        <!-- DATABASE ARCHIVE ISSUES -->
+                                <?php if (!empty($searchResults)): ?>
 
-                        <div
-                            id="archiveList"
-                            class="archive-list">
 
-                            <?php if (!empty($archiveIssues)): ?>
+                                    <?php foreach (
+                                        $searchResults as $article
+                                    ): ?>
 
-                                <?php foreach ($archiveIssues as $archive): ?>
 
-                                    <div
-                                        class="archive-list-row"
-                                        data-search="<?= htmlspecialchars(
-                                            strtolower(
-                                                (string) $archive['year']
-                                                . ' '
-                                                . (string) $archive['volume']
-                                                . ' '
-                                                . (string) $archive['number']
-                                            ),
-                                            ENT_QUOTES,
-                                            'UTF-8'
-                                        ) ?>">
+                                        <div class="archive-list-row">
 
-                                        <div>
-                                            <?= htmlspecialchars(
-                                                (string) $archive['year']
-                                            ) ?>
+
+                                            <!-- TITLE -->
+
+                                            <div>
+
+                                                <?= htmlspecialchars(
+                                                    (string) (
+                                                        $article['title']
+                                                        ?? 'Untitled Article'
+                                                    ),
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>
+
+                                            </div>
+
+
+                                            <!-- AUTHORS -->
+
+                                            <div>
+
+                                                <?php if (
+                                                    !empty($article['authors'])
+                                                ): ?>
+
+                                                    <?= htmlspecialchars(
+                                                        implode(
+                                                            ', ',
+                                                            $article['authors']
+                                                        ),
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>
+
+                                                <?php else: ?>
+
+                                                    Unspecified
+
+                                                <?php endif; ?>
+
+                                            </div>
+
+
+                                            <!-- ACTIONS -->
+
+                                            <div>
+
+                                                <?php
+
+                                                $articlePdfUrl =
+                                                    createPublicPdfUrl(
+                                                        $article['journalPDF']
+                                                            ?? ''
+                                                    );
+
+                                                ?>
+
+                                                <a
+                                                    href="<?= htmlspecialchars(
+                                                                $articlePdfUrl,
+                                                                ENT_QUOTES,
+                                                                'UTF-8'
+                                                            ) ?>"
+                                                    class="read-button"
+                                                    title="Read Article"
+                                                    <?= $articlePdfUrl !== ''
+                                                        ? 'target="_blank" rel="noopener noreferrer"'
+                                                        : '' ?>>
+
+                                                    Read
+
+                                                </a>
+
+                                            </div>
+
+
                                         </div>
 
-                                        <div>
-                                            <?= htmlspecialchars(
-                                                (string) $archive['volume']
-                                            ) ?>
-                                        </div>
 
-                                        <div>
-                                            <?= htmlspecialchars(
-                                                (string) $archive['number']
-                                            ) ?>
-                                        </div>
+                                    <?php endforeach; ?>
 
-                                        <div>
 
-                                            <a
-                                                href="archive_admin.php?publicationID=<?= (int) $archive['publicationID'] ?>"
-                                                class="view-archive-button"
-                                                title="View Archive Issue"
-                                                aria-label="View Archive Issue">
+                                <?php else: ?>
 
-                                                <i class="fa-solid fa-eye"></i>
 
-                                            </a>
+                                    <!-- NO SEARCH RESULTS -->
 
-                                        </div>
+                                    <div class="empty-state">
+
+                                        <h3>
+                                            No Articles Found
+                                        </h3>
+
+                                        <p>
+
+                                            No archived articles matched
+                                            "<strong><?= htmlspecialchars(
+                                                            $searchKeyword,
+                                                            ENT_QUOTES,
+                                                            'UTF-8'
+                                                        ) ?></strong>".
+
+                                        </p>
 
                                     </div>
 
-                                <?php endforeach; ?>
 
-                            <?php else: ?>
+                                <?php endif; ?>
 
-                                <div class="empty-state">
 
-                                    <h3>
-                                        No Archive Issues
-                                    </h3>
+                            </div>
 
-                                    <p>
-                                        No previously published journal issues were found.
-                                    </p>
-
-                                </div>
-
-                            <?php endif; ?>
 
                         </div>
 
-                    </div>
+
+                    <?php else: ?>
+
+
+                        <!-- =================================================
+                             NORMAL ARCHIVE ISSUE LIST
+                             ================================================= -->
+
+
+                        <div class="archive-list-container">
+
+
+                            <!-- ARCHIVE HEADER -->
+
+                            <div class="archive-list-header">
+
+                                <div>
+                                    Year
+                                </div>
+
+                                <div>
+                                    Volume
+                                </div>
+
+                                <div>
+                                    Number
+                                </div>
+
+                                <div>
+                                    Actions
+                                </div>
+
+                            </div>
+
+
+                            <!-- ARCHIVE ISSUES -->
+
+                            <div
+                                id="archiveList"
+                                class="archive-list">
+
+
+                                <?php if (!empty($archiveIssues)): ?>
+
+
+                                    <?php foreach (
+                                        $archiveIssues as $archive
+                                    ): ?>
+
+
+                                        <div class="archive-list-row">
+
+
+                                            <!-- YEAR -->
+
+                                            <div>
+
+                                                <?= htmlspecialchars(
+                                                    (string) (
+                                                        $archive['year']
+                                                        ?? ''
+                                                    ),
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>
+
+                                            </div>
+
+
+                                            <!-- VOLUME -->
+
+                                            <div>
+
+                                                <?= htmlspecialchars(
+                                                    (string) (
+                                                        $archive['volume']
+                                                        ?? ''
+                                                    ),
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>
+
+                                            </div>
+
+
+                                            <!-- NUMBER -->
+
+                                            <div>
+
+                                                <?= htmlspecialchars(
+                                                    (string) (
+                                                        $archive['number']
+                                                        ?? ''
+                                                    ),
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>
+
+                                            </div>
+
+
+                                            <!-- ACTIONS -->
+
+                                            <div>
+
+                                                <a
+                                                    href="archive_admin.php?publicationID=<?= (int) $archive['publicationID'] ?>"
+                                                    class="view-archive-button"
+                                                    title="View Archive Issue"
+                                                    aria-label="View Archive Issue">
+
+                                                    <i class="fa-solid fa-eye"></i>
+
+                                                </a>
+
+                                            </div>
+
+
+                                        </div>
+
+
+                                    <?php endforeach; ?>
+
+
+                                <?php else: ?>
+
+
+                                    <!-- NO ARCHIVE ISSUES -->
+
+                                    <div class="empty-state">
+
+                                        <h3>
+                                            No Archive Issues
+                                        </h3>
+
+                                        <p>
+                                            No previously published
+                                            journal issues were found.
+                                        </p>
+
+                                    </div>
+
+
+                                <?php endif; ?>
+
+
+                            </div>
+
+
+                        </div>
+
+
+                    <?php endif; ?>
+
 
                 </section>
 
+
             <?php else: ?>
+
 
                 <!-- =====================================================
                      ARCHIVE DETAILS PAGE
                      ===================================================== -->
 
+
                 <section
                     id="archiveDetailsPage"
                     class="archive-details-page">
+
 
                     <!-- BACK BUTTON -->
 
@@ -432,11 +702,14 @@ if ($publicationID && $publicationID > 0) {
 
                     </div>
 
+
                     <!-- =================================================
                          ISSUE INFORMATION
                          ================================================= -->
 
+
                     <div class="archive-issue-card">
+
 
                         <div class="archive-issue-heading">
 
@@ -448,21 +721,27 @@ if ($publicationID && $publicationID > 0) {
 
                                 Volume
                                 <?= htmlspecialchars(
-                                    (string) $selectedIssue['volume']
+                                    (string) $selectedIssue['volume'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
                                 ) ?>
 
                                 Number
                                 <?= htmlspecialchars(
-                                    (string) $selectedIssue['number']
+                                    (string) $selectedIssue['number'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
                                 ) ?>
 
                             </h2>
 
                         </div>
 
+
                         <!-- ISSUE DETAILS -->
 
                         <div class="archive-publication-summary">
+
 
                             <div>
 
@@ -471,12 +750,17 @@ if ($publicationID && $publicationID > 0) {
                                 </span>
 
                                 <strong>
+
                                     <?= htmlspecialchars(
-                                        (string) $selectedIssue['year']
+                                        (string) $selectedIssue['year'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
                                     ) ?>
+
                                 </strong>
 
                             </div>
+
 
                             <div>
 
@@ -485,12 +769,17 @@ if ($publicationID && $publicationID > 0) {
                                 </span>
 
                                 <strong>
+
                                     <?= htmlspecialchars(
-                                        (string) $selectedIssue['volume']
+                                        (string) $selectedIssue['volume'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
                                     ) ?>
+
                                 </strong>
 
                             </div>
+
 
                             <div>
 
@@ -499,22 +788,31 @@ if ($publicationID && $publicationID > 0) {
                                 </span>
 
                                 <strong>
+
                                     <?= htmlspecialchars(
-                                        (string) $selectedIssue['number']
+                                        (string) $selectedIssue['number'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
                                     ) ?>
+
                                 </strong>
 
                             </div>
 
+
                         </div>
 
+
                     </div>
+
 
                     <!-- =================================================
                          EDITORIAL NOTE
                          ================================================= -->
 
+
                     <div class="archive-section">
+
 
                         <div class="archive-section-header">
 
@@ -532,13 +830,16 @@ if ($publicationID && $publicationID > 0) {
 
                         </div>
 
+
                         <div class="editorial-note-card">
+
 
                             <div class="editorial-note-icon">
 
                                 <i class="fa-solid fa-file-pdf"></i>
 
                             </div>
+
 
                             <div class="editorial-note-info">
 
@@ -552,22 +853,29 @@ if ($publicationID && $publicationID > 0) {
 
                             </div>
 
+
                             <div class="editorial-note-actions">
+
+
+                                <?php
+
+                                $editorialPdfUrl =
+                                    createPublicPdfUrl(
+                                        $selectedIssue['publicationPDF']
+                                            ?? ''
+                                    );
+
+                                ?>
+
 
                                 <!-- READ EDITORIAL NOTE -->
 
-                                <?php
-                                $editorialPdfUrl = createPublicPdfUrl(
-                                    $selectedIssue['publicationPDF'] ?? ''
-                                );
-                                ?>
-
                                 <a
                                     href="<?= htmlspecialchars(
-                                        $editorialPdfUrl,
-                                        ENT_QUOTES,
-                                        'UTF-8'
-                                    ) ?>"
+                                                $editorialPdfUrl,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
                                     class="read-button"
                                     title="Read Editorial Note"
                                     <?= $editorialPdfUrl !== ''
@@ -578,17 +886,23 @@ if ($publicationID && $publicationID > 0) {
 
                                 </a>
 
+
                             </div>
+
 
                         </div>
 
+
                     </div>
+
 
                     <!-- =================================================
                          ARTICLES
                          ================================================= -->
 
+
                     <div class="archive-section">
+
 
                         <div class="archive-section-header">
 
@@ -606,7 +920,9 @@ if ($publicationID && $publicationID > 0) {
 
                         </div>
 
+
                         <div class="archive-articles-container">
+
 
                             <!-- ARTICLE LIST HEADER -->
 
@@ -626,17 +942,24 @@ if ($publicationID && $publicationID > 0) {
 
                             </div>
 
-                            <!-- DATABASE ARTICLES -->
+
+                            <!-- ARTICLES -->
 
                             <div
                                 id="archiveArticlesList"
                                 class="archive-articles-list">
 
+
                                 <?php if (!empty($articles)): ?>
 
-                                    <?php foreach ($articles as $article): ?>
+
+                                    <?php foreach (
+                                        $articles as $article
+                                    ): ?>
+
 
                                         <div class="archive-article-row">
+
 
                                             <!-- ARTICLE TITLE -->
 
@@ -646,22 +969,29 @@ if ($publicationID && $publicationID > 0) {
                                                     (string) (
                                                         $article['title']
                                                         ?? 'Untitled Article'
-                                                    )
+                                                    ),
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
                                                 ) ?>
 
                                             </div>
+
 
                                             <!-- AUTHORS -->
 
                                             <div class="article-authors">
 
-                                                <?php if (!empty($article['authors'])): ?>
+                                                <?php if (
+                                                    !empty($article['authors'])
+                                                ): ?>
 
                                                     <?= htmlspecialchars(
                                                         implode(
                                                             ', ',
                                                             $article['authors']
-                                                        )
+                                                        ),
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
                                                     ) ?>
 
                                                 <?php else: ?>
@@ -672,23 +1002,31 @@ if ($publicationID && $publicationID > 0) {
 
                                             </div>
 
+
                                             <!-- ARTICLE ACTIONS -->
 
                                             <div class="article-actions">
 
+
                                                 <?php
+
                                                 $articlePdfUrl =
                                                     createPublicPdfUrl(
-                                                        $article['journalPDF'] ?? ''
+                                                        $article['journalPDF']
+                                                            ?? ''
                                                     );
+
                                                 ?>
+
+
+                                                <!-- READ ARTICLE -->
 
                                                 <a
                                                     href="<?= htmlspecialchars(
-                                                        $articlePdfUrl,
-                                                        ENT_QUOTES,
-                                                        'UTF-8'
-                                                    ) ?>"
+                                                                $articlePdfUrl,
+                                                                ENT_QUOTES,
+                                                                'UTF-8'
+                                                            ) ?>"
                                                     class="read-button"
                                                     title="Read Article"
                                                     <?= $articlePdfUrl !== ''
@@ -699,13 +1037,20 @@ if ($publicationID && $publicationID > 0) {
 
                                                 </a>
 
+
                                             </div>
+
 
                                         </div>
 
+
                                     <?php endforeach; ?>
 
+
                                 <?php else: ?>
+
+
+                                    <!-- NO ARTICLES -->
 
                                     <div class="empty-state">
 
@@ -714,98 +1059,57 @@ if ($publicationID && $publicationID > 0) {
                                         </h3>
 
                                         <p>
-                                            No articles were found for this issue.
+                                            No articles were found for
+                                            this issue.
                                         </p>
 
                                     </div>
 
+
                                 <?php endif; ?>
+
 
                             </div>
 
+
                         </div>
+
 
                     </div>
 
+
                 </section>
+
 
             <?php endif; ?>
 
+
         </main>
+
 
     </div>
 
-    <!-- =============================================================
-         SEARCH
-         ============================================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
 
-    <?php if (!$selectedIssue): ?>
+            const searchInput = document.getElementById('searchInput');
 
-        <script>
-
-            const searchInput =
-                document.getElementById('searchInput');
-
-            const archiveList =
-                document.getElementById('archiveList');
-
-
-            function searchArchives() {
-
-                const searchTerm =
-                    searchInput.value
-                        .trim()
-                        .toLowerCase();
-
-
-                const rows =
-                    archiveList.querySelectorAll(
-                        '.archive-list-row'
-                    );
-
-
-                rows.forEach(function(row) {
-
-                    const searchableText =
-                        row.dataset.search || '';
-
-
-                    if (
-                        searchTerm === '' ||
-                        searchableText.includes(searchTerm)
-                    ) {
-
-                        row.style.display = '';
-
-                    } else {
-
-                        row.style.display = 'none';
-
-                    }
-
-                });
-
+            if (!searchInput) {
+                return;
             }
 
+            searchInput.addEventListener('input', function() {
 
-            searchInput.addEventListener(
-                'input',
-                searchArchives
-            );
+                if (this.value.trim() === '') {
+                    window.location.href = 'archive_admin.php';
+                }
 
+            });
 
-            document
-                .getElementById('searchButton')
-                .addEventListener(
-                    'click',
-                    searchArchives
-                );
+        });
+    </script>
 
-        </script>
-
-    <?php endif; ?>
 
 </body>
 
 </html>
-
