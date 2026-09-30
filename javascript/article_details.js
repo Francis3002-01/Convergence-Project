@@ -1,187 +1,270 @@
-const pdfSection = document.getElementById("pdfSection");
-const pdfUrl = pdfSection?.dataset.pdfUrl || "";
-const journalId = Number(pdfSection?.dataset.journalId || 0);
-const readOnline = document.getElementById("readOnline");
-const downloadPdf = document.getElementById("downloadPdf");
-const pdfViewer = document.getElementById("pdfViewer");
-const pdfViewerContainer = document.getElementById("pdfViewerContainer");
-const copyCitation = document.getElementById("copyCitation");
-const citation = document.getElementById("citation");
+document.addEventListener("DOMContentLoaded", function () {
+    const pdfSection = document.getElementById("pdfSection");
 
-console.log("article_details.js loaded");
-console.log("PDF URL:", pdfUrl);
-console.log("Read Online button:", readOnline);
-console.log("PDF Viewer:", pdfViewer);
-console.log("PDF Viewer Container:", pdfViewerContainer);
+    const readOnline = document.getElementById("readOnline");
+    const downloadPdf = document.getElementById("downloadPdf");
 
-if (pdfUrl) {
+    const pdfViewer = document.getElementById("pdfViewer");
+    const pdfViewerContainer = document.getElementById("pdfViewerContainer");
 
-    // Download PDF
-    if (downloadPdf) {
+    const copyCitation = document.getElementById("copyCitation");
+    const citation = document.getElementById("citation");
 
-        downloadPdf.href = pdfUrl.includes("?")
-            ? `${pdfUrl}&download`
-            : `${pdfUrl}?download`;
+    /*
+     * Get PDF URL and journal ID.
+     */
+    const pdfUrl = pdfSection
+        ? pdfSection.dataset.pdfUrl || ""
+        : "";
 
-        downloadPdf.addEventListener("click", function (event) {
+    const journalId = pdfSection
+        ? pdfSection.dataset.journalId || ""
+        : "";
 
-            event.preventDefault();
-            const pdfWindow = window.open(downloadPdf.href,"_blank");
 
-            if (!journalId || journalId <= 0) {
+    /*
+     * ---------------------------------------------------------
+     * DEVICE DETECTION
+     * ---------------------------------------------------------
+     *
+     * Mobile/tablet devices use their browser's native PDF
+     * viewer instead of the embedded iframe.
+     *
+     * This includes:
+     * - Chrome on iPad
+     * - Chrome on Android
+     * - Safari on iPhone/iPad
+     * - Other mobile browsers
+     *
+     * The iPad check also covers newer iPads that identify
+     * themselves as desktop-class devices.
+     */
+    const isMobileOrTablet =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        ) ||
+        (
+            navigator.platform === "MacIntel" &&
+            navigator.maxTouchPoints > 1
+        );
 
-                console.error(
-                    "Download tracking failed: invalid journal ID."
-                );
 
-                if (!pdfWindow) {
-                    window.location.href = downloadPdf.href;
-                }
+    /*
+     * ---------------------------------------------------------
+     * READ ONLINE
+     * ---------------------------------------------------------
+     *
+     * DESKTOP:
+     *     Open PDF inside the article page using iframe.
+     *
+     * MOBILE/TABLET:
+     *     Open PDF directly using the browser's native
+     *     PDF viewer.
+     */
+    if (readOnline) {
+        readOnline.addEventListener("click", function () {
 
+            if (!pdfUrl) {
+                console.error("No PDF URL found.");
                 return;
             }
 
-            const payload = JSON.stringify({journalID: journalId});
+            console.log("Read Online clicked.");
+            console.log("PDF URL:", pdfUrl);
 
-            fetch("track_download.php", {
-                method: "POST",
-                credentials: "same-origin",
-                keepalive: true,
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: payload
-            })
-                .then(async function (response) {
-                    const responseText =await response.text();
-                    console.log("track_download.php status:",response.status);
-                    console.log("track_download.php response:",responseText);
-                    let data;
+            /*
+             * Mobile/tablet:
+             * Let Chrome/Safari handle the PDF directly.
+             */
+            if (isMobileOrTablet) {
+                window.location.href = pdfUrl;
+                return;
+            }
 
-                    try {
-                        data = JSON.parse(responseText);
-                    } 
-                    
-                    catch (jsonError) {
-                        console.error("track_download.php did not return valid JSON.");
-                        console.error("Raw response:",responseText);
-                        return null;
+
+            /*
+             * Desktop:
+             * Keep the existing same-page iframe viewer.
+             */
+            if (!pdfViewer || !pdfViewerContainer) {
+                console.error("PDF viewer elements were not found.");
+                return;
+            }
+
+            pdfViewer.src = pdfUrl;
+
+            pdfViewerContainer.style.display = "block";
+
+            pdfViewerContainer.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        });
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * DOWNLOAD PDF
+     * ---------------------------------------------------------
+     *
+     * Opens the PDF/download URL and records the article
+     * download.
+     *
+     * On mobile devices, the browser may open the PDF instead
+     * of immediately downloading it. This is controlled by
+     * the browser and the cross-origin Supabase response.
+     */
+    if (downloadPdf) {
+        downloadPdf.addEventListener("click", function () {
+
+            const downloadUrl = downloadPdf.href;
+
+            if (!downloadUrl) {
+                return;
+            }
+
+            /*
+             * Open the PDF/download URL.
+             */
+            window.open(downloadUrl, "_blank");
+
+
+            /*
+             * Record the article download.
+             */
+            if (journalId) {
+                fetch("track_download.php", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    keepalive: true,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        journalID: journalId
+                    })
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error(
+                            "Download tracking request failed."
+                        );
                     }
 
-                    return data;
+                    return response.json().catch(function () {
+                        return null;
+                    });
                 })
                 .then(function (data) {
-
-                    if (!data) {
-                        return;
-                    }
-
-                    if (!data.success) {
-                        console.error("Download tracking failed:",data);
-                        console.error(
-                            "Backend error:",
-                            data.data?.error ||
-                            "No error details returned."
-                        );
-                    } 
-                    
-                    else {
-
-                        console.log(
-                            "Download recorded successfully:",
-                            data
-                        );
-                    }
+                    console.log("Download tracked.", data);
                 })
                 .catch(function (error) {
-
                     console.error(
-                        "Download tracking request failed:",
+                        "Download tracking error:",
                         error
                     );
                 });
-
-            if (!pdfWindow) {
-                window.location.href = downloadPdf.href;
             }
         });
     }
 
 
-    // Read Online
-    if (readOnline && pdfViewer &&pdfViewerContainer) {
+    /*
+     * ---------------------------------------------------------
+     * COPY APA CITATION
+     * ---------------------------------------------------------
+     */
+    if (copyCitation && citation) {
+        copyCitation.addEventListener("click", function () {
 
-        readOnline.addEventListener(
-            "click",
-            function () {
-
-                console.log("Read Online clicked");
-                console.log("Opening PDF:", pdfUrl);
-
-                if (!pdfUrl) {
-                    console.error("No PDF URL found.");
-                    return;
-                }
-
-                pdfViewer.src = pdfUrl;
-                pdfViewerContainer.style.display = "block";
-                pdfViewerContainer.scrollIntoView({behavior: "smooth",block: "start"});
-            }
-        );
-    }
-}
-
-// Copy APA citation
-if (copyCitation && citation) {
-
-    copyCitation.addEventListener(
-        "click",
-        async function () {
-
-            const citationText =citation.textContent.trim();
+            const citationText = citation.textContent.trim();
 
             if (!citationText) {
                 return;
             }
 
-            try {
-                await navigator.clipboard.writeText(citationText);
-                const originalText =copyCitation.textContent;
-                copyCitation.textContent = "Copied!";
-                setTimeout(() => {
-                    copyCitation.textContent =originalText;}, 1500);
-            }
-            
-            catch (err) {
-                console.error("Copy citation error:",err);
-                const textArea = document.createElement("textarea");
-                textArea.value = citationText;
-                textArea.style.position = "fixed";
-                textArea.style.opacity = "0";
-                textArea.style.pointerEvents = "none";
-                document.body.appendChild(textArea);
-                textArea.select();
 
-                try {
-                    document.execCommand("copy");
-                    const originalText = copyCitation.textContent;
-                    copyCitation.textContent = "Copied!";
-                    setTimeout(() => {
-                        copyCitation.textContent =originalText;
-                    }, 1500);
+            /*
+             * Use the modern Clipboard API when available.
+             */
+            if (
+                navigator.clipboard &&
+                window.isSecureContext
+            ) {
+                navigator.clipboard.writeText(citationText)
+                    .then(function () {
+                        showCopySuccess();
+                    })
+                    .catch(function () {
+                        fallbackCopy(citationText);
+                    });
 
-                } 
-                
-                catch (fallbackError) {
-                    console.error("Fallback copy failed:",fallbackError);
-                    alert("Unable to copy the citation.");
-                } 
-                
-                finally {
-                    document.body.removeChild(textArea);
-                }
+                return;
             }
+
+
+            /*
+             * Fallback for browsers without Clipboard API.
+             */
+            fallbackCopy(citationText);
+        });
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * COPY SUCCESS MESSAGE
+     * ---------------------------------------------------------
+     */
+    function showCopySuccess() {
+        const originalText = copyCitation.innerHTML;
+
+        copyCitation.innerHTML =
+            '<i class="fa-solid fa-check"></i> Copied!';
+
+        setTimeout(function () {
+            copyCitation.innerHTML = originalText;
+        }, 1500);
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * FALLBACK COPY
+     * ---------------------------------------------------------
+     */
+    function fallbackCopy(text) {
+        const textarea = document.createElement("textarea");
+
+        textarea.value = text;
+
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.style.top = "0";
+
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+
+        let copied = false;
+
+        try {
+            copied = document.execCommand("copy");
+        } catch (error) {
+            console.error(
+                "Fallback copy failed:",
+                error
+            );
         }
-    );
-}
+
+        document.body.removeChild(textarea);
+
+        if (copied) {
+            showCopySuccess();
+        } else {
+            console.error("Unable to copy citation.");
+        }
+    }
+});

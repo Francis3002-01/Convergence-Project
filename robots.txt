@@ -1,0 +1,54 @@
+# ==========================================================
+# Convergence: A Multidisciplinary Journal
+# robots.txt
+#
+# PURPOSE:
+# This file gives instructions to search engine crawlers
+# (such as Googlebot) about which parts of the website
+# they should or should not crawl.
+# ==========================================================
+
+# Apply these rules to all search engine crawlers.
+User-agent: *
+
+# ----------------------------------------------------------
+# ADMIN PANEL
+# ----------------------------------------------------------
+# Prevent search engine crawlers from crawling the
+# administrator area of the website.
+#
+# NOTE:
+# This does NOT secure the Admin Panel.
+# PHP authentication/session protection is still required.
+# ----------------------------------------------------------
+Disallow: /Admin%20Panel/
+
+
+# ----------------------------------------------------------
+# CONFIGURATION FILES
+# ----------------------------------------------------------
+# Prevent crawlers from accessing the configuration
+# directory, which may contain application/database files.
+# ----------------------------------------------------------
+Disallow: /config/
+
+
+# ----------------------------------------------------------
+# COMPOSER DEPENDENCIES
+# ----------------------------------------------------------
+# Prevent crawlers from crawling Composer's vendor
+# dependency directory.
+# ----------------------------------------------------------
+Disallow: /vendor/
+
+
+# ----------------------------------------------------------
+# SITEMAP
+# ----------------------------------------------------------
+# Tells search engines where the XML sitemap is located.
+#
+# IMPORTANT:
+# Replace YOUR-DOMAIN.com with the actual domain after
+# the website is deployed.
+# ----------------------------------------------------------
+# Sitemap: https://YOUR-DOMAIN.com/sitemap.xml

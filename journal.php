@@ -248,7 +248,12 @@ if ($publicationID && $publicationID > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Journal | Convergence</title>
+
+    <title>Current Issue | Convergence: A Multidisciplinary Journal</title>
+
+    <meta name="description" content="Explore the current issue of Convergence: A Multidisciplinary Journal, 
+    featuring research and scholarly articles across the humanities, social sciences, and natural sciences.">
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <!-- Header -->

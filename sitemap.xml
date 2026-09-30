@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+==========================================================
+Convergence: A Multidisciplinary Journal
+sitemap.xml
+
+PURPOSE:
+This file tells search engines about the public pages
+that are available on the website and that we want them
+to discover and potentially index.
+
+IMPORTANT:
+The URLs below use YOUR-DOMAIN.com as a placeholder.
+Replace it with the actual domain after deployment.
+==========================================================
+-->
+
+<!--
+The <urlset> element contains all URLs included
+in this sitemap.
+
+The xmlns attribute identifies the official XML sitemap
+standard used by search engines.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+
+    <!--
+    ======================================================
+    HOMEPAGE
+    ======================================================
+    The main entry page of Convergence.
+    ======================================================
+    -->
+    <url>
+        <loc>https://YOUR-DOMAIN.com/</loc>
+    </url>
+
+
+    <!--
+    ======================================================
+    ABOUT PAGE
+    ======================================================
+    Provides information about Convergence and its
+    multidisciplinary purpose and scope.
+    ======================================================
+    -->
+    <url>
+        <loc>https://YOUR-DOMAIN.com/about.php</loc>
+    </url>
+
+
+    <!--
+    ======================================================
+    CURRENT JOURNAL PAGE
+    ======================================================
+    Displays the current issue and its published articles.
+    ======================================================
+    -->
+    <url>
+        <loc>https://YOUR-DOMAIN.com/journal.php</loc>
+    </url>
+
+
+    <!--
+    ======================================================
+    ARCHIVE PAGE
+    ======================================================
+    Allows visitors to browse previous journal issues
+    and archived articles.
+    ======================================================
+    -->
+    <url>
+        <loc>https://YOUR-DOMAIN.com/archive.php</loc>
+    </url>
+
+
+    <!--
+    ======================================================
+    CONTACT PAGE
+    ======================================================
+    Provides contact information for Convergence.
+    ======================================================
+    -->
+    <url>
+        <loc>https://YOUR-DOMAIN.com/contact.php</loc>
+    </url>
+
+
+</urlset>

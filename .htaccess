@@ -1,0 +1,5 @@
+Options -MultiViews
+
+RewriteEngine On
+
+RewriteRule ^admin_login/?$ "Admin Panel/admin_login.php" [L]

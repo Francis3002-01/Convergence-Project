@@ -25,9 +25,7 @@ try {
     $stmt->execute();
 
     $currentIssue = $stmt->fetch(PDO::FETCH_ASSOC);
-} 
-
-catch (PDOException $e) {
+} catch (PDOException $e) {
     error_log($e->getMessage());
 }
 ?>
@@ -38,7 +36,11 @@ catch (PDOException $e) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage | Convergence</title>
+
+    <title>Convergence: A Multidisciplinary Journal | Silliman University</title>
+
+     <meta name="description" content="Convergence: A Multidisciplinary Journal of Silliman University 
+     publishes interdisciplinary and multidisciplinary research across the humanities, social sciences, and natural sciences.">
 
     <!--External CSS-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -125,4 +127,5 @@ catch (PDOException $e) {
 
     <?php include __DIR__ . '/includes/footer.php'; ?>
 </body>
+
 </html>

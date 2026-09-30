@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About | Convergence</title>
+
+
+    <title>About Convergence | A Multidisciplinary Journal</title>
+
+    <meta name="description" content="Learn about Convergence: A Multidisciplinary Journal of Silliman University, 
+    its purpose, scope, and commitment to interdisciplinary and multidisciplinary scholarship.">
     
     <!--External CSS-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -12,6 +17,8 @@
     <link rel="stylesheet" href="includes_css/footer.css">
     <link rel="stylesheet" href="css/about_page.css">
     <link rel="icon" type="image/jpeg" href="Images/Convergence Logo.png">
+
+
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

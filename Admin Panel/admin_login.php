@@ -8,23 +8,32 @@ $error = '';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Sign In | Convergence Journal</title>
+  <title>Admin Log In | Convergence Journal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="../css/admin_login.css">
-  <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
+
+
+  <!--<link rel="stylesheet" href="../css/admin_login.css">-->
+  <link rel="stylesheet" href="/Convergence%20Project/css/admin_login.css">
+
+  <!--<link rel="icon" type="image/png" href="../Images/Convergence Logo.png">-->
+  <link rel="icon" type="image/png" href="/Convergence%20Project/Images/Convergence%20Logo.png">
+  
+
 </head>
 
 <body>
 
   <header>
     <div class="header-container">
-      <a href="../home.php" class="brand">
+      <!--<a href="../home.php" class="brand">-->
+        <a href="/Convergence%20Project/home.php" class="brand">
 
         <div class="logo">
-          <img src="../Images/Convergence Logo.png" alt="Convergence Logo">
+          <!--<img src="../Images/Convergence Logo.png" alt="Convergence Logo">-->
+          <img src="/Convergence%20Project/Images/Convergence%20Logo.png" alt="Convergence Logo">
         </div>
 
         <div class="brand-text">
@@ -42,7 +51,8 @@ $error = '';
       <h2 id="t">Log In</h2>
       <p class="lead">Access the Admin Dashboard </p>
 
-      <form id="f" method="post" action="admin_login_process.php" novalidate>
+      <!--<form id="f" method="post" action="admin_login_process.php" novalidate>-->
+        <form id="f" method="post" action="/Convergence%20Project/Admin%20Panel/admin_login_process.php" novalidate>
 
         <?php if (isset($_GET['error']) && $_GET['error'] === 'invalid'): ?>
           <p class="error-message">Invalid email or password.</p>
@@ -72,7 +82,8 @@ $error = '';
         </div>
 
         <div class="row">
-          <a href="forgot_password.php">Forgot password?</a>
+          <!--<a href="forgot_password.php">Forgot password?</a>-->
+          <a href="/Convergence%20Project/Admin%20Panel/forgot_password.php">Forgot password?</a>
         </div>
 
         <button class="btn" type="submit">

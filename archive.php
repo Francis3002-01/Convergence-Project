@@ -36,7 +36,12 @@ $archiveIssues = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archive | Convergence</title>
+
+    <title>Journal Archive | Convergence: A Multidisciplinary Journal</title>
+
+    <meta name="description" content="Browse the Convergence journal archive and explore previous issues 
+    and scholarly articles published across the humanities, social sciences, and natural sciences.">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="includes_css/header.css">
     <link rel="stylesheet" href="includes_css/footer.css">

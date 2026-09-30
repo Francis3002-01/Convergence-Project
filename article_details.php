@@ -305,6 +305,6 @@ if ($downloadPdfPath !== null && $downloadPdfPath !== '') {
     </main>
 
     <?php include 'includes/footer.php'; ?>
-    <script src="javascript/article_details.js"></script>
+    <script src="javascript/article_details.js?v=2"></script>
 </body>
 </html>
