@@ -38,7 +38,7 @@ if (!$profile) {
 $currentUsername = $profile['username'] ?? '';
 $currentEmail = $profile['email'] ?? '';
 $currentProfilePic = $profile['profilePic'] ?? '';
-
+$pendingEmail = $profile['pendingEmail'] ?? '';
 
 // First letter for the default profile picture
 $initial = strtoupper(substr($currentUsername, 0, 1));
@@ -112,13 +112,30 @@ $initial = strtoupper(substr($currentUsername, 0, 1));
 
     <div class="profile-card">
 
-      <?php if (isset($_GET['success']) && $_GET['success'] === 'updated'): ?>
+      <?php if (isset($_GET['success'])): ?>
 
-        <div class="success-message">
-          Profile updated successfully.
-        </div>
+    <div class="success-message">
 
-      <?php endif; ?>
+        <?php
+        switch ($_GET['success']) {
+
+            case 'updated':
+                echo 'Profile updated successfully.';
+                break;
+
+            case 'verification_sent':
+                echo 'Your profile was updated. A verification link has been sent to your new email address.';
+                break;
+
+            default:
+                echo 'Changes saved successfully.';
+                break;
+        }
+        ?>
+
+    </div>  
+
+<?php endif; ?>
 
 
       <?php if (isset($_GET['error'])): ?>
@@ -131,6 +148,10 @@ $initial = strtoupper(substr($currentUsername, 0, 1));
 
               case 'email':
                   echo 'Please enter a valid email address.';
+                  break;
+
+              case 'email_send':
+                  echo 'Your changes could not be completed because the verification email could not be sent. Please try again.';
                   break;
 
               case 'upload':
@@ -247,18 +268,47 @@ $initial = strtoupper(substr($currentUsername, 0, 1));
 
         <div class="profile-field">
 
-          <label for="email">
-            Email
-          </label>
+    <label for="email">
+        Email
+    </label>
 
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value="<?php echo htmlspecialchars($currentEmail, ENT_QUOTES, 'UTF-8'); ?>"
-            placeholder="Enter email">
+    <input
+        type="email"
+        id="email"
+        name="email"
+        value="<?php echo htmlspecialchars(
+            $currentEmail,
+            ENT_QUOTES,
+            'UTF-8'
+        ); ?>"
+        placeholder="Enter email"
+    >
 
-        </div>
+    <?php if (!empty($pendingEmail)): ?>
+
+        <p style="
+            margin-top: 8px;
+            color: #a5241e;
+            font-size: 13px;
+        ">
+
+            Verification pending for:
+
+            <strong>
+                <?php
+                echo htmlspecialchars(
+                    $pendingEmail,
+                    ENT_QUOTES,
+                    'UTF-8'
+                );
+                ?>
+            </strong>
+
+        </p>
+
+    <?php endif; ?>
+
+</div>
 
 
         <!-- Buttons -->

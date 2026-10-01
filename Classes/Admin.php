@@ -9,12 +9,6 @@ class Admin
         $this->pdo = $pdo;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | LOGIN
-    |--------------------------------------------------------------------------
-    */
-
     public function login(string $email, string $password): bool
     {
         $sql = '
@@ -23,57 +17,39 @@ class Admin
                 "username",
                 "email",
                 "password",
-                "profilePic",
-                "mustChangePassword"
+                "mustChangePassword",
+                "profilePic"
             FROM "Admin"
             WHERE "email" = :email
             LIMIT 1
         ';
 
         $stmt = $this->pdo->prepare($sql);
-
         $stmt->execute([
             ':email' => $email
         ]);
 
         $admin = $stmt->fetch();
 
-        // Admin account not found or password is incorrect.
         if (!$admin || !password_verify($password, $admin['password'])) {
             return false;
         }
 
-        // Prevent session fixation.
         session_regenerate_id(true);
 
-        // Store admin information in the session.
         $_SESSION['adminID'] = $admin['adminID'];
         $_SESSION['username'] = $admin['username'];
         $_SESSION['email'] = $admin['email'];
-        $_SESSION['profilePic'] = $admin['profilePic'];
         $_SESSION['mustChangePassword'] = $admin['mustChangePassword'];
+        $_SESSION['profilePic'] = $admin['profilePic'] ?? null;
 
         return true;
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CHECK LOGIN STATUS
-    |--------------------------------------------------------------------------
-    */
 
     public static function isLoggedIn(): bool
     {
         return isset($_SESSION['adminID']);
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET CURRENT ADMIN FROM SESSION
-    |--------------------------------------------------------------------------
-    */
 
     public static function getCurrentAdmin(): ?array
     {
@@ -85,17 +61,10 @@ class Admin
             'adminID' => $_SESSION['adminID'],
             'username' => $_SESSION['username'] ?? null,
             'email' => $_SESSION['email'] ?? null,
-            'profilePic' => $_SESSION['profilePic'] ?? null,
-            'mustChangePassword' => $_SESSION['mustChangePassword'] ?? false
+            'mustChangePassword' => $_SESSION['mustChangePassword'] ?? false,
+            'profilePic' => $_SESSION['profilePic'] ?? null
         ];
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET CURRENT ADMIN PROFILE FROM DATABASE
-    |--------------------------------------------------------------------------
-    */
 
     public function getProfile(): ?array
     {
@@ -109,7 +78,8 @@ class Admin
                 "username",
                 "email",
                 "profilePic",
-                "mustChangePassword"
+                "mustChangePassword",
+                "pendingEmail"
             FROM "Admin"
             WHERE "adminID" = :adminID
             LIMIT 1
@@ -121,91 +91,10 @@ class Admin
             ':adminID' => $_SESSION['adminID']
         ]);
 
-        $admin = $stmt->fetch();
+        $profile = $stmt->fetch();
 
-        if (!$admin) {
-            return null;
-        }
-
-        return $admin;
+        return $profile ?: null;
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE ADMIN PROFILE
-    |--------------------------------------------------------------------------
-    */
-
-    public function updateProfile(
-        string $username,
-        string $email,
-        ?string $profilePic = null
-    ): bool {
-        if (!self::isLoggedIn()) {
-            return false;
-        }
-
-        if ($profilePic !== null) {
-
-            $sql = '
-                UPDATE "Admin"
-                SET
-                    "username" = :username,
-                    "email" = :email,
-                    "profilePic" = :profilePic
-                WHERE "adminID" = :adminID
-            ';
-
-            $stmt = $this->pdo->prepare($sql);
-
-            $success = $stmt->execute([
-                ':username' => $username,
-                ':email' => $email,
-                ':profilePic' => $profilePic,
-                ':adminID' => $_SESSION['adminID']
-            ]);
-
-        } else {
-
-            $sql = '
-                UPDATE "Admin"
-                SET
-                    "username" = :username,
-                    "email" = :email
-                WHERE "adminID" = :adminID
-            ';
-
-            $stmt = $this->pdo->prepare($sql);
-
-            $success = $stmt->execute([
-                ':username' => $username,
-                ':email' => $email,
-                ':adminID' => $_SESSION['adminID']
-            ]);
-        }
-
-        if (!$success) {
-            return false;
-        }
-
-        // Keep the session synchronized with the database.
-        $_SESSION['username'] = $username;
-        $_SESSION['email'] = $email;
-
-        if ($profilePic !== null) {
-            $_SESSION['profilePic'] = $profilePic;
-        }
-
-        return true;
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CHANGE PASSWORD
-    |--------------------------------------------------------------------------
-    */
 
     public function changePassword(
         string $currentPassword,
@@ -215,7 +104,6 @@ class Admin
             return false;
         }
 
-        // Get the current password hash.
         $sql = '
             SELECT "password"
             FROM "Admin"
@@ -231,23 +119,16 @@ class Admin
 
         $admin = $stmt->fetch();
 
-        if (!$admin) {
+        if (!$admin || !password_verify($currentPassword, $admin['password'])) {
             return false;
         }
 
-        // Verify the current password.
-        if (!password_verify($currentPassword, $admin['password'])) {
-            return false;
-        }
-
-        // Hash the new password.
-        $newPasswordHash = password_hash(
+        $hashedPassword = password_hash(
             $newPassword,
             PASSWORD_DEFAULT
         );
 
-        // Save the new password and remove the forced-change flag.
-        $sql = '
+        $updateSql = '
             UPDATE "Admin"
             SET
                 "password" = :password,
@@ -255,29 +136,17 @@ class Admin
             WHERE "adminID" = :adminID
         ';
 
-        $stmt = $this->pdo->prepare($sql);
+        $updateStmt = $this->pdo->prepare($updateSql);
 
-        $success = $stmt->execute([
-            ':password' => $newPasswordHash,
+        $updateStmt->execute([
+            ':password' => $hashedPassword,
             ':adminID' => $_SESSION['adminID']
         ]);
 
-        if (!$success) {
-            return false;
-        }
-
-        // Update the session.
         $_SESSION['mustChangePassword'] = false;
 
         return true;
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOGOUT
-    |--------------------------------------------------------------------------
-    */
 
     public static function logout(): void
     {
