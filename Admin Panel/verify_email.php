@@ -9,7 +9,9 @@ $success = false;
 $message = '';
 
 if ($token === '') {
+
     $message = 'Invalid verification link.';
+
 } else {
 
     try {
@@ -26,8 +28,8 @@ if ($token === '') {
         );
 
         /*
-         * Find the admin account associated with
-         * this verification token.
+         * Find the admin account associated
+         * with this verification token.
          */
         $query = '
             SELECT
@@ -47,29 +49,46 @@ if ($token === '') {
 
         $admin = $stmt->fetch();
 
+        /*
+         * Token does not exist.
+         */
         if (!$admin) {
 
-            $message = 'This verification link is invalid or has already been used.';
+            $message =
+                'This verification link is invalid or has already been used.';
 
+        /*
+         * Token exists but there is no pending email.
+         */
         } elseif (
             empty($admin['pendingEmail']) ||
             empty($admin['emailVerificationExpires'])
         ) {
 
-            $message = 'There is no pending email change to verify.';
+            $message =
+                'There is no pending email change to verify.';
 
+        /*
+         * Token has expired.
+         */
         } elseif (
             strtotime($admin['emailVerificationExpires']) < time()
         ) {
 
-            $message = 'This verification link has expired. Please request a new email change.';
+            $message =
+                'This verification link has expired. Please request a new email change.';
 
         } else {
 
             /*
-             * The token is valid.
-             *
-             * Now move pendingEmail into the real email field.
+             * Save the pending email before
+             * clearing it from the database.
+             */
+            $verifiedEmail = $admin['pendingEmail'];
+
+            /*
+             * Move pendingEmail into the actual
+             * verified email field.
              */
             $updateQuery = '
                 UPDATE "Admin"
@@ -88,15 +107,16 @@ if ($token === '') {
             ]);
 
             /*
-             * If the admin is currently logged in,
-             * update their session email too.
+             * Update the current session if the
+             * admin is logged in.
              */
             if (
                 isset($_SESSION['adminID']) &&
                 (int) $_SESSION['adminID'] ===
                 (int) $admin['adminID']
             ) {
-                $_SESSION['email'] = $admin['pendingEmail'];
+
+                $_SESSION['email'] = $verifiedEmail;
             }
 
             $success = true;
@@ -115,10 +135,13 @@ if ($token === '') {
             'Unable to verify the email address. Please try again later.';
     }
 }
+
 ?>
 
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
 
     <meta charset="UTF-8">
@@ -267,4 +290,5 @@ if ($token === '') {
     </div>
 
 </body>
+
 </html>

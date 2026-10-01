@@ -16,10 +16,10 @@ $error = '';
 
 
   <!--<link rel="stylesheet" href="../css/admin_login.css">-->
-  <link rel="stylesheet" href="/Convergence%20Project/css/admin_login.css">
+  <link rel="stylesheet" href="../css/admin_login.css">
 
   <!--<link rel="icon" type="image/png" href="../Images/Convergence Logo.png">-->
-  <link rel="icon" type="image/png" href="/Convergence%20Project/Images/Convergence%20Logo.png">
+  <link rel="icon" type="image/png" href="../Images/Convergence%20Logo.png">
   
 
 </head>
@@ -29,11 +29,11 @@ $error = '';
   <header>
     <div class="header-container">
       <!--<a href="../home.php" class="brand">-->
-        <a href="/Convergence%20Project/home.php" class="brand">
+        <a href="../home.php" class="brand">
 
         <div class="logo">
           <!--<img src="../Images/Convergence Logo.png" alt="Convergence Logo">-->
-          <img src="/Convergence%20Project/Images/Convergence%20Logo.png" alt="Convergence Logo">
+          <img src="../Images/Convergence%20Logo.png" alt="Convergence Logo">
         </div>
 
         <div class="brand-text">
@@ -52,7 +52,7 @@ $error = '';
       <p class="lead">Access the Admin Dashboard </p>
 
       <!--<form id="f" method="post" action="admin_login_process.php" novalidate>-->
-        <form id="f" method="post" action="/Convergence%20Project/Admin%20Panel/admin_login_process.php" novalidate>
+        <form id="f" method="post" action="../Admin%20Panel/admin_login_process.php" novalidate>
 
         <?php if (isset($_GET['error']) && $_GET['error'] === 'invalid'): ?>
           <p class="error-message">Invalid email or password.</p>
@@ -83,7 +83,7 @@ $error = '';
 
         <div class="row">
           <!--<a href="forgot_password.php">Forgot password?</a>-->
-          <a href="/Convergence%20Project/Admin%20Panel/forgot_password.php">Forgot password?</a>
+          <a href="../Admin%20Panel/forgot_password.php">Forgot password?</a>
         </div>
 
         <button class="btn" type="submit">
