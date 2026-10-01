@@ -93,33 +93,6 @@ $pageTitle = "Manage Journals - Convergence";
 
     </div>
 
-
-    <!-- REMOVE ARTICLE CONFIRMATION MODAL -->
-    <!--<div class="confirmation-modal" id="confirmationModal">
-        <div class="confirmation-overlay"></div>
-
-        <div class="confirmation-dialog">
-
-            <div class="confirmation-icon">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-
-            <h3>Remove Article?</h3>
-
-            <p id="confirmationMessage">Are you sure you want to remove this article?</p>
-
-            <div class="confirmation-actions">
-                <button type="button" class="modal-cancel-btn" onclick="closeConfirmationModal()">Cancel
-                </button>
-                <button type="button" class="modal-confirm-btn" id="confirmDeleteButton">Remove Article</button>
-            </div>
-
-        </div>
-
-    </div>-->
-
-
-
     <!-- REMOVE ARTICLE CONFIRMATION MODAL -->
     <div class="confirmation-modal" id="confirmationModal">
 
