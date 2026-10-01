@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../classes/Admin.php';
+require_once __DIR__ . '/../Classes/Admin.php';
 
 if (!class_exists('Admin')) {
     die('Admin.php was loaded, but the Admin class was not found.');

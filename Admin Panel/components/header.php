@@ -1,8 +1,8 @@
 <?php
 // Make sure the session is available
-if (session_status() === PHP_SESSION_NONE) {
+/*if (session_status() === PHP_SESSION_NONE) {
     session_start();
-}
+}*/
 
 $username = $_SESSION['username'] ?? 'Admin';
 $profilePicture = $_SESSION['profilePic'] ?? '';

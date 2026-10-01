@@ -1,5 +1,7 @@
 <?php
 $pageTitle = "Manage Journals - Convergence";
+
+require_once __DIR__ . '/../config/session.php';
 ?>
 
 <!DOCTYPE html>

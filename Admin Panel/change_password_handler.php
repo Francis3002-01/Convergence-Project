@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../classes/Admin.php';
+require_once __DIR__ . '/../Classes/Admin.php';
 
 // Only allow POST requests.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
