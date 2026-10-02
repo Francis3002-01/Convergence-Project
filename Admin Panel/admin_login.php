@@ -29,11 +29,14 @@ $error = '';
 
   <!--<link rel="stylesheet" href="../css/admin_login.css">-->
   <!--<link rel="stylesheet" href="../css/admin_login.css">-->
-  <link rel="stylesheet" href="../css/admin_login.css">
+  <!--<link rel="stylesheet" href="../css/admin_login.css">-->
 
   <!--<link rel="icon" type="image/png" href="../Images/Convergence Logo.png">-->
   <!--<link rel="icon" type="image/png" href="../Images/Convergence%20Logo.png">-->
-  <link rel="icon" type="image/png"href="../Images/Convergence%20Logo.png">
+  <!--<link rel="icon" type="image/png"href="../Images/Convergence%20Logo.png">-->
+
+  <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/css/admin_login.css">
+  <link rel="icon" type="image/png" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/Images/Convergence%20Logo.png">
   
 </head>
 
@@ -42,13 +45,15 @@ $error = '';
   <header>
     <div class="header-container">
       <!--<a href="../home.php" class="brand">-->
-        <a href="../home.php" class="brand">
+        <!--<a href="../home.php" class="brand">-->
+        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/home.php" class="brand">
 
         <div class="logo">
 
           <!--<img src="../Images/Convergence Logo.png" alt="Convergence Logo">-->
           <!--<img src="../Images/Convergence%20Logo.png" alt="Convergence Logo">-->
-          <img src="../Images/Convergence%20Logo.png"alt="Convergence Logo">
+          <!--<img src="../Images/Convergence%20Logo.png"alt="Convergence Logo">-->
+          <img src="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/Images/Convergence%20Logo.png" alt="Convergence Logo">
 
 
         </div>
@@ -71,8 +76,9 @@ $error = '';
       <!--<form id="f" method="post" action="admin_login_process.php" novalidate>-->
 
 
-        <form id="f" method="post"action="../Admin%20Panel/admin_login_process.php"novalidate>
+        <!--<form id="f" method="post"action="../Admin%20Panel/admin_login_process.php"novalidate>-->
         <!--<form id="f" method="post" action="../Admin%20Panel/admin_login_process.php" novalidate>-->
+        <form id="f" method="post" action="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/Admin%20Panel/admin_login_process.php" novalidate>
 
         <?php if (isset($_GET['error']) && $_GET['error'] === 'invalid'): ?>
           <p class="error-message">Invalid email or password.</p>
@@ -106,7 +112,8 @@ $error = '';
           <!--<a href="forgot_password.php">Forgot password?</a>-->
           <!--<a href="../Admin%20Panel/forgot_password.php">Forgot password?</a>-->
 
-          <a href="../Admin%20Panel/forgot_password.php">Forgot password?</a>
+          <!--<a href="../Admin%20Panel/forgot_password.php">Forgot password?</a>-->
+          <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/Admin%20Panel/forgot_password.php">Forgot password?</a>
 
 
         </div>
