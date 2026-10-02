@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../config/session.php';
-require_once __DIR__ . '/../classes/Admin.php';
+require_once __DIR__ . '/../Classes/Admin.php';
 
 // Make sure the admin is logged in.
 if (!Admin::isLoggedIn()) {

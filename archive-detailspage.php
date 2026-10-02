@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
-require_once __DIR__ . '/classes/PublicationIssue.php';
+require_once __DIR__ . '/Classes/PublicationIssue.php';
 
 use Dotenv\Dotenv;
 

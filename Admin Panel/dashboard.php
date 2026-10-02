@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../config/session.php';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
