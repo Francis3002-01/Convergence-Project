@@ -79,7 +79,8 @@ class Admin
                 "email",
                 "profilePic",
                 "mustChangePassword",
-                "pendingEmail"
+                "pendingEmail",
+                "emailVerificationExpires"
             FROM "Admin"
             WHERE "adminID" = :adminID
             LIMIT 1
@@ -94,6 +95,75 @@ class Admin
         $profile = $stmt->fetch();
 
         return $profile ?: null;
+    }
+
+    public function getEmailVerificationStatus(): array
+    {
+        if (!self::isLoggedIn()) {
+            return [
+                'pending' => false,
+                'email' => null,
+                'expired' => false
+            ];
+        }
+
+        $sql = '
+            SELECT
+                "pendingEmail",
+                "emailVerificationExpires"
+            FROM "Admin"
+            WHERE "adminID" = :adminID
+            LIMIT 1
+        ';
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute([
+            ':adminID' => $_SESSION['adminID']
+        ]);
+
+        $result = $stmt->fetch();
+
+        if (!$result || empty($result['pendingEmail'])) {
+            return [
+                'pending' => false,
+                'email' => null,
+                'expired' => false
+            ];
+        }
+
+        if (
+            empty($result['emailVerificationExpires']) ||
+            strtotime($result['emailVerificationExpires']) <= time()
+        ) {
+
+            $clearQuery = '
+                UPDATE "Admin"
+                SET
+                    "pendingEmail" = NULL,
+                    "emailVerificationToken" = NULL,
+                    "emailVerificationExpires" = NULL
+                WHERE "adminID" = :adminID
+            ';
+
+            $clearStmt = $this->pdo->prepare($clearQuery);
+
+            $clearStmt->execute([
+                ':adminID' => $_SESSION['adminID']
+            ]);
+
+            return [
+                'pending' => false,
+                'email' => null,
+                'expired' => true
+            ];
+        }
+
+        return [
+            'pending' => true,
+            'email' => $result['pendingEmail'],
+            'expired' => false
+        ];
     }
 
     public function changePassword(

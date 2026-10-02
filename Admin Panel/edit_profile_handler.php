@@ -8,20 +8,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 
-
-// --------------------------------------------------
-// Only allow POST requests
-// --------------------------------------------------
-
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: edit_profile.php');
     exit;
 }
-
-
-// --------------------------------------------------
-// Make sure admin is logged in
-// --------------------------------------------------
 
 if (!Admin::isLoggedIn()) {
     header('Location: admin_login.php');
@@ -30,35 +20,27 @@ if (!Admin::isLoggedIn()) {
 
 $adminID = $_SESSION['adminID'];
 
-
-// --------------------------------------------------
-// Get submitted values
-// --------------------------------------------------
-
 $usernameInput = trim($_POST['username'] ?? '');
 $emailInput = trim($_POST['email'] ?? '');
-
-
-// --------------------------------------------------
-// Connect to database
-// --------------------------------------------------
 
 try {
 
     $database = new Database();
     $pdo = $database->getConnection();
 
-
-    // --------------------------------------------------
-    // Get current admin information
-    // --------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Get Current Admin Information
+    |--------------------------------------------------------------------------
+    */
 
     $currentQuery = '
         SELECT
             "username",
             "email",
             "profilePic",
-            "pendingEmail"
+            "pendingEmail",
+            "emailVerificationExpires"
         FROM "Admin"
         WHERE "adminID" = :adminID
         LIMIT 1
@@ -72,32 +54,64 @@ try {
 
     $currentAdmin = $currentStmt->fetch();
 
-
     if (!$currentAdmin) {
         header('Location: edit_profile.php?error=database');
         exit;
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Clear Expired Email Verification Data
+    |--------------------------------------------------------------------------
+    */
 
-    // --------------------------------------------------
-    // Username
-    // --------------------------------------------------
+    if (
+        !empty($currentAdmin['pendingEmail']) &&
+        !empty($currentAdmin['emailVerificationExpires']) &&
+        strtotime($currentAdmin['emailVerificationExpires']) <= time()
+    ) {
+
+        $clearExpiredQuery = '
+            UPDATE "Admin"
+            SET
+                "pendingEmail" = NULL,
+                "emailVerificationToken" = NULL,
+                "emailVerificationExpires" = NULL
+            WHERE "adminID" = :adminID
+        ';
+
+        $clearExpiredStmt = $pdo->prepare($clearExpiredQuery);
+
+        $clearExpiredStmt->execute([
+            ':adminID' => $adminID
+        ]);
+
+        // Update the local copy as well.
+        $currentAdmin['pendingEmail'] = null;
+        $currentAdmin['emailVerificationExpires'] = null;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Username
+    |--------------------------------------------------------------------------
+    */
 
     $username = $usernameInput !== ''
         ? $usernameInput
         : $currentAdmin['username'];
 
-
-    // --------------------------------------------------
-    // Email
-    // --------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Email
+    |--------------------------------------------------------------------------
+    */
 
     $emailChanged = false;
 
     if ($emailInput === '') {
 
-        // If the email field is left blank,
-        // keep the current email.
+        // Keep the current verified email.
         $emailInput = $currentAdmin['email'];
 
     } elseif (!filter_var($emailInput, FILTER_VALIDATE_EMAIL)) {
@@ -115,10 +129,11 @@ try {
         $emailChanged = true;
     }
 
-
-    // --------------------------------------------------
-    // Profile picture
-    // --------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Profile Picture Upload
+    |--------------------------------------------------------------------------
+    */
 
     $profilePicPath = null;
 
@@ -132,17 +147,19 @@ try {
             exit;
         }
 
-
-        // Maximum file size: 2 MB
-        $maxFileSize = 2 * 1024 * 1024;
+        $maxFileSize = 2 * 1024 * 1024; // 2 MB
 
         if ($_FILES['profile_picture']['size'] > $maxFileSize) {
             header('Location: edit_profile.php?error=size');
             exit;
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Image
+        |--------------------------------------------------------------------------
+        */
 
-        // Check that the file is actually an image
         $imageInfo = getimagesize(
             $_FILES['profile_picture']['tmp_name']
         );
@@ -152,8 +169,6 @@ try {
             exit;
         }
 
-
-        // Allowed image types
         $allowedTypes = [
             IMAGETYPE_JPEG => 'jpg',
             IMAGETYPE_PNG  => 'png',
@@ -167,10 +182,13 @@ try {
             exit;
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Create Upload Directory
+        |--------------------------------------------------------------------------
+        */
 
-        // Upload directory
         $uploadDirectory = __DIR__ . '/uploads/admin_profiles/';
-
 
         if (!is_dir($uploadDirectory)) {
 
@@ -180,8 +198,12 @@ try {
             }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Generate Unique File Name
+        |--------------------------------------------------------------------------
+        */
 
-        // Generate a unique filename
         $extension = $allowedTypes[$imageType];
 
         $fileName =
@@ -192,11 +214,14 @@ try {
             '.' .
             $extension;
 
-
         $destination = $uploadDirectory . $fileName;
 
+        /*
+        |--------------------------------------------------------------------------
+        | Move Uploaded File
+        |--------------------------------------------------------------------------
+        */
 
-        // Move uploaded image
         if (!move_uploaded_file(
             $_FILES['profile_picture']['tmp_name'],
             $destination
@@ -206,23 +231,23 @@ try {
             exit;
         }
 
-
-        // Path stored in database
         $profilePicPath =
             'uploads/admin_profiles/' . $fileName;
     }
 
-
-    // --------------------------------------------------
-    // Begin database transaction
-    // --------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Begin Database Transaction
+    |--------------------------------------------------------------------------
+    */
 
     $pdo->beginTransaction();
 
-
-    // --------------------------------------------------
-    // Update username/profile picture
-    // --------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Update Username / Profile Picture
+    |--------------------------------------------------------------------------
+    */
 
     if ($profilePicPath !== null) {
 
@@ -259,34 +284,52 @@ try {
         ]);
     }
 
-
-    // --------------------------------------------------
-    // EMAIL CHANGED
-    // --------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Email Change
+    |--------------------------------------------------------------------------
+    */
 
     if ($emailChanged) {
 
-        // Generate random verification token
+        /*
+        |--------------------------------------------------------------------------
+        | Generate Verification Token
+        |--------------------------------------------------------------------------
+        */
+
         $verificationToken = bin2hex(
             random_bytes(32)
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Store Only Token Hash in Database
+        |--------------------------------------------------------------------------
+        */
 
-        // Store only the SHA-256 hash in the database
         $tokenHash = hash(
             'sha256',
             $verificationToken
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Token Expires in 30 Minutes
+        |--------------------------------------------------------------------------
+        */
 
-        // Token expires after 30 minutes
         $expiration = date(
             'Y-m-d H:i:s',
             time() + (30 * 60)
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Store Pending Email
+        |--------------------------------------------------------------------------
+        */
 
-        // Store pending email and verification information
         $pendingEmailQuery = '
             UPDATE "Admin"
             SET
@@ -307,19 +350,21 @@ try {
             ':adminID' => $adminID
         ]);
 
-
-        // --------------------------------------------------
-        // Create verification URL
-        // --------------------------------------------------
+        /*
+        |--------------------------------------------------------------------------
+        | Verification URL
+        |--------------------------------------------------------------------------
+        */
 
         $verificationUrl =
             'http://localhost/convergence/Admin%20Panel/verify_email.php?token=' .
             urlencode($verificationToken);
 
-
-        // --------------------------------------------------
-        // Configure PHPMailer
-        // --------------------------------------------------
+        /*
+        |--------------------------------------------------------------------------
+        | Configure PHPMailer
+        |--------------------------------------------------------------------------
+        */
 
         $mail = new PHPMailer(true);
 
@@ -339,32 +384,42 @@ try {
         $mail->Port =
             (int) $_ENV['MAIL_PORT'];
 
+        /*
+        |--------------------------------------------------------------------------
+        | Sender
+        |--------------------------------------------------------------------------
+        */
 
-        // Sender
         $mail->setFrom(
             $_ENV['MAIL_FROM_ADDRESS'],
             $_ENV['MAIL_FROM_NAME']
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Recipient
+        |--------------------------------------------------------------------------
+        */
 
-        // Recipient
         $mail->addAddress($emailInput);
 
-
-        // --------------------------------------------------
-        // Email content
-        // --------------------------------------------------
+        /*
+        |--------------------------------------------------------------------------
+        | Email Content
+        |--------------------------------------------------------------------------
+        */
 
         $mail->isHTML(true);
 
         $mail->Subject =
             'Verify Your New Email Address - Convergence Journal';
 
-
         $mail->Body = '
             <div style="
                 font-family: Arial, sans-serif;
                 line-height: 1.6;
+                max-width: 600px;
+                margin: 0 auto;
             ">
 
                 <h2>Convergence Journal</h2>
@@ -414,7 +469,6 @@ try {
             </div>
         ';
 
-
         $mail->AltBody =
             "You requested to change your Convergence Journal " .
             "administrator email address.\n\n" .
@@ -425,29 +479,39 @@ try {
 
             "\n\nThis link will expire in 30 minutes.";
 
+        /*
+        |--------------------------------------------------------------------------
+        | Send Email
+        |--------------------------------------------------------------------------
+        */
 
-        // Send email
         $mail->send();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Commit Database Changes
+        |--------------------------------------------------------------------------
+        */
 
-        // Everything succeeded
         $pdo->commit();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Update Session
+        |--------------------------------------------------------------------------
+        */
 
-        // Update session information that changed immediately
         $_SESSION['username'] = $username;
 
         if ($profilePicPath !== null) {
             $_SESSION['profilePic'] = $profilePicPath;
         }
 
-
-        // IMPORTANT:
-        // Do NOT update $_SESSION['email'] yet.
-        //
-        // The current email remains the active email
-        // until the user clicks the verification link.
-
+        /*
+        |--------------------------------------------------------------------------
+        | Redirect
+        |--------------------------------------------------------------------------
+        */
 
         header(
             'Location: edit_profile.php?success=verification_sent'
@@ -456,21 +520,31 @@ try {
         exit;
     }
 
-
-    // --------------------------------------------------
-    // EMAIL DID NOT CHANGE
-    // --------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | No Email Change
+    |--------------------------------------------------------------------------
+    */
 
     $pdo->commit();
 
+    /*
+    |--------------------------------------------------------------------------
+    | Update Session
+    |--------------------------------------------------------------------------
+    */
 
-    // Update session information
     $_SESSION['username'] = $username;
 
     if ($profilePicPath !== null) {
         $_SESSION['profilePic'] = $profilePicPath;
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect
+    |--------------------------------------------------------------------------
+    */
 
     header(
         'Location: edit_profile.php?success=updated'
@@ -478,19 +552,22 @@ try {
 
     exit;
 
-
 } catch (Exception $e) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | PHPMailer Error
+    |--------------------------------------------------------------------------
+    */
 
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
-
     error_log(
         'Edit Profile Email Error: ' .
         $e->getMessage()
     );
-
 
     header(
         'Location: edit_profile.php?error=email_send'
@@ -498,19 +575,22 @@ try {
 
     exit;
 
-
 } catch (PDOException $e) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Error
+    |--------------------------------------------------------------------------
+    */
 
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
-
     error_log(
         'Edit Profile Database Error: ' .
         $e->getMessage()
     );
-
 
     header(
         'Location: edit_profile.php?error=database'
