@@ -2,16 +2,22 @@
 
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../classes/Admin.php';
+require_once __DIR__ . '/../Classes/Admin.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use PHPMailer\PHPMailer\Exception;
+error_log('EDIT PROFILE HANDLER REACHED');
+
+error_log(
+    'FILES: ' . print_r($_FILES, true)
+);
+
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
 
 
 /*
 |--------------------------------------------------------------------------
-| Helper: Upload profile picture to Supabase Storage
+| Helper: Upload Profile Picture to Supabase Storage
 |--------------------------------------------------------------------------
 */
 
@@ -21,28 +27,35 @@ function uploadProfilePictureToSupabase(
     string $mimeType
 ): string {
 
-    $supabaseUrl = rtrim($_ENV['SUPABASE_URL'] ?? '', '/');
+    $supabaseUrl = rtrim(
+        $_ENV['SUPABASE_URL'] ?? '',
+        '/'
+    );
+
     $bucket = $_ENV['SUPABASE_PICTURE_BUCKET'] ?? '';
+
     $secretKey = $_ENV['SUPABASE_SECRET_KEY'] ?? '';
 
     if (
-        empty($supabaseUrl) ||
-        empty($bucket) ||
-        empty($secretKey)
+        $supabaseUrl === '' ||
+        $bucket === '' ||
+        $secretKey === ''
     ) {
-        throw new Exception(
+        throw new \Exception(
             'Supabase Storage configuration is missing.'
         );
     }
 
     /*
-     * Store images inside:
-     *
-     * profilePic/
-     *     admins/
-     *         admin_1_xxxxx.jpg
-     */
-    $storagePath = 'admins/' . $fileName;
+    |--------------------------------------------------------------------------
+    | Fixed Storage Path
+    |--------------------------------------------------------------------------
+    |
+    | Every new profile picture replaces this file.
+    |
+    */
+
+    $storagePath = 'admin/profile.jpg';
 
     $uploadUrl =
         $supabaseUrl .
@@ -51,22 +64,33 @@ function uploadProfilePictureToSupabase(
         '/' .
         $storagePath;
 
-    $fileContents = file_get_contents($temporaryFile);
+    if (!is_file($temporaryFile)) {
+        throw new \Exception(
+            'Temporary uploaded image file does not exist.'
+        );
+    }
+
+    $fileContents = file_get_contents(
+        $temporaryFile
+    );
 
     if ($fileContents === false) {
-        throw new Exception(
-            'Unable to read the uploaded profile picture.'
+        throw new \Exception(
+            'Unable to read the uploaded image.'
         );
     }
 
     $curl = curl_init($uploadUrl);
 
+    if ($curl === false) {
+        throw new \Exception(
+            'Unable to initialize cURL.'
+        );
+    }
+
     curl_setopt_array($curl, [
         CURLOPT_RETURNTRANSFER => true,
 
-        /*
-         * Supabase Storage accepts POST for standard uploads.
-         */
         CURLOPT_CUSTOMREQUEST => 'POST',
 
         CURLOPT_POSTFIELDS => $fileContents,
@@ -75,7 +99,7 @@ function uploadProfilePictureToSupabase(
             'Authorization: Bearer ' . $secretKey,
             'apikey: ' . $secretKey,
             'Content-Type: ' . $mimeType,
-            'x-upsert: false'
+            'x-upsert: true'
         ]
     ]);
 
@@ -87,8 +111,8 @@ function uploadProfilePictureToSupabase(
 
         curl_close($curl);
 
-        throw new Exception(
-            'Supabase upload failed: ' . $curlError
+        throw new \Exception(
+            'cURL error: ' . $curlError
         );
     }
 
@@ -99,48 +123,75 @@ function uploadProfilePictureToSupabase(
 
     curl_close($curl);
 
-    if ($httpStatus < 200 || $httpStatus >= 300) {
 
-        throw new Exception(
-            'Supabase upload failed. HTTP status: ' .
+    /*
+    |--------------------------------------------------------------------------
+    | Temporary Debug Logging
+    |--------------------------------------------------------------------------
+    */
+
+    error_log(
+        'Supabase Storage HTTP Status: ' .
+        $httpStatus
+    );
+
+    error_log(
+        'Supabase Storage Response: ' .
+        $response
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Check Supabase Response
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $httpStatus < 200 ||
+        $httpStatus >= 300
+    ) {
+        throw new \Exception(
+            'Supabase Storage upload failed. HTTP ' .
             $httpStatus .
-            '. Response: ' .
+            ': ' .
             $response
         );
     }
 
-    /*
-     * Public URL of the uploaded image.
-     */
-    return
-        $supabaseUrl .
-        '/storage/v1/object/public/' .
-        rawurlencode($bucket) .
-        '/' .
-        $storagePath;
+    return $storagePath;
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| Only allow POST requests
+| Only Allow POST Requests
 |--------------------------------------------------------------------------
 */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: edit_profile.php');
+if (
+    $_SERVER['REQUEST_METHOD'] !== 'POST'
+) {
+    header(
+        'Location: edit_profile.php'
+    );
+
     exit;
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| Authentication check
+| Authentication
 |--------------------------------------------------------------------------
 */
 
 if (!Admin::isLoggedIn()) {
-    header('Location: admin_login.php');
+
+    header(
+        'Location: admin_login.php'
+    );
+
     exit;
 }
 
@@ -152,6 +203,7 @@ if (!Admin::isLoggedIn()) {
 */
 
 $database = new Database();
+
 $pdo = $database->getConnection();
 
 $adminID = $_SESSION['adminID'];
@@ -159,29 +211,38 @@ $adminID = $_SESSION['adminID'];
 
 /*
 |--------------------------------------------------------------------------
-| Form values
+| Form Values
 |--------------------------------------------------------------------------
 */
 
-$username = trim($_POST['username'] ?? '');
-$newEmail = trim($_POST['email'] ?? '');
+$username = trim(
+    $_POST['username'] ?? ''
+);
+
+$newEmail = trim(
+    $_POST['email'] ?? ''
+);
 
 
 /*
 |--------------------------------------------------------------------------
-| Validate username
+| Validate Username
 |--------------------------------------------------------------------------
 */
 
 if ($username === '') {
-    header('Location: edit_profile.php?error=required');
+
+    header(
+        'Location: edit_profile.php?error=required'
+    );
+
     exit;
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| Get current admin information
+| Get Current Admin Information
 |--------------------------------------------------------------------------
 */
 
@@ -191,7 +252,6 @@ try {
         SELECT
             "username",
             "email",
-            "profilePic",
             "pendingEmail",
             "emailVerificationToken",
             "emailVerificationExpires"
@@ -200,7 +260,9 @@ try {
         LIMIT 1
     ';
 
-    $currentStmt = $pdo->prepare($currentQuery);
+    $currentStmt = $pdo->prepare(
+        $currentQuery
+    );
 
     $currentStmt->execute([
         ':adminID' => $adminID
@@ -209,7 +271,11 @@ try {
     $currentAdmin = $currentStmt->fetch();
 
     if (!$currentAdmin) {
-        header('Location: edit_profile.php?error=database');
+
+        header(
+            'Location: edit_profile.php?error=database'
+        );
+
         exit;
     }
 
@@ -220,152 +286,208 @@ try {
         $e->getMessage()
     );
 
-    header('Location: edit_profile.php?error=database');
+    header(
+        'Location: edit_profile.php?error=database'
+    );
+
     exit;
 }
 
 
-$currentUsername = $currentAdmin['username'];
 $currentEmail = $currentAdmin['email'];
-$currentProfilePic = $currentAdmin['profilePic'] ?? null;
 
 
 /*
 |--------------------------------------------------------------------------
-| Email validation
+| Email Validation
 |--------------------------------------------------------------------------
 */
 
 if ($newEmail === '') {
+
     $newEmail = $currentEmail;
 }
 
-if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
-    header('Location: edit_profile.php?error=email');
+if (
+    !filter_var(
+        $newEmail,
+        FILTER_VALIDATE_EMAIL
+    )
+) {
+
+    header(
+        'Location: edit_profile.php?error=email'
+    );
+
     exit;
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| Determine whether email is changing
+| Determine Whether Email Changed
 |--------------------------------------------------------------------------
 */
 
 $emailChanged = (
-    strcasecmp($newEmail, $currentEmail) !== 0
+    strcasecmp(
+        $newEmail,
+        $currentEmail
+    ) !== 0
 );
 
 
 /*
 |--------------------------------------------------------------------------
-| Profile picture
-|--------------------------------------------------------------------------
-*/
-
-$profilePicPath = $currentProfilePic;
-
-
-/*
-|--------------------------------------------------------------------------
-| Handle profile picture upload
+| Handle Profile Picture
 |--------------------------------------------------------------------------
 */
 
 if (
-    isset($_FILES['profilePic']) &&
-    $_FILES['profilePic']['error'] !== UPLOAD_ERR_NO_FILE
+    isset($_FILES['profile_picture']) &&
+    $_FILES['profile_picture']['error'] !==
+    UPLOAD_ERR_NO_FILE
 ) {
 
     /*
-     * Upload error
-     */
-    if ($_FILES['profilePic']['error'] !== UPLOAD_ERR_OK) {
-        header('Location: edit_profile.php?error=upload');
+    |--------------------------------------------------------------------------
+    | Debug Log
+    |--------------------------------------------------------------------------
+    */
+
+    error_log(
+        'PROFILE PICTURE BLOCK REACHED'
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Check Upload Error
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $_FILES['profile_picture']['error'] !==
+        UPLOAD_ERR_OK
+    ) {
+
+        error_log(
+            'Profile Picture Upload Error Code: ' .
+            $_FILES['profile_picture']['error']
+        );
+
+        header(
+            'Location: edit_profile.php?error=upload'
+        );
+
         exit;
     }
 
 
     /*
-     * Maximum size: 2 MB
-     */
-    if ($_FILES['profilePic']['size'] > 2 * 1024 * 1024) {
-        header('Location: edit_profile.php?error=size');
+    |--------------------------------------------------------------------------
+    | Check File Size
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $_FILES['profile_picture']['size'] >
+        2 * 1024 * 1024
+    ) {
+
+        header(
+            'Location: edit_profile.php?error=size'
+        );
+
         exit;
     }
 
 
     /*
-     * Verify that the file is actually an image.
-     */
+    |--------------------------------------------------------------------------
+    | Verify Image
+    |--------------------------------------------------------------------------
+    */
+
     $imageInfo = getimagesize(
-        $_FILES['profilePic']['tmp_name']
+        $_FILES['profile_picture']['tmp_name']
     );
 
     if ($imageInfo === false) {
-        header('Location: edit_profile.php?error=image');
+
+        header(
+            'Location: edit_profile.php?error=image'
+        );
+
         exit;
     }
 
 
     /*
-     * Allowed image types.
-     */
-    $allowedTypes = [
-        IMAGETYPE_JPEG => 'jpg',
-        IMAGETYPE_PNG  => 'png',
-        IMAGETYPE_WEBP => 'webp'
-    ];
+    |--------------------------------------------------------------------------
+    | Only Allow JPEG
+    |--------------------------------------------------------------------------
+    |
+    | The Supabase object uses the fixed filename:
+    |
+    | admin/profile.jpg
+    |
+    | Therefore the uploaded file must actually be JPEG.
+    |
+    */
 
     $imageType = $imageInfo[2];
 
-    if (!isset($allowedTypes[$imageType])) {
-        header('Location: edit_profile.php?error=type');
+    if (
+        $imageType !== IMAGETYPE_JPEG
+    ) {
+
+        header(
+            'Location: edit_profile.php?error=type'
+        );
+
         exit;
     }
 
 
-    /*
-     * Get extension and MIME type.
-     */
-    $extension = $allowedTypes[$imageType];
-    $mimeType = $imageInfo['mime'];
+    $mimeType = 'image/jpeg';
+
+    $fileName = 'admin/profile.jpg';
 
 
     /*
-     * Generate a unique filename.
-     *
-     * Example:
-     * admin_1_a83f92b7c123.jpg
-     */
-    $fileName =
-        'admin_' .
-        $adminID .
-        '_' .
-        bin2hex(random_bytes(8)) .
-        '.' .
-        $extension;
+    |--------------------------------------------------------------------------
+    | Upload to Supabase
+    |--------------------------------------------------------------------------
+    */
 
-
-    /*
-     * Upload directly to Supabase Storage.
-     */
     try {
 
-        $profilePicPath = uploadProfilePictureToSupabase(
-            $_FILES['profilePic']['tmp_name'],
+        error_log(
+            'ABOUT TO UPLOAD PROFILE PICTURE TO SUPABASE'
+        );
+
+        uploadProfilePictureToSupabase(
+            $_FILES['profile_picture']['tmp_name'],
             $fileName,
             $mimeType
         );
 
-    } catch (Exception $e) {
+        error_log(
+            'PROFILE PICTURE UPLOAD COMPLETED'
+        );
+
+    } catch (\Exception $e) {
 
         error_log(
             'Profile Picture Upload Error: ' .
             $e->getMessage()
         );
 
-        header('Location: edit_profile.php?error=upload');
+        header(
+            'Location: edit_profile.php?error=upload'
+        );
+
         exit;
     }
 }
@@ -373,7 +495,7 @@ if (
 
 /*
 |--------------------------------------------------------------------------
-| Begin database transaction
+| Begin Database Transaction
 |--------------------------------------------------------------------------
 */
 
@@ -384,25 +506,25 @@ try {
 
     /*
     |--------------------------------------------------------------------------
-    | Handle email change
+    | Email Change
     |--------------------------------------------------------------------------
     */
 
     if ($emailChanged) {
 
         /*
-         * Generate raw token.
-         *
-         * This is sent through the email.
-         */
+        | Generate verification token
+        */
+
         $verificationToken = bin2hex(
             random_bytes(32)
         );
 
 
         /*
-         * Store only the SHA-256 hash in the database.
-         */
+        | Store only the hashed token
+        */
+
         $verificationTokenHash = hash(
             'sha256',
             $verificationToken
@@ -410,8 +532,9 @@ try {
 
 
         /*
-         * Verification expires after 30 minutes.
-         */
+        | Token expires after 30 minutes
+        */
+
         $verificationExpires = date(
             'Y-m-d H:i:s',
             time() + (30 * 60)
@@ -419,11 +542,9 @@ try {
 
 
         /*
-         * Save pending email and verification data.
-         *
-         * The existing email remains the active email
-         * until verification is completed.
-         */
+        | Save pending email
+        */
+
         $emailQuery = '
             UPDATE "Admin"
             SET
@@ -433,7 +554,9 @@ try {
             WHERE "adminID" = :adminID
         ';
 
-        $emailStmt = $pdo->prepare($emailQuery);
+        $emailStmt = $pdo->prepare(
+            $emailQuery
+        );
 
         $emailStmt->execute([
             ':pendingEmail' => $newEmail,
@@ -444,68 +567,87 @@ try {
 
 
         /*
-         * Build verification URL.
-         *
-         * Local development URL.
-         */
+        |--------------------------------------------------------------------------
+        | Verification URL
+        |--------------------------------------------------------------------------
+        */
+
         $verificationUrl =
-            'http://localhost/convergence/' .
+            'http://localhost/Convergence%20Project/' .
             'Admin%20Panel/verify_email.php?token=' .
             urlencode($verificationToken);
 
 
         /*
-         * Send verification email.
-         */
+        |--------------------------------------------------------------------------
+        | Configure PHPMailer
+        |--------------------------------------------------------------------------
+        */
+
         $mail = new PHPMailer(true);
 
         $mail->isSMTP();
 
         $mail->Host =
-            $_ENV['MAIL_HOST'] ?? 'smtp.gmail.com';
+            $_ENV['MAIL_HOST'] ??
+            'smtp.gmail.com';
 
         $mail->SMTPAuth = true;
 
         $mail->Username =
-            $_ENV['MAIL_USERNAME'] ?? '';
+            $_ENV['MAIL_USERNAME'] ??
+            '';
 
         $mail->Password =
-            $_ENV['MAIL_PASSWORD'] ?? '';
+            $_ENV['MAIL_PASSWORD'] ??
+            '';
 
         $mail->SMTPSecure =
             PHPMailer::ENCRYPTION_STARTTLS;
 
         $mail->Port =
-            (int) ($_ENV['MAIL_PORT'] ?? 587);
+            (int) (
+                $_ENV['MAIL_PORT'] ??
+                587
+            );
 
 
         /*
-         * Sender
-         */
+        |--------------------------------------------------------------------------
+        | Sender
+        |--------------------------------------------------------------------------
+        */
+
         $mail->setFrom(
-            $_ENV['MAIL_FROM_ADDRESS'],
-            $_ENV['MAIL_FROM_NAME'] ?? 'Convergence Journal'
+            $_ENV['MAIL_FROM_ADDRESS'] ??
+            '',
+            $_ENV['MAIL_FROM_NAME'] ??
+            'Convergence Journal'
         );
 
 
         /*
-         * Recipient
-         */
-        $mail->addAddress($newEmail);
+        |--------------------------------------------------------------------------
+        | Recipient
+        |--------------------------------------------------------------------------
+        */
+
+        $mail->addAddress(
+            $newEmail
+        );
 
 
         /*
-         * Email format
-         */
+        |--------------------------------------------------------------------------
+        | Email Content
+        |--------------------------------------------------------------------------
+        */
+
         $mail->isHTML(true);
 
         $mail->Subject =
             'Verify Your New Email Address - Convergence Journal';
 
-
-        /*
-         * Email body
-         */
         $mail->Body = '
             <h2>Verify Your Email Address</h2>
 
@@ -522,11 +664,13 @@ try {
 
             <p>
                 <a
-                    href="' . htmlspecialchars(
+                    href="' .
+                    htmlspecialchars(
                         $verificationUrl,
                         ENT_QUOTES,
                         'UTF-8'
-                    ) . '"
+                    ) .
+                    '"
                     style="
                         display:inline-block;
                         padding:12px 20px;
@@ -546,15 +690,18 @@ try {
             </p>
 
             <p>
-                If you did not request this change, you can
-                safely ignore this email.
+                If you did not request this change,
+                you can safely ignore this email.
             </p>
         ';
 
 
         /*
-         * Plain-text fallback
-         */
+        |--------------------------------------------------------------------------
+        | Plain Text Email
+        |--------------------------------------------------------------------------
+        */
+
         $mail->AltBody =
             'Verify your new Convergence Journal email address ' .
             'using this link: ' .
@@ -562,61 +709,45 @@ try {
 
 
         /*
-         * Send
-         */
+        |--------------------------------------------------------------------------
+        | Send Email
+        |--------------------------------------------------------------------------
+        */
+
         $mail->send();
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Update admin record
+    | Update Username
     |--------------------------------------------------------------------------
+    |
+    | Profile picture is stored in Supabase Storage,
+    | so there is no profilePic database column update here.
+    |
     */
 
-    if ($emailChanged) {
+    $updateQuery = '
+        UPDATE "Admin"
+        SET
+            "username" = :username
+        WHERE "adminID" = :adminID
+    ';
 
-        /*
-         * Keep the CURRENT email.
-         *
-         * The new email is stored in pendingEmail until
-         * verification is completed.
-         */
-        $updateQuery = '
-            UPDATE "Admin"
-            SET
-                "username" = :username,
-                "profilePic" = :profilePic
-            WHERE "adminID" = :adminID
-        ';
-
-    } else {
-
-        /*
-         * No email change.
-         */
-        $updateQuery = '
-            UPDATE "Admin"
-            SET
-                "username" = :username,
-                "profilePic" = :profilePic
-            WHERE "adminID" = :adminID
-        ';
-    }
-
-
-    $updateStmt = $pdo->prepare($updateQuery);
+    $updateStmt = $pdo->prepare(
+        $updateQuery
+    );
 
     $updateStmt->execute([
         ':username' => $username,
-        ':profilePic' => $profilePicPath,
         ':adminID' => $adminID
     ]);
 
 
     /*
     |--------------------------------------------------------------------------
-    | Commit transaction
+    | Commit Database Changes
     |--------------------------------------------------------------------------
     */
 
@@ -625,13 +756,11 @@ try {
 
     /*
     |--------------------------------------------------------------------------
-    | Update current session
+    | Update Session
     |--------------------------------------------------------------------------
     */
 
     $_SESSION['username'] = $username;
-
-    $_SESSION['profilePic'] = $profilePicPath;
 
 
     /*
@@ -656,11 +785,14 @@ try {
     exit;
 
 
-} catch (Exception $e) {
+/*
+|--------------------------------------------------------------------------
+| PHPMailer Exception
+|--------------------------------------------------------------------------
+*/
 
-    /*
-     * PHPMailer errors
-     */
+} catch (PHPMailerException $e) {
+
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
@@ -677,11 +809,14 @@ try {
     exit;
 
 
+/*
+|--------------------------------------------------------------------------
+| Database Exception
+|--------------------------------------------------------------------------
+*/
+
 } catch (PDOException $e) {
 
-    /*
-     * Database errors
-     */
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }

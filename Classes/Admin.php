@@ -17,8 +17,7 @@ class Admin
                 "username",
                 "email",
                 "password",
-                "mustChangePassword",
-                "profilePic"
+                "mustChangePassword"    
             FROM "Admin"
             WHERE "email" = :email
             LIMIT 1
@@ -41,7 +40,6 @@ class Admin
         $_SESSION['username'] = $admin['username'];
         $_SESSION['email'] = $admin['email'];
         $_SESSION['mustChangePassword'] = $admin['mustChangePassword'];
-        $_SESSION['profilePic'] = $admin['profilePic'] ?? null;
 
         return true;
     }
@@ -61,8 +59,7 @@ class Admin
             'adminID' => $_SESSION['adminID'],
             'username' => $_SESSION['username'] ?? null,
             'email' => $_SESSION['email'] ?? null,
-            'mustChangePassword' => $_SESSION['mustChangePassword'] ?? false,
-            'profilePic' => $_SESSION['profilePic'] ?? null
+            'mustChangePassword' => $_SESSION['mustChangePassword'] ?? false
         ];
     }
 
@@ -77,7 +74,6 @@ class Admin
                 "adminID",
                 "username",
                 "email",
-                "profilePic",
                 "mustChangePassword",
                 "pendingEmail",
                 "emailVerificationExpires"
@@ -94,7 +90,13 @@ class Admin
 
         $profile = $stmt->fetch();
 
-        return $profile ?: null;
+        if (!$profile){
+            return null;
+        }
+
+        $profile['profilePic'] = $this->getProfilePictureUrl();
+
+        return $profile;
     }
 
     public function getEmailVerificationStatus(): array
@@ -216,6 +218,33 @@ class Admin
         $_SESSION['mustChangePassword'] = false;
 
         return true;
+    }
+
+        public function getProfilePictureUrl(): ?string
+    {
+        if (!self::isLoggedIn()) {
+            return null;
+        }
+
+        $supabaseUrl = rtrim(
+            $_ENV['SUPABASE_URL'] ?? '',
+            '/'
+        );
+
+        $bucket = $_ENV['SUPABASE_PICTURE_BUCKET'] ?? '';
+
+        if (
+            $supabaseUrl === '' ||
+            $bucket === ''
+        ) {
+            return null;
+        }
+
+        return
+            $supabaseUrl .
+            '/storage/v1/object/public/' .
+            rawurlencode($bucket) .
+            '/admin/profile.jpg';
     }
 
     public static function logout(): void

@@ -1,11 +1,32 @@
 <?php
-// Make sure the session is available
-/*if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}*/
+
+require_once __DIR__ . '/../../config/session.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../classes/Admin.php';
+
+
+/*
+|--------------------------------------------------------------------------
+| Database and Admin
+|--------------------------------------------------------------------------
+*/
+
+$database = new Database();
+$pdo = $database->getConnection();
+
+$admin = new Admin($pdo);
+
+
+/*
+|--------------------------------------------------------------------------
+| Current Admin Information
+|--------------------------------------------------------------------------
+*/
 
 $username = $_SESSION['username'] ?? 'Admin';
-$profilePicture = $_SESSION['profilePic'] ?? '';
+
+$profilePicture = $admin->getProfilePictureUrl();
+
 ?>
 
 <header class="admin-header">
@@ -18,14 +39,22 @@ $profilePicture = $_SESSION['profilePic'] ?? '';
             <?php if (!empty($profilePicture)): ?>
 
                 <img
-                    src="<?php echo htmlspecialchars($profilePicture, ENT_QUOTES, 'UTF-8'); ?>"
+                    src="<?= htmlspecialchars(
+                        $profilePicture,
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ); ?>"
                     alt="Admin Profile Picture"
                 >
 
             <?php else: ?>
 
                 <span>
-                    <?php echo strtoupper(substr($username, 0, 1)); ?>
+                    <?= htmlspecialchars(
+                        strtoupper(substr($username, 0, 1)),
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ); ?>
                 </span>
 
             <?php endif; ?>
@@ -33,7 +62,11 @@ $profilePicture = $_SESSION['profilePic'] ?? '';
         </div>
 
         <span class="profile-name">
-            <?php echo htmlspecialchars($username, ENT_QUOTES, 'UTF-8'); ?>
+            <?= htmlspecialchars(
+                $username,
+                ENT_QUOTES,
+                'UTF-8'
+            ); ?>
         </span>
 
     </div>
@@ -62,6 +95,7 @@ $profilePicture = $_SESSION['profilePic'] ?? '';
 
     <div class="profile-modal-content">
 
+        <!-- Edit Profile -->
         <a
             href="edit_profile.php"
             class="profile-option"
@@ -74,6 +108,7 @@ $profilePicture = $_SESSION['profilePic'] ?? '';
         </a>
 
 
+        <!-- Change Password -->
         <a
             href="change_password.php"
             class="profile-option"
@@ -91,6 +126,7 @@ $profilePicture = $_SESSION['profilePic'] ?? '';
 
 
 <script>
+
     const profileMenuButton =
         document.getElementById('profileMenuButton');
 
@@ -98,7 +134,12 @@ $profilePicture = $_SESSION['profilePic'] ?? '';
         document.getElementById('profileModal');
 
 
-    // Open / close the profile menu
+    /*
+    |--------------------------------------------------------------------------
+    | Open / Close Profile Menu
+    |--------------------------------------------------------------------------
+    */
+
     profileMenuButton.addEventListener('click', function (event) {
 
         event.stopPropagation();
@@ -108,23 +149,33 @@ $profilePicture = $_SESSION['profilePic'] ?? '';
 
         profileMenuButton.setAttribute(
             'aria-expanded',
-            isOpen
+            isOpen ? 'true' : 'false'
         );
 
         profileModal.setAttribute(
             'aria-hidden',
-            !isOpen
+            isOpen ? 'false' : 'true'
         );
 
     });
 
 
-    // Close when clicking outside the menu
+    /*
+    |--------------------------------------------------------------------------
+    | Close Menu When Clicking Outside
+    |--------------------------------------------------------------------------
+    */
+
     document.addEventListener('click', function (event) {
+
+        const modalContent =
+            profileModal.querySelector(
+                '.profile-modal-content'
+            );
 
         if (
             profileModal.classList.contains('active') &&
-            !profileModal.querySelector('.profile-modal-content').contains(event.target) &&
+            !modalContent.contains(event.target) &&
             !profileMenuButton.contains(event.target)
         ) {
 
@@ -143,4 +194,5 @@ $profilePicture = $_SESSION['profilePic'] ?? '';
         }
 
     });
+
 </script>
