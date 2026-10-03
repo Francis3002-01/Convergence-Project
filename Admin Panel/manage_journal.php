@@ -72,7 +72,13 @@ require_once __DIR__ . '/../config/session.php';
                         <div>Actions</div>
                     </div>
 
-                    <div id="currentJournalList" class="journal-list"></div>
+                    <!--LOADING BAR-->
+                    <div id="currentJournalList" class="journal-list">
+                        <div class="journal-loading">
+                            <div class="loading-bar"></div>
+                            <p>Loading current articles...</p>
+                        </div>
+                    </div>
                 </div>
 
 

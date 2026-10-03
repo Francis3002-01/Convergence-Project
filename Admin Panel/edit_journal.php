@@ -1,32 +1,17 @@
 <?php
 
+require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
 
-$publicationID = filter_input(
-    INPUT_GET,
-    'publicationID',
-    FILTER_VALIDATE_INT
-);
+$publicationID = filter_input( INPUT_GET,'publicationID',FILTER_VALIDATE_INT);
+$journalID = filter_input(INPUT_GET,'journalID',FILTER_VALIDATE_INT);
 
-$journalID = filter_input(
-    INPUT_GET,
-    'journalID',
-    FILTER_VALIDATE_INT
-);
-
-if (
-    ($publicationID === false || $publicationID === null || $publicationID <= 0) &&
-    ($journalID === false || $journalID === null || $journalID <= 0)
-) {
+if (($publicationID === false || $publicationID === null || $publicationID <= 0) &&($journalID === false || $journalID === null || $journalID <= 0)) {
     header('Location: manage_journal.php');
     exit;
 }
 
-if (
-    $publicationID === false ||
-    $publicationID === null ||
-    $publicationID <= 0
-) {
+if ($publicationID === false ||$publicationID === null ||$publicationID <= 0) {
     $pdo = (new Database())->getConnection();
 
     $stmt = $pdo->prepare(
@@ -80,7 +65,6 @@ $pageTitle = 'Edit Journal - Convergence';
                     </div>
                 </div>
 
-
                 <!-- LOADING MESSAGE -->
                 <div id="loading"class="status-message"role="status"aria-live="polite">
                     <i class="fa-solid fa-spinner fa-spin"></i>
@@ -88,19 +72,14 @@ $pageTitle = 'Edit Journal - Convergence';
                 </div>
 
                 <!-- ERROR MESSAGE -->
-
                 <div id="errorMessage" class="status-message error-message" role="alert" aria-live="assertive"
                     style="display: none;">
                 </div>
 
-
                 <!-- EDIT FORM -->
                 <form id="editForm" data-publication-id="<?= htmlspecialchars((string) $publicationID) ?>"enctype="multipart/form-data"style="display: none;">
-                    <input
-                        type="hidden"
-                        id="publicationID"
-                        name="publicationID"
-                        value="<?= htmlspecialchars((string) $publicationID) ?>">
+
+                    <input type="hidden"id="publicationID"name="publicationID"value="<?= htmlspecialchars((string) $publicationID) ?>">
 
 
                     <!-- =====================================================
@@ -177,12 +156,7 @@ $pageTitle = 'Edit Journal - Convergence';
 
                                     </label>
 
-                                    <input
-                                        type="number"
-                                        id="volume"
-                                        name="volume"
-                                        min="1"
-                                        required>
+                                    <input type="number"id="volume"name="volume"min="1"required>
 
                                 </div>
 

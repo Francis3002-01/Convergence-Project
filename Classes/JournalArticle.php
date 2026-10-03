@@ -149,8 +149,6 @@ class JournalArticle
         }
     }
 
-
-
     public function updateJournal(PDO $pdo,int $journalID,string $title,bool $isDraft,?string $journalPDF = null): bool{
         if ($journalID <= 0) {
             throw new InvalidArgumentException('Invalid journal ID.');

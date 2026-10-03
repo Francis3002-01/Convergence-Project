@@ -27,22 +27,22 @@ function normalizeReaderStoragePath(string $storagePath): string
         $position = strpos($storagePath, $marker);
 
         if ($position !== false) {
-            $storagePath = substr($storagePath,$position + strlen($marker));
-            $storagePath = preg_replace('#^(public|sign)/#','',$storagePath) ?? $storagePath;
+            $storagePath = substr($storagePath, $position + strlen($marker));
+            $storagePath = preg_replace('#^(public|sign)/#', '', $storagePath) ?? $storagePath;
         }
     }
 
     $storagePath = ltrim($storagePath, '/');
-    $bucketName = trim((string) ($_ENV['SUPABASE_BUCKET'] ?? ''),'/');
+    $bucketName = trim((string) ($_ENV['SUPABASE_BUCKET'] ?? ''), '/');
 
     if ($bucketName !== '') {
         $bucketPrefix = $bucketName . '/';
         if (str_starts_with($storagePath, $bucketPrefix)) {
-            $storagePath = substr($storagePath,strlen($bucketPrefix));
+            $storagePath = substr($storagePath, strlen($bucketPrefix));
         }
     }
 
-    $storagePath = preg_replace('#/+#','/',$storagePath) ?? $storagePath;
+    $storagePath = preg_replace('#/+#', '/', $storagePath) ?? $storagePath;
 
     $storagePath = rtrim($storagePath, '/');
 
@@ -72,7 +72,7 @@ function createReaderPublicPdfUrl(string $storagePath): string
 
     $normalizedPath = normalizeReaderStoragePath($storagePath);
 
-    $encodedPath = implode('/',array_map('rawurlencode', explode('/', $normalizedPath)));
+    $encodedPath = implode('/', array_map('rawurlencode', explode('/', $normalizedPath)));
 
     return rtrim($supabaseUrl, '/')
         . '/storage/v1/object/public/'
@@ -90,7 +90,7 @@ $pdo = $database->getConnection();
 
 /* Get Journal Article ID */
 
-$journalID = filter_input(INPUT_GET,'journalID',FILTER_VALIDATE_INT);
+$journalID = filter_input(INPUT_GET, 'journalID', FILTER_VALIDATE_INT);
 
 if (!$journalID || $journalID <= 0) {
     header('Location: journal.php');
@@ -101,7 +101,7 @@ if (!$journalID || $journalID <= 0) {
 $journalArticle = new JournalArticle();
 
 /*Get article details, publication information, and authors*/
-$article = $journalArticle->viewJournal($pdo,$journalID);
+$article = $journalArticle->viewJournal($pdo, $journalID);
 
 if (!$article) {
     header('Location: journal.php');
@@ -118,7 +118,7 @@ $publication = [
 ];
 
 /*Generate APA citation using JournalArticle*/
-$citation = $journalArticle->generateCitation($article,$publication,$authors);
+$citation = $journalArticle->generateCitation($article, $publication, $authors);
 
 if (trim($citation) === '') {
     $citation = 'Citation unavailable';
@@ -131,9 +131,7 @@ $backText = 'Back to Current Issue';
 if (!empty($article['is_current'])) {
     $backUrl = 'journal.php';
     $backText = 'Back to Current Issue';
-} 
-
-else {
+} else {
     $backUrl = 'archive-detailspage.php?issue_id=' . urlencode((string) $article['publicationID']);
     $backText = 'Back to Archive Issue';
 }
@@ -160,6 +158,7 @@ if ($downloadPdfPath !== null && $downloadPdfPath !== '') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -189,6 +188,7 @@ if ($downloadPdfPath !== null && $downloadPdfPath !== '') {
         }
     </style>
 </head>
+
 <body>
 
     <?php include 'includes/header.php'; ?>
@@ -206,7 +206,7 @@ if ($downloadPdfPath !== null && $downloadPdfPath !== '') {
 
             <div class="details-header">
                 <h1 id="articleTitle">
-                    <?= htmlspecialchars((string) ($article['title']?? 'Untitled Article')) ?>
+                    <?= htmlspecialchars((string) ($article['title'] ?? 'Untitled Article')) ?>
                 </h1>
 
                 <?php
@@ -233,7 +233,7 @@ if ($downloadPdfPath !== null && $downloadPdfPath !== '') {
                 ?>
 
                 <p class="publication-info">
-                    <?= htmlspecialchars(implode(', ', $publicationParts)?: 'Publication information unavailable.') ?>
+                    <?= htmlspecialchars(implode(', ', $publicationParts) ?: 'Publication information unavailable.') ?>
                 </p>
 
             </div>
@@ -269,42 +269,43 @@ if ($downloadPdfPath !== null && $downloadPdfPath !== '') {
             </section>
 
             <!-- APA Citation -->
-            <section class="details-section"aria-labelledby="citation-heading">
+            <section class="details-section" aria-labelledby="citation-heading">
                 <h2 id="citation-heading">APA Citation</h2>
                 <p id="citation" class="citation-box"><?= htmlspecialchars($citation) ?></p>
                 <button type="button" id="copyCitation" class="copy-button">Copy Citation</button>
             </section>
 
             <!-- PDF -->
-            <?php if ($readPdfUrl !== '' ||$downloadPdfUrl !== ''): ?>
-                <section id="pdfSection" class="pdf-section" data-pdf-url="<?= htmlspecialchars($readPdfUrl) ?>" data-journal-id="<?= (int) $article['journalID'] ?>"aria-labelledby="pdf-heading">
+            <?php if ($readPdfUrl !== '' || $downloadPdfUrl !== ''): ?>
+                <section id="pdfSection" class="pdf-section" data-pdf-url="<?= htmlspecialchars($readPdfUrl) ?>" data-journal-id="<?= (int) $article['journalID'] ?>" aria-labelledby="pdf-heading">
                     <!--<h2 id="pdf-heading">Article PDF</h2>-->
                     <div class="pdf-actions" aria-label="PDF actions">
                         <?php if ($readPdfUrl !== ''): ?>
-                            <button id="readOnline"type="button"class="action-button">Read Online</button>
+                            <button id="readOnline" type="button" class="action-button">Read Online</button>
                         <?php endif; ?>
 
                         <?php if ($downloadPdfUrl !== ''): ?>
-                            <a id="downloadPdf" class="action-button secondary" href="<?= htmlspecialchars($downloadPdfUrl) ?>?download"download>
+                            <a id="downloadPdf"
+                                class="action-button secondary"
+                                href="download_article.php?journalID=<?= (int) $article['journalID'] ?>">
                                 Download PDF
                             </a>
                         <?php endif; ?>
-
                     </div>
 
                     <?php if ($readPdfUrl !== ''): ?>
-                        <figure id="pdfViewerContainer" class="pdf-viewer-container"style="display: none;">
-                            <iframe id="pdfViewer" class="pdf-viewer"title="Journal article PDF"></iframe>
+                        <figure id="pdfViewerContainer" class="pdf-viewer-container" style="display: none;">
+                            <iframe id="pdfViewer" class="pdf-viewer" title="Journal article PDF"></iframe>
                         </figure>
                     <?php endif; ?>
 
                 </section>
             <?php endif; ?>
         </article>
-
     </main>
 
     <?php include 'includes/footer.php'; ?>
-    <script src="javascript/article_details.js?v=2"></script>
+    <script src="javascript/article_details.js"></script>
 </body>
+
 </html>

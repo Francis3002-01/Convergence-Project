@@ -1,3 +1,9 @@
+<?php
+
+require_once __DIR__ . '/../config/session.php';
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,11 +71,8 @@
                     <div id="pdfViewerContainer" class="pdf-viewer-container" style="display: none;">
                         <iframe id="pdfViewer" class="pdf-viewer"title="Journal PDF Viewer"></iframe>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
     </main>
 

@@ -13,36 +13,6 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-/*function openConfirmationModal(title, message, buttonText, action) {
-  const modal = document.getElementById("confirmationModal");
-  const titleElement = document.getElementById("confirmationTitle");
-  const messageElement = document.getElementById("confirmationMessage");
-  const confirmButton = document.getElementById("confirmDeleteButton");
-
-  if (!modal || !titleElement || !messageElement || !confirmButton) {
-    console.error("Confirmation modal elements not found.");
-    return;
-  }
-
-  titleElement.textContent = title;
-  messageElement.textContent = message;
-  confirmButton.textContent = buttonText;
-  pendingAction = action;
-  confirmButton.onclick = async function () {
-    const actionToRun = pendingAction;
-
-    closeConfirmationModal();
-
-    pendingAction = null;
-
-    if (typeof actionToRun === "function") {
-      await actionToRun();
-    }
-  };
-
-  modal.classList.add("show");
-}*/
-
 function openConfirmationModal(title, message, buttonText, action) {
 
   const modal = document.getElementById("confirmationModal");
@@ -446,7 +416,7 @@ function renderIssueContainer(container, issueList, tabName) {
    LOAD JOURNALS
    ----------------------------------------- */
 
-async function loadJournals() {
+/*async function loadJournals() {
   try {
     const response = await fetch("manage_journal_api.php?action=list");
 
@@ -490,58 +460,82 @@ async function loadJournals() {
       error.message || "Unable to load issues.",
     );
   }
-}
+}*/
 
-/* -----------------------------------------
-   SEARCH JOURNALS
-   ----------------------------------------- */
-/*function searchJournals() {
-  const searchInput = document.getElementById("searchInput");
+async function loadJournals() {
+  const currentList = document.getElementById("currentJournalList");
+  const draftList = document.getElementById("draftJournalList");
 
-  const searchTerm = (searchInput ? searchInput.value : "")
-    .trim()
-    .toLowerCase();
+  // Show loading bars
+  if (currentList) {
+    currentList.innerHTML = `
+      <div class="journal-loading">
+        <div class="loading-bar"></div>
+        <p>Loading current articles...</p>
+      </div>
+    `;
+  }
 
-  const issueSource = activeTab === "draft" ? draftIssueData : currentIssueData;
+  if (draftList) {
+    draftList.innerHTML = `
+      <div class="journal-loading">
+        <div class="loading-bar"></div>
+        <p>Loading draft articles...</p>
+      </div>
+    `;
+  }
 
- 
+  try {
+    const response = await fetch("manage_journal_api.php?action=list");
 
-  if (searchTerm === "") {
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Unable to load issues.");
+    }
+
+    const payload = result.data || {};
+
+    currentIssueData = Array.isArray(payload.current)
+      ? payload.current
+      : [];
+
+    draftIssueData = Array.isArray(payload.draft)
+      ? payload.draft
+      : [];
+
+    archiveIssueData = Array.isArray(payload.archive)
+      ? payload.archive
+      : [];
+
+    // Replace loading bars with the actual articles
     renderIssueLists();
 
-    return;
+  } catch (error) {
+    console.error(error);
+
+    if (currentList) {
+      currentList.innerHTML = `
+        <div class="empty-message">
+          Unable to load current issue.
+        </div>
+      `;
+    }
+
+    if (draftList) {
+      draftList.innerHTML = `
+        <div class="empty-message">
+          Unable to load draft issue.
+        </div>
+      `;
+    }
+
+    showMessage(
+      "Unable to Load Journals",
+      error.message || "Unable to load issues.",
+    );
   }
-
-  
-
-  const filteredIssues = issueSource
-    .map((issue) => {
-      const matchingArticles = (issue.articles || []).filter((article) => {
-        const title = String(article.title || "").toLowerCase();
-
-        return title.includes(searchTerm);
-      });
-
-      if (matchingArticles.length === 0) {
-        return null;
-      }
-
-      return {
-        ...issue,
-        articles: matchingArticles,
-      };
-    })
-    .filter(Boolean);
-
-  const container =
-    activeTab === "draft"
-      ? document.getElementById("draftJournalList")
-      : document.getElementById("currentJournalList");
-
-  if (container) {
-    renderIssueContainer(container, filteredIssues, activeTab);
-  }
-}*/
+}
 
 function searchJournals() {
   const searchInput = document.getElementById("searchInput");

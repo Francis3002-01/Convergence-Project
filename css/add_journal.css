@@ -509,18 +509,28 @@
 }
 
 .delete-author-btn {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border: none;
-  border-radius: 6px;
-  background: #fce8e8;
-  color: #a00000;
-  cursor: pointer;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: #fce8e8;
+    color: #a00000;
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-author-btn i {
+    font-size: 16px;
+    line-height: 1;
 }
 
 .delete-author-btn:hover {
-  background: #f5cccc;
+    background: #f5cccc;
 }
 
 
