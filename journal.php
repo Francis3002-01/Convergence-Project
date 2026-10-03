@@ -44,7 +44,7 @@ function normalizeIssuePdfPath(string $storagePath): string
     }
 
     $storagePath = ltrim($storagePath, '/');
-    $bucketName = trim((string) ($_ENV['SUPABASE_BUCKET'] ?? ''),'/');
+    $bucketName = trim((string) ($_ENV['SUPABASE_BUCKET'] ?? ''), '/');
 
     if ($bucketName !== '') {
         $bucketPrefix = $bucketName . '/';
@@ -301,7 +301,8 @@ if ($publicationID && $publicationID > 0) {
                     <div class="editorial-actions">
 
                         <!-- Read -->
-                        <a href="<?= htmlspecialchars((string) $issue['publicationPDF']) ?>"target="_blank"rel="noopener noreferrer"class="editorial-button read-button">
+                        <a href="<?= htmlspecialchars((string) $issue['publicationPDF']) ?>"
+                            class="editorial-button read-button">
                             <i class="fa-solid fa-book-open"></i>
                             <span>Read Editorial Note</span>
                         </a>
@@ -373,7 +374,7 @@ if ($publicationID && $publicationID > 0) {
                                 <?php endif; ?>
 
                             </article>
-                            
+
                         <?php endforeach; ?>
                     </div>
 
@@ -402,4 +403,5 @@ if ($publicationID && $publicationID > 0) {
     <?php include 'includes/footer.php'; ?>
 
 </body>
+
 </html>

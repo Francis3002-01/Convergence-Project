@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../config/session.php';
+
 $pageTitle = "Add Journal - Convergence";
 
 ?>

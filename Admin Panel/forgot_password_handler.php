@@ -30,7 +30,7 @@ if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
     header(
         'Location: forgot_password.php?message=' .
-        urlencode($successMessage)
+            urlencode($successMessage)
     );
 
     exit;
@@ -71,7 +71,7 @@ try {
 
         header(
             'Location: forgot_password.php?message=' .
-            urlencode($successMessage)
+                urlencode($successMessage)
         );
 
         exit;
@@ -154,7 +154,6 @@ try {
 
 
         $pdo->commit();
-
     } catch (PDOException $e) {
 
         if ($pdo->inTransaction()) {
@@ -174,49 +173,70 @@ try {
      * Change this URL when the website is
      * deployed to the actual hosting domain.
      */
+
+    // Build password reset URL dynamically from the current request.
+
+    $scheme = (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+        || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+    )
+        ? 'https'
+        : 'http';
+
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+
+    $scriptPath = str_replace(
+        '\\',
+        '/',
+        dirname($_SERVER['SCRIPT_NAME'] ?? '')
+    );
+
+    // Remove the "Admin Panel" directory from the current path.
+    $basePath = preg_replace(
+        '#/Admin%20Panel$#i',
+        '',
+        $scriptPath
+    );
+
+    $basePath = preg_replace(
+        '#/Admin Panel$#i',
+        '',
+        $basePath
+    );
+
+    $basePath = rtrim($basePath, '/');
+
     $resetUrl =
-        'http://localhost/convergence/Admin%20Panel/reset_password.php?token=' .
+        $scheme .
+        '://' .
+        $host .
+        $basePath .
+        '/Admin%20Panel/reset_password.php?token=' .
         urlencode($rawToken);
-
-
     /*
      * Create PHPMailer instance.
      */
     $mail = new PHPMailer(true);
 
-
     // SMTP configuration.
     $mail->isSMTP();
-
     $mail->Host = $_ENV['MAIL_HOST'];
-
     $mail->SMTPAuth = true;
-
     $mail->Username = $_ENV['MAIL_USERNAME'];
-
     $mail->Password = $_ENV['MAIL_PASSWORD'];
-
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-
     $mail->Port = (int) $_ENV['MAIL_PORT'];
 
-
     // Sender.
-    $mail->setFrom(
-        $_ENV['MAIL_FROM_ADDRESS'],
-        $_ENV['MAIL_FROM_NAME']
-    );
-
+    $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'],$_ENV['MAIL_FROM_NAME']);
 
     // Administrator's email.
     $mail->addAddress($admin['email']);
 
-
     // HTML email.
     $mail->isHTML(true);
-
     $mail->Subject = 'Convergence Journal - Password Reset';
-
 
     /*
      * Email body.
@@ -244,12 +264,12 @@ try {
             <p>
                 <a
                     href="' .
-                    htmlspecialchars(
-                        $resetUrl,
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) .
-                    '"
+        htmlspecialchars(
+            $resetUrl,
+            ENT_QUOTES,
+            'UTF-8'
+        ) .
+        '"
                     style="
                         display: inline-block;
                         padding: 12px 20px;
@@ -298,12 +318,10 @@ try {
      */
     header(
         'Location: forgot_password.php?message=' .
-        urlencode($successMessage)
+            urlencode($successMessage)
     );
 
     exit;
-
-
 } catch (Exception $e) {
 
     /*
@@ -311,7 +329,7 @@ try {
      */
     error_log(
         'Password reset email failed: ' .
-        $e->getMessage()
+            $e->getMessage()
     );
 
     header(
@@ -319,8 +337,6 @@ try {
     );
 
     exit;
-
-
 } catch (PDOException $e) {
 
     /*
@@ -328,7 +344,7 @@ try {
      */
     error_log(
         'Password reset database error: ' .
-        $e->getMessage()
+            $e->getMessage()
     );
 
     header(
