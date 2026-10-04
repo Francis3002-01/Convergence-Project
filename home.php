@@ -6,7 +6,10 @@ require_once __DIR__ . '/config/database.php';
 use Dotenv\Dotenv;
 
 $dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+
+if (file_exists(__DIR__ . '/.env')) {
+    $dotenv->load();
+}
 
 $database = new Database();
 $pdo = $database->getConnection();
