@@ -3,7 +3,10 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+
+if (file_exists(__DIR__ . '/../.env')) {
+    $dotenv->load();
+}
 
 class Database
 {
@@ -20,7 +23,6 @@ class Database
         $dsn = "pgsql:host=$host;port=$port;dbname=$database";
 
         try {
-
             $this->connection = new PDO(
                 $dsn,
                 $username,
@@ -30,11 +32,8 @@ class Database
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
                 ]
             );
-
         } catch (PDOException $e) {
-
             die("Database connection failed: " . $e->getMessage());
-
         }
     }
 
