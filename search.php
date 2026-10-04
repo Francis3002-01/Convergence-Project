@@ -7,8 +7,8 @@ require_once __DIR__ . '/Classes/JournalArticle.php';
 use Dotenv\Dotenv;
 
 // Load Environment Variables
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+//$dotenv = Dotenv::createImmutable(__DIR__);
+//$dotenv->load();
 
 $database = new Database();
 $pdo = $database->getConnection();
