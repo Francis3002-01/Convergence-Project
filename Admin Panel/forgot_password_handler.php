@@ -2,10 +2,10 @@
 
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../vendor/autoload.php';
+//require_once __DIR__ . '/../vendor/autoload.php';
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+/*use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;*/
 
 
 // Only allow POST requests.
@@ -223,7 +223,7 @@ try {
     /*
      * Create PHPMailer instance.
      */
-    $mail = new PHPMailer(true);
+    /*$mail = new PHPMailer(true);
 
     // SMTP configuration.
     $mail->isSMTP();
@@ -237,16 +237,14 @@ try {
     // Sender.
     $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
 
-    // Administrator's email.
+    
     $mail->addAddress($admin['email']);
 
-    // HTML email.
+   
     $mail->isHTML(true);
     $mail->Subject = 'Convergence Journal - Password Reset';
 
-    /*
-     * Email body.
-     */
+    
     $mail->Body = '
         <div style="
             font-family: Arial, sans-serif;
@@ -302,9 +300,7 @@ try {
     ';
 
 
-    /*
-     * Plain-text alternative.
-     */
+  
     $mail->AltBody =
         "A password reset was requested for your " .
         "Convergence Journal administrator account.\n\n" .
@@ -315,8 +311,108 @@ try {
         "This link expires in 30 minutes.";
 
 
-    // Send email.
-    $mail->send();
+   
+    $mail->send();*/
+
+    $apiKey = $_ENV['RESEND_API_KEY'];
+
+    $emailData = [
+        'from' => $_ENV['MAIL_FROM_ADDRESS'],
+        'to' => [$admin['email']],
+        'subject' => 'Convergence Journal - Password Reset',
+        'html' => '
+        <div style="
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+        ">
+            <h2 style="color: #A5241E;">
+                Convergence Journal
+            </h2>
+
+            <p>
+                A password reset request was made for your
+                administrator account.
+            </p>
+
+            <p>
+                Click the button below to create a new password.
+            </p>
+
+            <p>
+                <a
+                    href="' .
+            htmlspecialchars(
+                $resetUrl,
+                ENT_QUOTES,
+                'UTF-8'
+            ) .
+            '"
+                    style="
+                        display: inline-block;
+                        padding: 12px 20px;
+                        background: #A5241E;
+                        color: #ffffff;
+                        text-decoration: none;
+                        border-radius: 6px;
+                    "
+                >
+                    Reset Password
+                </a>
+            </p>
+
+            <p>
+                This link will expire in 30 minutes.
+            </p>
+
+            <p>
+                If you did not request a password reset,
+                you can safely ignore this email.
+            </p>
+        </div>
+    ',
+    ];
+
+    $ch = curl_init('https://api.resend.com/emails');
+
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $apiKey,
+            'Content-Type: application/json',
+        ],
+        CURLOPT_POSTFIELDS => json_encode($emailData),
+        CURLOPT_TIMEOUT => 15,
+    ]);
+
+    $response = curl_exec($ch);
+
+    if ($response === false) {
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        throw new \Exception(
+            'Email API request failed: ' . $curlError
+        );
+    }
+
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    curl_close($ch);
+
+    if ($httpCode < 200 || $httpCode >= 300) {
+        error_log(
+            'Password reset email API failed. HTTP ' .
+                $httpCode .
+                ': ' .
+                $response
+        );
+
+        throw new \Exception(
+            'Password reset email could not be sent.'
+        );
+    }
 
 
     /*
@@ -328,7 +424,7 @@ try {
     );
 
     exit;
-} catch (Exception $e) {
+} catch (\Exception $e) {
 
     /*
      * Do not expose PHPMailer errors to the user.
