@@ -4,7 +4,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/Classes/JournalArticle.php';
 
-use Dotenv\Dotenv;
+//use Dotenv\Dotenv;
 
 try {
 
@@ -18,15 +18,15 @@ try {
     $database = new Database();
     $pdo = $database->getConnection();
     $journalArticle = new JournalArticle();
-    $pdfPath = $journalArticle->downloadPDF($pdo,$journalID);
+    $pdfPath = $journalArticle->downloadPDF($pdo, $journalID);
 
     if ($pdfPath === null || trim($pdfPath) === '') {
         http_response_code(404);
         exit('PDF not found.');
     }
 
-    $supabaseUrl = trim((string) ($_ENV['SUPABASE_URL'] ?? ''));
-    $bucketName = trim((string) ($_ENV['SUPABASE_BUCKET'] ?? ''));
+    $supabaseUrl = trim((string) (getenv('SUPABASE_URL') ?: ($_ENV['SUPABASE_URL'] ?? '')));
+    $bucketName = trim((string) (getenv('SUPABASE_BUCKET') ?: ($_ENV['SUPABASE_BUCKET'] ?? '')));
 
     if ($supabaseUrl === '' || $bucketName === '') {
         http_response_code(500);
@@ -39,9 +39,7 @@ try {
      */
     if (filter_var($pdfPath, FILTER_VALIDATE_URL)) {
         $pdfUrl = $pdfPath;
-    } 
-    
-    else {
+    } else {
         $pdfPath = trim($pdfPath);
         $pdfPath = ltrim($pdfPath, '/');
 
@@ -52,7 +50,7 @@ try {
         $bucketPrefix = trim($bucketName, '/') . '/';
 
         if (str_starts_with($pdfPath, $bucketPrefix)) {
-            $pdfPath = substr($pdfPath,strlen($bucketPrefix));
+            $pdfPath = substr($pdfPath, strlen($bucketPrefix));
         }
 
         /*
@@ -60,7 +58,7 @@ try {
          */
         $encodedPath = implode(
             '/',
-            array_map('rawurlencode',explode('/', $pdfPath))
+            array_map('rawurlencode', explode('/', $pdfPath))
         );
 
         $pdfUrl =
@@ -96,8 +94,8 @@ try {
 
     curl_close($ch);
 
-    if ($pdfContent === false ||$httpCode < 200 ||$httpCode >= 300) {
-        error_log('PDF download failed. HTTP ' .$httpCode .'. cURL error: ' .$curlError);
+    if ($pdfContent === false || $httpCode < 200 || $httpCode >= 300) {
+        error_log('PDF download failed. HTTP ' . $httpCode . '. cURL error: ' . $curlError);
         http_response_code(404);
         exit('Unable to retrieve PDF.');
     }
@@ -144,13 +142,13 @@ try {
 
     header(
         'Content-Disposition: attachment; filename="' .
-        str_replace('"', '', $filename) .
-        '"'
+            str_replace('"', '', $filename) .
+            '"'
     );
 
     header(
         'Content-Length: ' .
-        strlen($pdfContent)
+            strlen($pdfContent)
     );
 
     header(
@@ -161,12 +159,11 @@ try {
 
     echo $pdfContent;
     exit;
-
 } catch (Throwable $e) {
 
     error_log(
         'download_article.php error: ' .
-        $e->getMessage()
+            $e->getMessage()
     );
 
     http_response_code(500);
