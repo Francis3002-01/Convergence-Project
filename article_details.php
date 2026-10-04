@@ -4,7 +4,9 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/Classes/JournalArticle.php';
 
-use Dotenv\Dotenv;
+$database = new Database();
+$pdo = $database->getConnection();
+
 
 function normalizeReaderStoragePath(string $storagePath): string
 {
@@ -81,9 +83,7 @@ function createReaderPublicPdfUrl(string $storagePath): string
         . $encodedPath;
 }
 
-/* Load environment and database */
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+/* Load database */
 
 $database = new Database();
 $pdo = $database->getConnection();
