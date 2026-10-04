@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * Convergence Journal
  * Application URL Configuration
  *
@@ -14,7 +14,7 @@
 $baseUrl = getenv('APP_BASE_URL');
 
 if ($baseUrl === false) {
-    $baseUrl = '/Convergence%20Project';
+    $baseUrl = '';
 }
 
 $baseUrl = rtrim($baseUrl, '/');
