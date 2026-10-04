@@ -7,9 +7,8 @@ require_once __DIR__ . '/Classes/JournalArticle.php';
 use Dotenv\Dotenv;
 
 try {
-    $dotenv = Dotenv::createImmutable(__DIR__);
-    $dotenv->load();
-    $journalID = filter_input(INPUT_GET,'journalID',FILTER_VALIDATE_INT);
+
+    $journalID = filter_input(INPUT_GET, 'journalID', FILTER_VALIDATE_INT);
 
     if (!$journalID || $journalID <= 0) {
         http_response_code(400);
