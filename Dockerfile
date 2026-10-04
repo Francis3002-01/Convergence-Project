@@ -33,7 +33,7 @@ COPY . /var/www/html
 # Allow .htaccess
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 
-# Allow your 40 MB PDF uploads
+# Allow 40 MB PDF uploads
 RUN printf '%s\n' \
     'upload_max_filesize=40M' \
     'post_max_size=50M' \
@@ -41,7 +41,7 @@ RUN printf '%s\n' \
     'max_input_time=300' \
     > /usr/local/etc/php/conf.d/convergence.ini
 
-# Render web services use port 10000 by default
+# Render uses port 10000 by default
 RUN sed -i 's/^Listen 80$/Listen 10000/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:10000>/' /etc/apache2/sites-available/000-default.conf
 
