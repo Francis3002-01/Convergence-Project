@@ -7,7 +7,8 @@ require_once __DIR__ . '/Classes/PublicationIssue.php';
 use Dotenv\Dotenv;
 
 $dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+
+$dotenv->safeLoad();
 
 $database = new Database();
 $pdo = $database->getConnection();
