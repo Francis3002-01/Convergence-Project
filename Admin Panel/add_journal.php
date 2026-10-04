@@ -78,13 +78,13 @@ $pageTitle = "Add Journal - Convergence";
 
                                 <div class="form-group">
                                     <label for="volume">Volume</label>
-                                    <input type="number"id="volume"name="volume"min="1"placeholder="e.g. 11"required>
+                                    <input type="number" id="volume" name="volume" min="1" placeholder="e.g. 11" required>
                                 </div>
 
 
                                 <div class="form-group">
                                     <label for="number">Number</label>
-                                    <input type="number"id="number"name="number"min="1"placeholder="e.g. 1"required>
+                                    <input type="number" id="number" name="number" min="1" placeholder="e.g. 1" required>
                                 </div>
 
                             </div>
@@ -95,9 +95,9 @@ $pageTitle = "Add Journal - Convergence";
 
                                 <label>Editorial Note PDF</label>
 
-                                <div class="pdf-upload-box"id="publicationPdfUploadBox">
+                                <div class="pdf-upload-box" id="publicationPdfUploadBox">
 
-                                    <input type="file"id="publicationPDF"name="publicationPDF"accept="application/pdf,.pdf"hidden>
+                                    <input type="file" id="publicationPDF" name="publicationPDF" accept="application/pdf,.pdf" hidden>
 
                                     <label
                                         for="publicationPDF"
@@ -352,20 +352,24 @@ $pageTitle = "Add Journal - Convergence";
 
                         <!-- ARTICLE ACTIONS -->
                         <div class="form-actions article-actions">
-                            <button type="button"class="cancel-btn"onclick="cancelAddJournal()">
+                            <button type="button" class="cancel-btn" onclick="cancelAddJournal()">
                                 Cancel
                             </button>
 
 
                             <!-- SAVE AS DRAFT -->
-                            <button type="button"class="save-draft-btn"id="saveDraftButton"onclick="savePublication('draft')">
+                            <button
+                                type="button"
+                                class="save-draft-btn"
+                                id="saveDraftButton"
+                                onclick="openSaveDraftConfirmation()">
                                 <i class="fa-solid fa-file-pen"></i>
                                 Save as Draft
                             </button>
 
 
                             <!-- PUBLISH -->
-                            <button type="button"class="publish-btn"id="publishButton" onclick="savePublication('publish')">
+                            <button type="button" class="publish-btn" id="publishButton" onclick="savePublication('publish')">
                                 <i class="fa-solid fa-upload"></i>
                                 Publish
                             </button>

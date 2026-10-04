@@ -2069,7 +2069,7 @@ function validateDraftForPublishing(PDO $pdo, int $publicationID): void
     }
 }
 
-function publishExistingDraft(PDO $pdo, int $publicationID): void
+/*function publishExistingDraft(PDO $pdo, int $publicationID): void
 {
     $issue = getIssueByPublicationId($pdo, $publicationID);
 
@@ -2082,31 +2082,19 @@ function publishExistingDraft(PDO $pdo, int $publicationID): void
 
     try {
 
-        $current =
-            $pdo->query(
-                'SELECT "publicationID"
-                 FROM "PublicationIssue"
-                 WHERE "is_current" = TRUE
-                   AND "is_draft" = FALSE
-                 LIMIT 1'
-            )->fetchColumn();
+        $archiveCurrentIssues = $pdo->prepare(
+            'UPDATE "PublicationIssue"
+     SET
+        "is_current" = FALSE,
+        "is_draft" = FALSE
+     WHERE "is_current" = TRUE
+       AND "is_draft" = FALSE
+       AND "publicationID" <> :publicationID'
+        );
 
-
-        if ($current !== false) {
-
-            $pdo->prepare(
-                'UPDATE "PublicationIssue"
-                 SET
-                    "is_current" = FALSE,
-                    "is_draft" = FALSE
-                 WHERE "publicationID" =
-                       :publicationID'
-            )->execute([
-
-                ':publicationID' =>
-                (int) $current
-            ]);
-        }
+        $archiveCurrentIssues->execute([
+            ':publicationID' => $publicationID
+        ]);
 
         $pdo->prepare(
             'UPDATE "PublicationIssue"
@@ -2123,6 +2111,89 @@ function publishExistingDraft(PDO $pdo, int $publicationID): void
 
 
         $pdo->commit();
+    } catch (Throwable $e) {
+
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $e;
+    }
+}*/
+function publishExistingDraft(PDO $pdo, int $publicationID): void
+{
+    $issue = getIssueByPublicationId($pdo, $publicationID);
+
+    if (!$issue || !postgresBoolean($issue['is_draft'])) {
+        throw new Exception('Only a draft issue can be published.');
+    }
+
+    validateDraftForPublishing($pdo, $publicationID);
+
+    $pdo->beginTransaction();
+
+    try {
+
+        /*
+         * Get the issue that is currently Current
+         * before archiving it.
+         */
+        $previousCurrentStatement = $pdo->prepare(
+            'SELECT "publicationID"
+             FROM "PublicationIssue"
+             WHERE "is_current" = TRUE
+               AND "is_draft" = FALSE
+               AND "publicationID" <> :publicationID
+             LIMIT 1'
+        );
+
+        $previousCurrentStatement->execute([
+            ':publicationID' => $publicationID
+        ]);
+
+        $previousCurrentID =
+            $previousCurrentStatement->fetchColumn();
+
+        /*
+         * Archive the old Current issue.
+         */
+        $archiveCurrentIssues = $pdo->prepare(
+            'UPDATE "PublicationIssue"
+             SET
+                "is_current" = FALSE,
+                "is_draft" = FALSE
+             WHERE "is_current" = TRUE
+               AND "is_draft" = FALSE
+               AND "publicationID" <> :publicationID'
+        );
+
+        $archiveCurrentIssues->execute([
+            ':publicationID' => $publicationID
+        ]);
+
+        /*
+         * Make the draft Current and remember
+         * the issue that was Current immediately before it.
+         */
+        $publishStatement = $pdo->prepare(
+            'UPDATE "PublicationIssue"
+             SET
+                "is_current" = TRUE,
+                "is_draft" = FALSE,
+                "previousPublicationID" = :previousPublicationID
+             WHERE "publicationID" = :publicationID'
+        );
+
+        $publishStatement->execute([
+            ':publicationID' => $publicationID,
+            ':previousPublicationID' =>
+                $previousCurrentID !== false
+                    ? (int) $previousCurrentID
+                    : null
+        ]);
+
+        $pdo->commit();
+
     } catch (Throwable $e) {
 
         if ($pdo->inTransaction()) {
@@ -2248,11 +2319,17 @@ $pdo = $database->getConnection();
 
 try {
 
-    $action =
+    /*$action =
         $_GET['action'] ??
         $_POST['action'] ??
-        '';
-
+        '';*/
+    $action = trim(
+        (string) (
+            $_POST['action'] ??
+            $_GET['action'] ??
+            ''
+        )
+    );
 
     switch ($action) {
 
@@ -2324,6 +2401,21 @@ try {
             $volume = filter_input(INPUT_POST, 'volume', FILTER_VALIDATE_INT);
             $number = filter_input(INPUT_POST, 'number', FILTER_VALIDATE_INT);
 
+            $mode = strtolower(
+                trim(
+                    (string) (
+                        $_POST['mode'] ?? 'draft'
+                    )
+                )
+            );
+
+            if (
+                $mode !== 'draft' &&
+                $mode !== 'publish'
+            ) {
+                $mode = 'draft';
+            }
+
             if ($publicationID === false || $publicationID === null || $publicationID <= 0) {
                 sendResponse(false, 'Invalid publication ID.', [], 400);
             }
@@ -2340,6 +2432,16 @@ try {
 
             //$isDraft = (bool) $existingIssue['is_draft'];
             $isDraft = postgresBoolean($existingIssue['is_draft']);
+
+            if ($mode === 'publish' && !$isDraft) {
+                sendResponse(
+                    false,
+                    'Only a draft issue can be published.',
+                    [],
+                    400
+                );
+            }
+
             $articleList = json_decode($_POST['articles'] ?? '[]', true);
 
             if (!is_array($articleList)) {
@@ -2433,27 +2535,6 @@ try {
 
                 foreach ($articleList as $index => $article) {
 
-                    /*$journalID =
-                        isset($article['journalID']) &&
-                        $article['journalID'] !== null &&
-                        $article['journalID'] !== ''
-                        ? (int) $article['journalID']
-                        : 0;
-
-
-                    if ($journalID > 0) {
-
-                        if (!isset($existingArticles[$journalID])) {
-                            throw new Exception('Article ' .($index + 1) .' was not found in this publication issue.');
-                        }
-
-
-                        updateExistingArticle($pdo,$article,$existingArticles[$journalID],(int) $year,(int) $publicationID,$index + 1,$isDraft);
-
-                        continue;
-                    }
-
-                    insertNewArticle($pdo,$article,(int) $publicationID,(int) $year,$index + 1,$isDraft);*/
                     $journalID =
                         isset($article['journalID']) &&
                         $article['journalID'] !== null &&
@@ -2533,9 +2614,6 @@ try {
                             $removedArticlePdfPaths[] = $removedArticlePdf;
                         }
 
-                        /*
-         * Delete download records
-         */
                         $pdo->prepare(
                             'DELETE FROM "Download"
              WHERE "journalID" = :journalID'
@@ -2543,9 +2621,6 @@ try {
                             ':journalID' => (int) $existingJournalID
                         ]);
 
-                        /*
-         * Delete author links
-         */
                         $pdo->prepare(
                             'DELETE FROM "ArticleAuthor"
              WHERE "journalID" = :journalID'
@@ -2553,9 +2628,6 @@ try {
                             ':journalID' => (int) $existingJournalID
                         ]);
 
-                        /*
-         * Delete article
-         */
                         $pdo->prepare(
                             'DELETE FROM "JournalArticle"
              WHERE "journalID" = :journalID
@@ -2566,7 +2638,6 @@ try {
                         ]);
                     }
                 }
-
 
                 $remainingStatement =
                     $pdo->prepare(
@@ -2580,16 +2651,9 @@ try {
                     (int) $publicationID
                 ]);
 
-                $remainingArticles =
-                    (int) $remainingStatement->fetchColumn();
-
-
-
+                $remainingArticles =(int) $remainingStatement->fetchColumn();
                 $pdo->commit();
 
-                /*
- * Delete PDFs of removed articles from Supabase
- */
                 foreach ($removedArticlePdfPaths as $removedPdfPath) {
                     try {
                         deletePdf($removedPdfPath);
@@ -2605,10 +2669,8 @@ try {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-
                 throw $e;
             }
-
 
             if ($newPublicationPdfUploaded && $oldPublicationPdf !== '' && $publicationPdfPath !== '' && normalizeStoragePath($oldPublicationPdf) !== normalizeStoragePath($publicationPdfPath)) {
 
@@ -2619,7 +2681,26 @@ try {
                 }
             }
 
+            if ($mode === 'publish' && $isDraft) {
 
+                publishExistingDraft(
+                    $pdo,
+                    (int) $publicationID
+                );
+
+                sendResponse(
+                    true,
+                    'Draft published successfully.',
+                    [
+                        'publicationID' => (int) $publicationID,
+                        'remainingArticles' => $remainingArticles,
+                        'draftIssueDeleted' => false,
+                        'editorialNoteRemoved' => false
+                    ]
+                );
+
+                break;
+            }
 
             sendResponse(
                 true,
@@ -2681,12 +2762,15 @@ try {
 
             $statement = $pdo->prepare(
                 'SELECT
-            ja."journalID",
-            ja."journalPDF",
-            ja."publicationID",
-            pi."publicationPDF",
-            pi."is_draft",
-            pi."is_current"
+        ja."journalID",
+        ja."journalPDF",
+        ja."publicationID",
+        pi."publicationPDF",
+        pi."is_draft",
+        pi."is_current",
+        pi."year",
+        pi."volume",
+        pi."number"
          FROM "JournalArticle" ja
          INNER JOIN "PublicationIssue" pi
             ON ja."publicationID" = pi."publicationID"
@@ -2706,8 +2790,10 @@ try {
 
             $publicationID = (int) $article['publicationID'];
 
-            /*$isDraft = (bool) $article['is_draft'];
-            $isCurrent = (bool) $article['is_current'];*/
+            $currentYear = (int) $article['year'];
+            $currentVolume = (int) $article['volume'];
+            $currentNumber = (int) $article['number'];
+
             $isDraft = postgresBoolean($article['is_draft']);
             $isCurrent = postgresBoolean($article['is_current']);
 
@@ -2791,31 +2877,22 @@ try {
                         $issueDeleted = true;
                     } elseif ($isCurrent) {
 
-
-                        /*$previousIssueStatement = $pdo->query(
+                      
+                        $previousIssueStatement = $pdo->prepare(
                             'SELECT
-                        "publicationID"
-                     FROM "PublicationIssue"
-                     WHERE "is_current" = FALSE
-                       AND "is_draft" = FALSE
-                     ORDER BY
-                        "year" DESC,
-                        "volume" DESC,
-                        "number" DESC,
-                        "publicationID" DESC
-                     LIMIT 1'
-                        );*/
+                            "previousPublicationID"
+                        FROM "PublicationIssue"
+                        WHERE "publicationID" = :publicationID
+                        AND "is_current" = TRUE
+                        AND "is_draft" = FALSE
+                        LIMIT 1'
 
-                        $previousIssueStatement = $pdo->query(
-                            'SELECT
-                                "publicationID"
-                            FROM "PublicationIssue"
-                            WHERE "is_current" = FALSE
-                            AND "is_draft" = FALSE
-                            ORDER BY
-                                "publicationID" DESC
-                            LIMIT 1'
                         );
+
+                        $previousIssueStatement->execute([
+                            ':publicationID' => $publicationID
+                        ]);
+
 
                         $previousIssue =
                             $previousIssueStatement->fetch(
@@ -2837,10 +2914,10 @@ try {
                         $issueDeleted = true;
 
 
-                        if ($previousIssue) {
+                        if ($previousIssue && $previousIssue['previousPublicationID'] !== null) {
 
                             $previousPublicationID =
-                                (int) $previousIssue['publicationID'];
+                                (int) $previousIssue['previousPublicationID'];
 
                             $activatePreviousStatement = $pdo->prepare(
                                 'UPDATE "PublicationIssue"

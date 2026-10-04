@@ -618,7 +618,7 @@ function openAddJournalPage() {
 /* -----------------------------------------
    PUBLISH DRAFT
    ----------------------------------------- */
-function publishDraftIssue(publicationID) {
+/*function publishDraftIssue(publicationID) {
   const modal = document.getElementById("publishConfirmationModal");
   const confirmButton = document.getElementById("confirmPublishButton");
 
@@ -685,6 +685,72 @@ function closePublishConfirmationModal() {
     if (modal) {
         modal.classList.remove("show");
     }
+}*/
+
+function publishDraftIssue(publicationID) {
+
+  openConfirmationModal(
+    "Publish Journal Issue?",
+    "Are you sure you want to publish this draft? The current issue will be moved to the archive.",
+    "Publish",
+    async function () {
+
+      try {
+
+        const formData = new FormData();
+
+        formData.append(
+          "action",
+          "publish"
+        );
+
+        formData.append(
+          "publicationID",
+          String(publicationID)
+        );
+
+        const response = await fetch(
+          "manage_journal_api.php",
+          {
+            method: "POST",
+            body: formData
+          }
+        );
+
+        const result = await response.json();
+
+        if (
+          !response.ok ||
+          !result.success
+        ) {
+
+          throw new Error(
+            result.message ||
+            "Unable to publish the draft."
+          );
+        }
+
+        await loadJournals();
+
+        showTab("current");
+
+        showMessage(
+          "Published Successfully",
+          "The draft journal issue has been published successfully."
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+          "Unable to Publish",
+          error.message ||
+          "Unable to publish the draft."
+        );
+      }
+    }
+  );
 }
 
 /* -----------------------------------------

@@ -156,3 +156,45 @@
     </div>
 
 </div>
+
+
+
+<!-- SAVE AS DRAFT CONFIRMATION MODAL -->
+<div class="confirmation-modal" id="saveDraftConfirmationModal">
+
+    <div class="confirmation-overlay"></div>
+
+    <div class="confirmation-dialog">
+
+        <div class="confirmation-icon">
+            <i class="fa-solid fa-file-pen"></i>
+        </div>
+
+        <h3>Save as Draft?</h3>
+
+        <p>
+            Are you sure you want to save this journal issue as a draft?
+            You can continue editing it later.
+        </p>
+
+        <div class="confirmation-actions">
+
+            <button
+                type="button"
+                class="modal-cancel-btn"
+                onclick="closeSaveDraftConfirmation()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="modal-confirm-btn"
+                id="confirmSaveDraftButton">
+                Save as Draft
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

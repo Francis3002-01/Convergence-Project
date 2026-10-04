@@ -1655,6 +1655,56 @@ function buildArticleData() {
   });
 }
 
+
+function openSaveDraftConfirmation() {
+
+    const modal =
+        document.getElementById(
+            "saveDraftConfirmationModal"
+        );
+
+    const confirmButton =
+        document.getElementById(
+            "confirmSaveDraftButton"
+        );
+
+    if (!modal || !confirmButton) {
+
+        console.error(
+            "Save draft confirmation modal elements not found."
+        );
+
+        return;
+    }
+
+    confirmButton.onclick = function (event) {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        closeSaveDraftConfirmation();
+
+        savePublication("draft");
+    };
+
+    modal.classList.add("show");
+}
+
+
+function closeSaveDraftConfirmation() {
+
+    const modal =
+        document.getElementById(
+            "saveDraftConfirmationModal"
+        );
+
+    if (modal) {
+        modal.classList.remove("show");
+    }
+}
+
+
+
 function savePublication(mode) {
   /*
    * Save draft immediately.
