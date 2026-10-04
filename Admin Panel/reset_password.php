@@ -4,8 +4,9 @@ require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
 
 
-// Get token from URL.
+// Get token and device mode from URL.
 $token = $_GET['token'] ?? '';
+$device = $_GET['device'] ?? '';
 
 
 // Get validation error from handler.
@@ -17,11 +18,85 @@ $validToken = false;
 
 
 // Validate token format first.
-if (
+// Validate the reset request.
+
+if ($device === 'original') {
+
+    // Original device mode.
+    // Use the tokenID stored in this device's session.
+
+    $tokenID = $_SESSION['password_reset_token_id'] ?? null;
+
+    if (!$tokenID) {
+
+        $error = 'No active password reset request was found.';
+
+    } else {
+
+        try {
+
+            // Connect to database.
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = '
+                SELECT
+                    "tokenID",
+                    "clickedAt",
+                    "expiresAt",
+                    "usedAt"
+                FROM "PasswordResetToken"
+                WHERE "tokenID" = :tokenID
+                LIMIT 1
+            ';
+
+            $stmt = $pdo->prepare($sql);
+
+            $stmt->execute([
+                ':tokenID' => $tokenID
+            ]);
+
+            $resetToken = $stmt->fetch();
+
+            if (!$resetToken) {
+
+                $error = 'Invalid or expired password reset request.';
+
+            } elseif ($resetToken['usedAt'] !== null) {
+
+                $error = 'This password reset has already been completed.';
+
+            } elseif (strtotime($resetToken['expiresAt']) < time()) {
+
+                $error = 'This password reset request has expired.';
+
+            } elseif ($resetToken['clickedAt'] === null) {
+
+                $error = 'Please click the password reset link sent to your email first.';
+
+            } else {
+
+                // Email link was clicked.
+                $validToken = true;
+            }
+
+        } catch (PDOException $e) {
+
+            error_log(
+                'Original device reset validation failed: ' .
+                $e->getMessage()
+            );
+
+            $error = 'Unable to process the password reset.';
+        }
+    }
+
+} elseif (
     $token === '' ||
     !preg_match('/^[a-f0-9]{64}$/', $token)
 ) {
 
+    // Email link mode.
     $error = 'Invalid or expired password reset link.';
 
 } else {
@@ -68,17 +143,28 @@ if (
 
             $validToken = true;
 
+            // Mark the reset link as clicked.
+            $updateSql = '
+        UPDATE "PasswordResetToken"
+        SET "clickedAt" = NOW()
+        WHERE "tokenID" = :tokenID
+        AND "clickedAt" IS NULL
+    ';
+
+            $updateStmt = $pdo->prepare($updateSql);
+
+            $updateStmt->execute([
+                ':tokenID' => $resetToken['tokenID']
+            ]);
         } else {
 
             $error = 'Invalid or expired password reset link.';
         }
-
-
     } catch (PDOException $e) {
 
         error_log(
             'Reset token validation failed: ' .
-            $e->getMessage()
+                $e->getMessage()
         );
 
         $error = 'Unable to process the reset link.';
@@ -92,11 +178,9 @@ if (
 if ($urlError === 'empty') {
 
     $error = 'Please enter and confirm your new password.';
-
 } elseif ($urlError === 'mismatch') {
 
     $error = 'The passwords do not match.';
-
 } elseif ($urlError === 'length') {
 
     $error = 'Password must be at least 8 characters long.';
@@ -112,8 +196,7 @@ if ($urlError === 'empty') {
     <meta charset="UTF-8">
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        content="width=device-width, initial-scale=1.0">
 
     <title>Reset Password | Convergence Admin</title>
 
@@ -121,33 +204,28 @@ if ($urlError === 'empty') {
     <!-- Google Fonts -->
     <link
         rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
+        href="https://fonts.googleapis.com">
 
     <link
         rel="preconnect"
         href="https://fonts.gstatic.com"
-        crossorigin
-    >
+        crossorigin>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap"
-        rel="stylesheet"
-    >
+        rel="stylesheet">
 
 
     <!-- Font Awesome -->
     <link
         rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 
     <!-- Reset Password CSS -->
     <link
         rel="stylesheet"
-        href="../css/reset_password.css"
-    >
+        href="../css/reset_password.css">
 
 </head>
 
@@ -163,8 +241,7 @@ if ($urlError === 'empty') {
             <img
                 src="../Images/Convergence Logo.png"
                 alt="Convergence logo"
-                class="brand-logo"
-            >
+                class="brand-logo">
 
             <div class="brand-text">
 
@@ -213,8 +290,7 @@ if ($urlError === 'empty') {
 
                 <a
                     href="forgot_password.php"
-                    class="btn-primary"
-                >
+                    class="btn-primary">
                     Request a New Reset Link
                 </a>
 
@@ -237,8 +313,7 @@ if ($urlError === 'empty') {
                 <form
                     action="reset_password_handler.php"
                     method="POST"
-                    class="rp-form"
-                >
+                    class="rp-form">
 
 
                     <!-- Reset Token -->
@@ -246,11 +321,10 @@ if ($urlError === 'empty') {
                         type="hidden"
                         name="token"
                         value="<?= htmlspecialchars(
-                            $token,
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ) ?>"
-                    >
+                                    $token,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>">
 
 
                     <!-- New Password -->
@@ -268,8 +342,7 @@ if ($urlError === 'empty') {
                                 id="new_password"
                                 name="new_password"
                                 autocomplete="new-password"
-                                required
-                            >
+                                required>
 
 
                             <button
@@ -277,13 +350,11 @@ if ($urlError === 'empty') {
                                 class="toggle-password"
                                 data-target="new_password"
                                 aria-label="Show password"
-                                aria-pressed="false"
-                            >
+                                aria-pressed="false">
 
                                 <i
                                     class="fa-solid fa-eye-slash"
-                                    aria-hidden="true"
-                                ></i>
+                                    aria-hidden="true"></i>
 
                             </button>
 
@@ -312,8 +383,7 @@ if ($urlError === 'empty') {
                                 id="confirm_password"
                                 name="confirm_password"
                                 autocomplete="new-password"
-                                required
-                            >
+                                required>
 
 
                             <button
@@ -321,13 +391,11 @@ if ($urlError === 'empty') {
                                 class="toggle-password"
                                 data-target="confirm_password"
                                 aria-label="Show password"
-                                aria-pressed="false"
-                            >
+                                aria-pressed="false">
 
                                 <i
                                     class="fa-solid fa-eye-slash"
-                                    aria-hidden="true"
-                                ></i>
+                                    aria-hidden="true"></i>
 
                             </button>
 
@@ -339,8 +407,7 @@ if ($urlError === 'empty') {
                     <!-- Submit -->
                     <button
                         type="submit"
-                        class="btn-primary"
-                    >
+                        class="btn-primary">
                         Reset Password
                     </button>
 
@@ -350,8 +417,7 @@ if ($urlError === 'empty') {
 
                 <a
                     href="admin_login.php"
-                    class="back-login"
-                >
+                    class="back-login">
                     <i class="fa-solid fa-arrow-left"></i>
                     Back to Log In
                 </a>
@@ -378,7 +444,6 @@ if ($urlError === 'empty') {
 
     <!-- Password Visibility -->
     <script>
-
         document
             .querySelectorAll('.toggle-password')
             .forEach(function(button) {
@@ -409,9 +474,9 @@ if ($urlError === 'empty') {
 
                         this.setAttribute(
                             'aria-label',
-                            show
-                                ? 'Hide password'
-                                : 'Show password'
+                            show ?
+                            'Hide password' :
+                            'Show password'
                         );
 
 
@@ -434,7 +499,6 @@ if ($urlError === 'empty') {
                 );
 
             });
-
     </script>
 
 

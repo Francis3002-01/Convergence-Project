@@ -412,56 +412,6 @@ function renderIssueContainer(container, issueList, tabName) {
   });
 }
 
-/* -----------------------------------------
-   LOAD JOURNALS
-   ----------------------------------------- */
-
-/*async function loadJournals() {
-  try {
-    const response = await fetch("manage_journal_api.php?action=list");
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Unable to load issues.");
-    }
-
-    const payload = result.data || {};
-    currentIssueData = Array.isArray(payload.current) ? payload.current : [];
-    draftIssueData = Array.isArray(payload.draft) ? payload.draft : [];
-    archiveIssueData = Array.isArray(payload.archive) ? payload.archive : [];
-
-    renderIssueLists();
-  } catch (error) {
-    console.error(error);
-
-    const currentList = document.getElementById("currentJournalList");
-
-    const draftList = document.getElementById("draftJournalList");
-
-    if (currentList) {
-      currentList.innerHTML = `
-                <div class="empty-message">
-                    Unable to load current issue.
-                </div>
-            `;
-    }
-
-    if (draftList) {
-      draftList.innerHTML = `
-                <div class="empty-message">
-                    Unable to load draft issue.
-                </div>
-            `;
-    }
-
-    showMessage(
-      "Unable to Load Journals",
-      error.message || "Unable to load issues.",
-    );
-  }
-}*/
-
 async function loadJournals() {
   const currentList = document.getElementById("currentJournalList");
   const draftList = document.getElementById("draftJournalList");

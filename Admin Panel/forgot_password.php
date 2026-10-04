@@ -168,6 +168,26 @@ $error = $_GET['error'] ?? '';
 
     </footer>
 
+      <script>
+        <?php if ($message !== ''): ?>
+            setInterval(async () => {
+                try {
+                    const response = await fetch('check_reset_status.php', {
+                        cache: 'no-store'
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'clicked') {
+                        window.location.href = 'reset_password.php?device=original';
+                    }
+                } catch (error) {
+                    console.error('Reset status check failed:', error);
+                }
+            }, 2000);
+        <?php endif; ?>
+    </script>
+
 </body>
 
 </html>

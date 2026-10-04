@@ -132,12 +132,12 @@ function uploadProfilePictureToSupabase(
 
     error_log(
         'Supabase Storage HTTP Status: ' .
-        $httpStatus
+            $httpStatus
     );
 
     error_log(
         'Supabase Storage Response: ' .
-        $response
+            $response
     );
 
 
@@ -153,9 +153,9 @@ function uploadProfilePictureToSupabase(
     ) {
         throw new \Exception(
             'Supabase Storage upload failed. HTTP ' .
-            $httpStatus .
-            ': ' .
-            $response
+                $httpStatus .
+                ': ' .
+                $response
         );
     }
 
@@ -278,12 +278,11 @@ try {
 
         exit;
     }
-
 } catch (PDOException $e) {
 
     error_log(
         'Edit Profile Fetch Error: ' .
-        $e->getMessage()
+            $e->getMessage()
     );
 
     header(
@@ -373,7 +372,7 @@ if (
 
         error_log(
             'Profile Picture Upload Error Code: ' .
-            $_FILES['profile_picture']['error']
+                $_FILES['profile_picture']['error']
         );
 
         header(
@@ -476,12 +475,11 @@ if (
         error_log(
             'PROFILE PICTURE UPLOAD COMPLETED'
         );
-
     } catch (\Exception $e) {
 
         error_log(
             'Profile Picture Upload Error: ' .
-            $e->getMessage()
+                $e->getMessage()
         );
 
         header(
@@ -572,11 +570,24 @@ try {
         |--------------------------------------------------------------------------
         */
 
-        $verificationUrl =
-            'http://localhost/Convergence%20Project/' .
-            'Admin%20Panel/verify_email.php?token=' .
-            urlencode($verificationToken);
+        $scheme = (
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+        )
+            ? 'https'
+            : 'http';
 
+        $host = $_SERVER['HTTP_HOST'];
+
+        $projectPath = '/Convergence%20Project';
+
+        $verificationUrl =
+            $scheme .
+            '://' .
+            $host .
+            $projectPath .
+            '/Admin%20Panel/verify_email.php?token=' .
+            urlencode($verificationToken);
 
         /*
         |--------------------------------------------------------------------------
@@ -620,9 +631,9 @@ try {
 
         $mail->setFrom(
             $_ENV['MAIL_FROM_ADDRESS'] ??
-            '',
+                '',
             $_ENV['MAIL_FROM_NAME'] ??
-            'Convergence Journal'
+                'Convergence Journal'
         );
 
 
@@ -665,12 +676,12 @@ try {
             <p>
                 <a
                     href="' .
-                    htmlspecialchars(
-                        $verificationUrl,
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) .
-                    '"
+            htmlspecialchars(
+                $verificationUrl,
+                ENT_QUOTES,
+                'UTF-8'
+            ) .
+            '"
                     style="
                         display:inline-block;
                         padding:12px 20px;
@@ -774,7 +785,6 @@ try {
         header(
             'Location: edit_profile.php?success=verification_sent'
         );
-
     } else {
 
         header(
@@ -785,12 +795,11 @@ try {
     exit;
 
 
-/*
+    /*
 |--------------------------------------------------------------------------
 | PHPMailer Exception
 |--------------------------------------------------------------------------
 */
-
 } catch (PHPMailerException $e) {
 
     if ($pdo->inTransaction()) {
@@ -799,7 +808,7 @@ try {
 
     error_log(
         'Edit Profile Email Error: ' .
-        $e->getMessage()
+            $e->getMessage()
     );
 
     header(
@@ -809,12 +818,11 @@ try {
     exit;
 
 
-/*
+    /*
 |--------------------------------------------------------------------------
 | Database Exception
 |--------------------------------------------------------------------------
 */
-
 } catch (PDOException $e) {
 
     if ($pdo->inTransaction()) {
@@ -823,7 +831,7 @@ try {
 
     error_log(
         'Edit Profile Database Error: ' .
-        $e->getMessage()
+            $e->getMessage()
     );
 
     header(

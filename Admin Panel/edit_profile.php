@@ -77,40 +77,34 @@ $initial = strtoupper(
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        content="width=device-width, initial-scale=1.0">
 
     <title>Edit Profile | Convergence Admin</title>
 
 
     <link
         rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
+        href="https://fonts.googleapis.com">
 
     <link
         rel="preconnect"
         href="https://fonts.gstatic.com"
-        crossorigin
-    >
+        crossorigin>
 
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap"
-        rel="stylesheet"
-    >
+        rel="stylesheet">
 
 
     <link
         rel="stylesheet"
-        href="../css/edit_profile.css"
-    >
+        href="../css/edit_profile.css">
 
 
     <link
         rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 </head>
 
@@ -127,8 +121,7 @@ $initial = strtoupper(
             <img
                 src="../Images/Convergence Logo.png"
                 alt="Convergence logo"
-                class="brand-logo"
-            >
+                class="brand-logo">
 
 
             <div class="brand-text">
@@ -177,23 +170,19 @@ $initial = strtoupper(
                     switch ($_GET['success']) {
 
                         case 'updated':
-
                             echo 'Profile updated successfully.';
-
                             break;
-
 
                         case 'verification_sent':
-
                             echo 'Your profile was updated. A verification link has been sent to your new email address.';
-
                             break;
 
+                        case 'email_verified':
+                            echo 'Your email address has been successfully verified and updated.';
+                            break;
 
                         default:
-
                             echo 'Changes saved successfully.';
-
                             break;
                     }
 
@@ -283,8 +272,7 @@ $initial = strtoupper(
                 action="edit_profile_handler.php"
                 method="POST"
                 enctype="multipart/form-data"
-                class="profile-form"
-            >
+                class="profile-form">
 
 
                 <!-- Profile Picture -->
@@ -298,12 +286,11 @@ $initial = strtoupper(
 
                             <img
                                 src="<?php echo htmlspecialchars(
-                                    $currentProfilePic,
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ); ?>"
-                                alt="Admin Profile Picture"
-                            >
+                                            $currentProfilePic,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ); ?>"
+                                alt="Admin Profile Picture">
 
                         <?php else: ?>
 
@@ -336,8 +323,7 @@ $initial = strtoupper(
 
                         <label
                             for="profile_picture"
-                            class="upload-button"
-                        >
+                            class="upload-button">
 
                             <i class="fa-solid fa-upload"></i>
 
@@ -350,8 +336,7 @@ $initial = strtoupper(
                             type="file"
                             id="profile_picture"
                             name="profile_picture"
-                            accept="image/jpeg,image/png,image/webp"
-                        >
+                            accept="image/jpeg,image/png,image/webp">
 
                     </div>
 
@@ -372,12 +357,11 @@ $initial = strtoupper(
                         id="username"
                         name="username"
                         value="<?php echo htmlspecialchars(
-                            $currentUsername,
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ); ?>"
-                        placeholder="Enter username"
-                    >
+                                    $currentUsername,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ); ?>"
+                        placeholder="Enter username">
 
                 </div>
 
@@ -396,12 +380,11 @@ $initial = strtoupper(
                         id="email"
                         name="email"
                         value="<?php echo htmlspecialchars(
-                            $currentEmail,
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ); ?>"
-                        placeholder="Enter email"
-                    >
+                                    $currentEmail,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ); ?>"
+                        placeholder="Enter email">
 
 
                     <?php if ($verificationPending): ?>
@@ -411,8 +394,7 @@ $initial = strtoupper(
                                 margin-top:8px;
                                 color:#a5241e;
                                 font-size:13px;
-                            "
-                        >
+                            ">
 
                             Verification pending for:
 
@@ -440,16 +422,14 @@ $initial = strtoupper(
 
                     <a
                         href="dashboard.php"
-                        class="btn-secondary"
-                    >
+                        class="btn-secondary">
                         Cancel
                     </a>
 
 
                     <button
                         type="submit"
-                        class="btn-primary"
-                    >
+                        class="btn-primary">
                         Save Changes
                     </button>
 
@@ -476,6 +456,51 @@ $initial = strtoupper(
         </p>
 
     </footer>
+
+    <script>
+        <?php if ($verificationPending): ?>
+
+            const verificationPoll = setInterval(async () => {
+
+                try {
+
+                    const response = await fetch(
+                        'check_email_verification.php', {
+                            cache: 'no-store'
+                        }
+                    );
+
+                    const data = await response.json();
+
+                    if (data.status === 'verified') {
+
+                        clearInterval(verificationPoll);
+
+                        window.location.href =
+                            'edit_profile.php?success=email_verified';
+                    }
+
+                    if (data.status === 'expired') {
+
+                        clearInterval(verificationPoll);
+
+                        window.location.href =
+                            'edit_profile.php?error=verification_expired';
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        'Email verification check failed:',
+                        error
+                    );
+
+                }
+
+            }, 2000);
+
+        <?php endif; ?>
+    </script>
 
 
 </body>

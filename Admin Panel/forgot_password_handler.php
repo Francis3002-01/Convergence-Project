@@ -87,6 +87,8 @@ try {
      */
     $rawToken = bin2hex(random_bytes(32));
 
+    //$requestID = bin2hex(random_bytes(32));
+
 
     /*
      * Store only the SHA-256 hash of the token.
@@ -130,19 +132,20 @@ try {
 
         // Insert new reset token.
         $insertSql = '
-            INSERT INTO "PasswordResetToken"
-            (
-                "adminID",
-                "tokenHash",
-                "expiresAt"
-            )
-            VALUES
-            (
-                :adminID,
-                :tokenHash,
-                :expiresAt
-            )
-        ';
+    INSERT INTO "PasswordResetToken"
+    (
+        "adminID",
+        "tokenHash",
+        "expiresAt"
+    )
+    VALUES
+    (
+        :adminID,
+        :tokenHash,
+        :expiresAt
+    )
+    RETURNING "tokenID"
+';
 
         $insertStmt = $pdo->prepare($insertSql);
 
@@ -152,8 +155,11 @@ try {
             ':expiresAt' => $expiresAt
         ]);
 
+        $tokenID = $insertStmt->fetchColumn();
+
 
         $pdo->commit();
+        $_SESSION['password_reset_request'] = $tokenID;
     } catch (PDOException $e) {
 
         if ($pdo->inTransaction()) {
@@ -229,7 +235,7 @@ try {
     $mail->Port = (int) $_ENV['MAIL_PORT'];
 
     // Sender.
-    $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'],$_ENV['MAIL_FROM_NAME']);
+    $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
 
     // Administrator's email.
     $mail->addAddress($admin['email']);
