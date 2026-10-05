@@ -244,7 +244,7 @@ try {
         $_ENV['MAIL_FROM_ADDRESS'],
         $_ENV['MAIL_FROM_NAME']
     );*/
-    $mail = new PHPMailer(true);
+    /*$mail = new PHPMailer(true);
 
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';
@@ -253,7 +253,21 @@ try {
     $mail->Password = $_ENV['MAIL_PASSWORD'] ?? getenv('MAIL_PASSWORD');
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = 587;
-    $mail->Timeout = 15;
+    $mail->Timeout = 15;*/
+
+    $mail = new PHPMailer(true);
+
+    $mail->SMTPDebug = 2;
+    $mail->Debugoutput = 'error_log';
+    $mail->Timeout = 20;
+
+    $mail->isSMTP();
+    $mail->Host = 'smtp.gmail.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = $_ENV['MAIL_USERNAME'] ?? getenv('MAIL_USERNAME');
+    $mail->Password = $_ENV['MAIL_PASSWORD'] ?? getenv('MAIL_PASSWORD');
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $mail->Port = 465;
 
     $mail->setFrom(
         $_ENV['MAIL_FROM_ADDRESS'] ?? getenv('MAIL_FROM_ADDRESS'),
