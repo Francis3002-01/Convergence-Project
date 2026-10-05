@@ -4,8 +4,10 @@ require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+/*use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;*/
+
+
 use Dotenv\Dotenv;
 
 $envFile = dirname(__DIR__) . '/.env';
@@ -230,7 +232,7 @@ try {
         urlencode($rawToken);
 
     // TEMPORARY connectivity probe - remove after use.
-    foreach (
+    /*foreach (
         [
             ['smtp.gmail.com', 465],
             ['smtp.gmail.com', 587],
@@ -252,103 +254,130 @@ try {
         ));
         if ($fp) fclose($fp);
     }
-    error_log('PROBE DNS smtp.gmail.com A=' . json_encode(array_column(@dns_get_record('smtp.gmail.com', DNS_A) ?: [], 'ip')));
+    error_log('PROBE DNS smtp.gmail.com A=' . json_encode(array_column(@dns_get_record('smtp.gmail.com', DNS_A) ?: [], 'ip')));*/
 
-    $mail = new PHPMailer(true);
+    // Get Mailjet credentials from environment variables.
+    $apiKey = $_ENV['MAILJET_API_KEY'] ?? getenv('MAILJET_API_KEY');
+    $secretKey = $_ENV['MAILJET_SECRET_KEY'] ?? getenv('MAILJET_SECRET_KEY');
+    $fromAddress = $_ENV['MAIL_FROM_ADDRESS'] ?? getenv('MAIL_FROM_ADDRESS');
+    $fromName = $_ENV['MAIL_FROM_NAME'] ?? getenv('MAIL_FROM_NAME');
 
-    $mail->SMTPDebug = 2;
-    $mail->Debugoutput = 'error_log';
-    $mail->Timeout = 20;
+    // Email HTML content.
+    $htmlBody = '
+<div style="
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333333;
+">
+    <h2 style="color: #A5241E;">
+        Convergence Journal
+    </h2>
 
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = $_ENV['MAIL_USERNAME'] ?? getenv('MAIL_USERNAME');
-    $mail->Password = $_ENV['MAIL_PASSWORD'] ?? getenv('MAIL_PASSWORD');
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-    $mail->Port = 465;
+    <p>
+        A password reset request was made for your
+        administrator account.
+    </p>
 
-    $mail->setFrom(
-        $_ENV['MAIL_FROM_ADDRESS'] ?? getenv('MAIL_FROM_ADDRESS'),
-        $_ENV['MAIL_FROM_NAME'] ?? getenv('MAIL_FROM_NAME')
-    );
+    <p>
+        Click the button below to create a new password.
+    </p>
 
-    $mail->addAddress($admin['email']);
-
-    $mail->isHTML(true);
-    $mail->Subject = 'Convergence Journal - Password Reset';
-
-    $mail->Body = '
-    <div style="
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        color: #333333;
-    ">
-        <h2 style="color: #A5241E;">
-            Convergence Journal
-        </h2>
-
-        <p>
-            A password reset request was made for your
-            administrator account.
-        </p>
-
-        <p>
-            Click the button below to create a new password.
-        </p>
-
-        <p>
-            <a
-                href="' .
+    <p>
+        <a
+            href="' .
         htmlspecialchars(
             $resetUrl,
             ENT_QUOTES,
             'UTF-8'
         ) .
         '"
-                style="
-                    display: inline-block;
-                    padding: 12px 20px;
-                    background: #A5241E;
-                    color: #ffffff;
-                    text-decoration: none;
-                    border-radius: 6px;
-                "
-            >
-                Reset Password
-            </a>
-        </p>
+            style="
+                display: inline-block;
+                padding: 12px 20px;
+                background: #A5241E;
+                color: #ffffff;
+                text-decoration: none;
+                border-radius: 6px;
+            "
+        >
+            Reset Password
+        </a>
+    </p>
 
-        <p>
-            This link will expire in 30 minutes.
-        </p>
+    <p>
+        This link will expire in 30 minutes.
+    </p>
 
-        <p>
-            If you did not request a password reset,
-            you can safely ignore this email.
-        </p>
-    </div>
+    <p>
+        If you did not request a password reset,
+        you can safely ignore this email.
+    </p>
+</div>
 ';
 
-    $mail->AltBody =
+    // Plain-text version of the email.
+    $textBody =
         "A password reset was requested for your " .
         "Convergence Journal administrator account.\n\n" .
         "Reset your password using this link:\n" .
         $resetUrl . "\n\n" .
         "This link expires in 30 minutes.";
 
-    $mail->send();
+    // Prepare Mailjet API request.
+    $payload = [
+        'Messages' => [
+            [
+                'From' => [
+                    'Email' => $fromAddress,
+                    'Name' => $fromName
+                ],
+                'To' => [
+                    [
+                        'Email' => $admin['email']
+                    ]
+                ],
+                'Subject' => 'Convergence Journal - Password Reset',
+                'HTMLPart' => $htmlBody,
+                'TextPart' => $textBody
+            ]
+        ]
+    ];
 
+    // Send through Mailjet HTTPS API.
+    $ch = curl_init('https://api.mailjet.com/v3.1/send');
+
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_USERPWD => $apiKey . ':' . $secretKey,
+        CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json'
+        ],
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_TIMEOUT => 20
+    ]);
+
+    $response = curl_exec($ch);
+    $curlError = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    curl_close($ch);
+
+    // Check whether Mailjet accepted the email.
+    if ($response === false ||$httpCode < 200 ||$httpCode >= 300) {
+        error_log('Mailjet password reset failed. HTTP ' .$httpCode .'. cURL error: ' .$curlError);
+        header('Location: forgot_password.php?error=general');
+        exit;
+    }
 
     /*
      * Always show the generic success message.
      */
-    header(
-        'Location: forgot_password.php?message=' .
-            urlencode($successMessage)
-    );
+    header('Location: forgot_password.php?message=' . urlencode($successMessage));
 
     exit;
+
 } catch (PDOException $e) {
     error_log(
         'Password reset database error: ' .
