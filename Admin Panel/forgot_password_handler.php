@@ -371,13 +371,38 @@ try {
         exit;
     }*/
     if ($response === false || $httpCode < 200 || $httpCode >= 300) {
-    echo '<h2>Mailjet Send Failed</h2>';
+
+
+
+        /*echo '<h2>Mailjet Send Failed</h2>';
     echo '<p>HTTP Status: ' . htmlspecialchars((string)$httpCode) . '</p>';
     echo '<p>cURL Error: ' . htmlspecialchars($curlError) . '</p>';
     echo '<h3>Mailjet Response:</h3>';
-    echo '<pre>' . htmlspecialchars($response) . '</pre>';
-    exit;
-}
+    echo '<pre>' . htmlspecialchars($response) . '</pre>';*/
+
+        echo '<h2>Mailjet Debug</h2>';
+
+        echo '<p><strong>HTTP Status:</strong> ' .
+            htmlspecialchars((string)$httpCode) .
+            '</p>';
+
+        echo '<p><strong>cURL Error:</strong> ' .
+            htmlspecialchars($curlError ?: 'None') .
+            '</p>';
+
+        echo '<h3>Mailjet Response:</h3>';
+
+        echo '<pre>' .
+            htmlspecialchars($response ?? '') .
+            '</pre>';
+
+        exit;
+
+
+
+
+        exit;
+    }
 
     /*
      * Always show the generic success message.
@@ -385,7 +410,6 @@ try {
     header('Location: forgot_password.php?message=' . urlencode($successMessage));
 
     exit;
-
 } catch (PDOException $e) {
     error_log(
         'Password reset database error: ' .
