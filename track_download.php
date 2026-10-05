@@ -9,11 +9,25 @@ use Dotenv\Dotenv;
 header('Content-Type: application/json; charset=utf-8');
 
 /*Load environment variables*/
-$dotenv = Dotenv::createImmutable(__DIR__);
+/*$dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 $supabaseUrl = $_ENV['SUPABASE_URL'] ?? '';
-$supabaseKey = $_ENV['SUPABASE_SECRET_KEY'] ?? '';
+$supabaseKey = $_ENV['SUPABASE_SECRET_KEY'] ?? '';*/
+
+$envFile = __DIR__ . '/.env';
+
+if (file_exists($envFile)) {
+
+    $dotenv = Dotenv::createImmutable(__DIR__);
+
+    $dotenv->safeLoad();
+
+}
+
+$supabaseUrl = trim($_ENV['SUPABASE_URL'] ?? '');
+
+$supabaseKey = trim($_ENV['SUPABASE_SECRET_KEY'] ?? '');
 
 if ($supabaseUrl === '' || $supabaseKey === '') {
     http_response_code(500);
