@@ -184,10 +184,11 @@ $initial = strtoupper(
                 enctype="multipart/form-data"
                 class="profile-form">
 
-
                 <!-- Profile Picture -->
                 <div class="profile-picture-preview" id="profilePicturePreview">
+
                     <?php if (!empty($currentProfilePic)): ?>
+
                         <img
                             src="<?php echo htmlspecialchars(
                                         $currentProfilePic,
@@ -196,7 +197,9 @@ $initial = strtoupper(
                                     ); ?>"
                             alt="Admin Profile Picture"
                             id="profilePictureImage">
+
                     <?php else: ?>
+
                         <span id="profilePictureInitial">
                             <?php echo htmlspecialchars(
                                 $initial,
@@ -204,9 +207,10 @@ $initial = strtoupper(
                                 'UTF-8'
                             ); ?>
                         </span>
-                    <?php endif; ?>
-                </div>
 
+                    <?php endif; ?>
+
+                </div>
 
                 <div class="profile-picture-content">
 
@@ -214,22 +218,18 @@ $initial = strtoupper(
                         Profile Picture
                     </span>
 
-
                     <p class="profile-picture-help">
                         Upload a new profile picture.
                     </p>
-
 
                     <label
                         for="profile_picture"
                         class="upload-button">
 
                         <i class="fa-solid fa-upload"></i>
-
                         Choose Picture
 
                     </label>
-
 
                     <input
                         type="file"
@@ -239,83 +239,90 @@ $initial = strtoupper(
 
                 </div>
 
-        </div>
+
+                <!-- Username -->
+                <div class="profile-field">
+
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        value="<?php echo htmlspecialchars(
+                                    $currentUsername,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ); ?>"
+                        placeholder="Enter username">
+
+                </div>
 
 
-        <!-- Username -->
+                <!-- Email -->
+                <div class="profile-field">
 
-        <div class="profile-field">
+                    <label for="email">
+                        Email
+                    </label>
 
-            <label for="username">
-                Username
-            </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="<?php echo htmlspecialchars(
+                                    $currentEmail,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ); ?>"
+                        placeholder="Enter email">
+
+                    <?php if ($verificationPending): ?>
+
+                        <p
+                            style="
+                    margin-top: 8px;
+                    color: #a5241e;
+                    font-size: 13px;
+                ">
+
+                            Verification pending for:
+
+                            <strong>
+                                <?php echo htmlspecialchars(
+                                    $pendingEmail,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ); ?>
+                            </strong>
+
+                        </p>
+
+                    <?php endif; ?>
+
+                </div>
 
 
-            <input
-                type="text"
-                id="username"
-                name="username"
-                value="<?php echo htmlspecialchars(
-                            $currentUsername,
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ); ?>"
-                placeholder="Enter username">
+                <!-- Buttons -->
+                <div class="profile-actions">
 
-        </div>
+                    <a
+                        href="dashboard.php"
+                        class="btn-secondary">
+                        Cancel
+                    </a>
 
+                    <button
+                        type="submit"
+                        class="btn-primary">
+                        Save Changes
+                    </button>
 
-        <!-- Email -->
+                </div>
 
-        <div class="profile-field">
-
-            <label for="email">
-                Email
-            </label>
-
-
-            <input
-                type="email"
-                id="email"
-                name="email"
-                value="<?php echo htmlspecialchars(
-                            $currentEmail,
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ); ?>"
-                placeholder="Enter email">
-
-
-            <?php if ($verificationPending): ?>
-
-                <p
-                    style="
-                                margin-top:8px;
-                                color:#a5241e;
-                                font-size:13px;
-                            ">
-
-                    Verification pending for:
-
-                    <strong>
-                        <?php echo htmlspecialchars(
-                            $pendingEmail,
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ); ?>
-
-                    </strong>
-                </p>
-            <?php endif; ?>
-        </div>
-
-        <!-- Buttons -->
-        <div class="profile-actions">
-            <a href="dashboard.php"class="btn-secondary">Cancel</a>
-            <button type="submit" class="btn-primary">Save Changes</button>
-
-        </div>
-        </form>
+            </form>
         </div>
     </main>
 
@@ -341,18 +348,16 @@ $initial = strtoupper(
 
                     if (data.status === 'verified') {
                         clearInterval(verificationPoll);
-                        window.location.href ='edit_profile.php?success=email_verified';
+                        window.location.href = 'edit_profile.php?success=email_verified';
                     }
 
                     if (data.status === 'expired') {
                         clearInterval(verificationPoll);
-                        window.location.href ='edit_profile.php?error=verification_expired';
+                        window.location.href = 'edit_profile.php?error=verification_expired';
                     }
 
-                } 
-                
-                catch (error) {
-                    console.error('Email verification check failed:',error);
+                } catch (error) {
+                    console.error('Email verification check failed:', error);
                 }
 
             }, 2000);
@@ -361,10 +366,10 @@ $initial = strtoupper(
 
 
         // Profile Picture Preview
-        const profilePictureInput =document.getElementById('profile_picture');
-        const profilePicturePreview =document.getElementById('profilePicturePreview');
+        const profilePictureInput = document.getElementById('profile_picture');
+        const profilePicturePreview = document.getElementById('profilePicturePreview');
 
-        if (profilePictureInput &&profilePicturePreview) {
+        if (profilePictureInput && profilePicturePreview) {
 
             profilePictureInput.addEventListener(
                 'change',
