@@ -228,9 +228,9 @@ try {
         $basePath .
         '/Admin%20Panel/reset_password.php?token=' .
         urlencode($rawToken);
-  
 
-    $mail = new PHPMailer(true);
+
+    /*$mail = new PHPMailer(true);
 
     $mail->isSMTP();
     $mail->Host       = $_ENV['MAIL_HOST'];
@@ -243,6 +243,21 @@ try {
     $mail->setFrom(
         $_ENV['MAIL_FROM_ADDRESS'],
         $_ENV['MAIL_FROM_NAME']
+    );*/
+    $mail = new PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = 'smtp.gmail.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = $_ENV['MAIL_USERNAME'] ?? getenv('MAIL_USERNAME');
+    $mail->Password = $_ENV['MAIL_PASSWORD'] ?? getenv('MAIL_PASSWORD');
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = 587;
+    $mail->Timeout = 15;
+
+    $mail->setFrom(
+        $_ENV['MAIL_FROM_ADDRESS'] ?? getenv('MAIL_FROM_ADDRESS'),
+        $_ENV['MAIL_FROM_NAME'] ?? getenv('MAIL_FROM_NAME')
     );
 
     $mail->addAddress($admin['email']);
@@ -331,7 +346,6 @@ try {
         'Location: forgot_password.php?error=general'
     );
     exit;
-
 } catch (Exception $e) {
     error_log(
         'Password reset email failed: ' .
@@ -343,35 +357,3 @@ try {
     );
     exit;
 }
-
-
-
-/*} catch (Exception $e) {
-
-   
-    error_log(
-        'Password reset email failed: ' .
-            $e->getMessage()
-    );
-
-    header(
-        'Location: forgot_password.php?error=general'
-    );
-
-    exit;
-} catch (PDOException $e) {
-
-
-
-    
-    error_log(
-        'Password reset database error: ' .
-            $e->getMessage()
-    );
-
-    header(
-        'Location: forgot_password.php?error=general'
-    );
-
-    exit;
-}*/

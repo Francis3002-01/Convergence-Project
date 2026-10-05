@@ -5,7 +5,8 @@ require_once __DIR__ . '/../config/database.php';
 
 header('Content-Type: application/json');
 
-$tokenID = $_SESSION['password_reset_token_id'] ?? null;
+//$tokenID = $_SESSION['password_reset_token_id'] ?? null;
+$tokenID = $_SESSION['password_reset_request'] ?? null;
 
 if (!$tokenID) {
     echo json_encode([
