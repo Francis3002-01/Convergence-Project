@@ -277,6 +277,9 @@ if ($downloadPdfPath !== null && $downloadPdfPath !== '') {
 
             <!-- PDF -->
             <?php if ($readPdfUrl !== '' || $downloadPdfUrl !== ''): ?>
+
+
+                
                 <section id="pdfSection" class="pdf-section" data-pdf-url="<?= htmlspecialchars($readPdfUrl) ?>" data-journal-id="<?= (int) $article['journalID'] ?>" aria-labelledby="pdf-heading">
                     <!--<h2 id="pdf-heading">Article PDF</h2>-->
                     <div class="pdf-actions" aria-label="PDF actions">

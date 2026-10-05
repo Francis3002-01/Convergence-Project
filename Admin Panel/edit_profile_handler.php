@@ -5,15 +5,100 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../Classes/Admin.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
+
+/*
+|--------------------------------------------------------------------------
+| Send Email Using Mailjet
+|--------------------------------------------------------------------------
+*/
+
+function sendMailjetEmail(string $recipientEmail,string $subject,string $htmlBody,string $textBody): void {
+
+    $mailjetApiKey = trim($_ENV['MAILJET_API_KEY'] ?? '');
+    $mailjetSecretKey = trim($_ENV['MAILJET_SECRET_KEY'] ?? '');
+    $senderEmail = trim($_ENV['MAIL_FROM_ADDRESS'] ?? '');
+    $senderName = trim($_ENV['MAIL_FROM_NAME'] ?? 'Convergence Journal');
+
+    if ($mailjetApiKey === '' ||$mailjetSecretKey === '' ||$senderEmail === '') {
+        throw new \Exception('Mailjet configuration is missing.');
+    }
+
+    $payload = [
+        'Messages' => [
+            [
+                'From' => [
+                    'Email' => $senderEmail,
+                    'Name' => $senderName
+                ],
+
+                'To' => [
+                    [
+                        'Email' => $recipientEmail
+                    ]
+                ],
+
+                'Subject' => $subject,
+                'TextPart' => $textBody,
+                'HTMLPart' => $htmlBody
+            ]
+        ]
+    ];
+
+    $curl = curl_init('https://api.mailjet.com/v3.1/send');
+
+    if ($curl === false) {
+        throw new \Exception('Unable to initialize Mailjet request.');
+    }
+
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+
+        CURLOPT_USERPWD =>
+            $mailjetApiKey . ':' . $mailjetSecretKey,
+
+        CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json'
+        ],
+
+        CURLOPT_POSTFIELDS => json_encode(
+            $payload,
+            JSON_UNESCAPED_SLASHES
+        )
+    ]);
+
+    $response = curl_exec($curl);
+
+    if ($response === false) {
+        $curlError = curl_error($curl);
+        curl_close($curl);
+        throw new \Exception('Mailjet cURL error: ' . $curlError);
+    }
+
+    $httpStatus = curl_getinfo($curl,CURLINFO_HTTP_CODE);
+    curl_close($curl);
+    error_log('Mailjet HTTP Status: ' . $httpStatus);
+    error_log('Mailjet Response: ' . $response);
+
+    if ($httpStatus < 200 || $httpStatus >= 300) {
+
+        throw new \Exception(
+            'Mailjet email sending failed. HTTP ' .
+            $httpStatus .
+            ': ' .
+            $response
+        );
+    }
+
+    $responseData = json_decode($response,true);
+    if (!is_array($responseData)) {
+        throw new \Exception('Invalid response received from Mailjet.');
+    }
+}
+
 error_log('EDIT PROFILE HANDLER REACHED');
-
-error_log(
-    'FILES: ' . print_r($_FILES, true)
-);
-
-use PHPMailer\PHPMailer\Exception as PHPMailerException;
-use PHPMailer\PHPMailer\PHPMailer;
-
+error_log('FILES: ' . print_r($_FILES, true));
 
 /*
 |--------------------------------------------------------------------------
@@ -21,29 +106,14 @@ use PHPMailer\PHPMailer\PHPMailer;
 |--------------------------------------------------------------------------
 */
 
-function uploadProfilePictureToSupabase(
-    string $temporaryFile,
-    string $fileName,
-    string $mimeType
-): string {
+function uploadProfilePictureToSupabase(string $temporaryFile,string $fileName,string $mimeType): string {
 
-    $supabaseUrl = rtrim(
-        $_ENV['SUPABASE_URL'] ?? '',
-        '/'
-    );
-
+    $supabaseUrl = rtrim($_ENV['SUPABASE_URL'] ?? '','/');
     $bucket = $_ENV['SUPABASE_PICTURE_BUCKET'] ?? '';
-
     $secretKey = $_ENV['SUPABASE_SECRET_KEY'] ?? '';
 
-    if (
-        $supabaseUrl === '' ||
-        $bucket === '' ||
-        $secretKey === ''
-    ) {
-        throw new \Exception(
-            'Supabase Storage configuration is missing.'
-        );
+    if ($supabaseUrl === '' ||$bucket === '' ||$secretKey === '') {
+        throw new \Exception('Supabase Storage configuration is missing.');
     }
 
     /*
@@ -56,7 +126,6 @@ function uploadProfilePictureToSupabase(
     */
 
     $storagePath = 'admin/profile.jpg';
-
     $uploadUrl =
         $supabaseUrl .
         '/storage/v1/object/' .
@@ -64,37 +133,28 @@ function uploadProfilePictureToSupabase(
         '/' .
         $storagePath;
 
+
     if (!is_file($temporaryFile)) {
-        throw new \Exception(
-            'Temporary uploaded image file does not exist.'
-        );
+        throw new \Exception('Temporary uploaded image file does not exist.');
     }
 
-    $fileContents = file_get_contents(
-        $temporaryFile
-    );
+    $fileContents = file_get_contents($temporaryFile);
 
     if ($fileContents === false) {
-        throw new \Exception(
-            'Unable to read the uploaded image.'
-        );
+        throw new \Exception('Unable to read the uploaded image.');
     }
 
     $curl = curl_init($uploadUrl);
 
     if ($curl === false) {
-        throw new \Exception(
-            'Unable to initialize cURL.'
-        );
+        throw new \Exception('Unable to initialize cURL.');
     }
+
 
     curl_setopt_array($curl, [
         CURLOPT_RETURNTRANSFER => true,
-
         CURLOPT_CUSTOMREQUEST => 'POST',
-
         CURLOPT_POSTFIELDS => $fileContents,
-
         CURLOPT_HTTPHEADER => [
             'Authorization: Bearer ' . $secretKey,
             'apikey: ' . $secretKey,
@@ -102,6 +162,7 @@ function uploadProfilePictureToSupabase(
             'x-upsert: true'
         ]
     ]);
+
 
     $response = curl_exec($curl);
 
@@ -116,11 +177,8 @@ function uploadProfilePictureToSupabase(
         );
     }
 
-    $httpStatus = curl_getinfo(
-        $curl,
-        CURLINFO_HTTP_CODE
-    );
 
+    $httpStatus = curl_getinfo($curl,CURLINFO_HTTP_CODE);
     curl_close($curl);
 
 
@@ -130,16 +188,8 @@ function uploadProfilePictureToSupabase(
     |--------------------------------------------------------------------------
     */
 
-    error_log(
-        'Supabase Storage HTTP Status: ' .
-            $httpStatus
-    );
-
-    error_log(
-        'Supabase Storage Response: ' .
-            $response
-    );
-
+    error_log('Supabase Storage HTTP Status: ' .$httpStatus);
+    error_log('Supabase Storage Response: ' .$response);
 
     /*
     |--------------------------------------------------------------------------
@@ -147,17 +197,15 @@ function uploadProfilePictureToSupabase(
     |--------------------------------------------------------------------------
     */
 
-    if (
-        $httpStatus < 200 ||
-        $httpStatus >= 300
-    ) {
+    if ($httpStatus < 200 ||$httpStatus >= 300) {
         throw new \Exception(
             'Supabase Storage upload failed. HTTP ' .
-                $httpStatus .
-                ': ' .
-                $response
+            $httpStatus .
+            ': ' .
+            $response
         );
     }
+
 
     return $storagePath;
 }
@@ -172,6 +220,7 @@ function uploadProfilePictureToSupabase(
 if (
     $_SERVER['REQUEST_METHOD'] !== 'POST'
 ) {
+
     header(
         'Location: edit_profile.php'
     );
@@ -260,15 +309,19 @@ try {
         LIMIT 1
     ';
 
+
     $currentStmt = $pdo->prepare(
         $currentQuery
     );
+
 
     $currentStmt->execute([
         ':adminID' => $adminID
     ]);
 
+
     $currentAdmin = $currentStmt->fetch();
+
 
     if (!$currentAdmin) {
 
@@ -278,11 +331,12 @@ try {
 
         exit;
     }
+
 } catch (PDOException $e) {
 
     error_log(
         'Edit Profile Fetch Error: ' .
-            $e->getMessage()
+        $e->getMessage()
     );
 
     header(
@@ -306,6 +360,7 @@ if ($newEmail === '') {
 
     $newEmail = $currentEmail;
 }
+
 
 if (
     !filter_var(
@@ -344,15 +399,8 @@ $emailChanged = (
 
 if (
     isset($_FILES['profile_picture']) &&
-    $_FILES['profile_picture']['error'] !==
-    UPLOAD_ERR_NO_FILE
+    $_FILES['profile_picture']['error'] !== UPLOAD_ERR_NO_FILE
 ) {
-
-    /*
-    |--------------------------------------------------------------------------
-    | Debug Log
-    |--------------------------------------------------------------------------
-    */
 
     error_log(
         'PROFILE PICTURE BLOCK REACHED'
@@ -372,7 +420,7 @@ if (
 
         error_log(
             'Profile Picture Upload Error Code: ' .
-                $_FILES['profile_picture']['error']
+            $_FILES['profile_picture']['error']
         );
 
         header(
@@ -389,18 +437,11 @@ if (
     |--------------------------------------------------------------------------
     */
 
-    if (
-        $_FILES['profile_picture']['size'] >
-        2 * 1024 * 1024
-    ) {
-
-        header(
-            'Location: edit_profile.php?error=size'
-        );
+    if ($_FILES['profile_picture']['size'] >2 * 1024 * 1024) {
+        header('Location: edit_profile.php?error=size');
 
         exit;
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -408,16 +449,10 @@ if (
     |--------------------------------------------------------------------------
     */
 
-    $imageInfo = getimagesize(
-        $_FILES['profile_picture']['tmp_name']
-    );
+    $imageInfo = getimagesize($_FILES['profile_picture']['tmp_name']);
 
     if ($imageInfo === false) {
-
-        header(
-            'Location: edit_profile.php?error=image'
-        );
-
+        header('Location: edit_profile.php?error=image');
         exit;
     }
 
@@ -426,33 +461,17 @@ if (
     |--------------------------------------------------------------------------
     | Only Allow JPEG
     |--------------------------------------------------------------------------
-    |
-    | The Supabase object uses the fixed filename:
-    |
-    | admin/profile.jpg
-    |
-    | Therefore the uploaded file must actually be JPEG.
-    |
     */
 
     $imageType = $imageInfo[2];
-
-    if (
-        $imageType !== IMAGETYPE_JPEG
-    ) {
-
-        header(
-            'Location: edit_profile.php?error=type'
-        );
-
+    if ($imageType !== IMAGETYPE_JPEG) {
+        header('Location: edit_profile.php?error=type');
         exit;
     }
 
 
     $mimeType = 'image/jpeg';
-
     $fileName = 'admin/profile.jpg';
-
 
     /*
     |--------------------------------------------------------------------------
@@ -466,26 +485,20 @@ if (
             'ABOUT TO UPLOAD PROFILE PICTURE TO SUPABASE'
         );
 
+
         uploadProfilePictureToSupabase(
             $_FILES['profile_picture']['tmp_name'],
             $fileName,
             $mimeType
         );
 
-        error_log(
-            'PROFILE PICTURE UPLOAD COMPLETED'
-        );
-    } catch (\Exception $e) {
+        error_log('PROFILE PICTURE UPLOAD COMPLETED');
 
-        error_log(
-            'Profile Picture Upload Error: ' .
-                $e->getMessage()
-        );
-
-        header(
-            'Location: edit_profile.php?error=upload'
-        );
-
+    } 
+    
+    catch (\Exception $e) {
+        error_log('Profile Picture Upload Error: ' .$e->getMessage());
+        header('Location: edit_profile.php?error=upload');
         exit;
     }
 }
@@ -498,9 +511,7 @@ if (
 */
 
 try {
-
     $pdo->beginTransaction();
-
 
     /*
     |--------------------------------------------------------------------------
@@ -511,37 +522,23 @@ try {
     if ($emailChanged) {
 
         /*
-        | Generate verification token
+        |--------------------------------------------------------------------------
+        | Generate Verification Token
+        |--------------------------------------------------------------------------
         */
 
         $verificationToken = bin2hex(
             random_bytes(32)
         );
 
-
         /*
-        | Store only the hashed token
+        |--------------------------------------------------------------------------
+        | Store Only the Hashed Token
+        |--------------------------------------------------------------------------
         */
 
-        $verificationTokenHash = hash(
-            'sha256',
-            $verificationToken
-        );
-
-
-        /*
-        | Token expires after 30 minutes
-        */
-
-        $verificationExpires = date(
-            'Y-m-d H:i:s',
-            time() + (30 * 60)
-        );
-
-
-        /*
-        | Save pending email
-        */
+        $verificationTokenHash = hash('sha256',$verificationToken);
+        $verificationExpires = date('Y-m-d H:i:s',time() + (30 * 60));
 
         $emailQuery = '
             UPDATE "Admin"
@@ -552,34 +549,59 @@ try {
             WHERE "adminID" = :adminID
         ';
 
-        $emailStmt = $pdo->prepare(
-            $emailQuery
-        );
 
+        $emailStmt = $pdo->prepare($emailQuery);
         $emailStmt->execute([
-            ':pendingEmail' => $newEmail,
-            ':token' => $verificationTokenHash,
-            ':expires' => $verificationExpires,
-            ':adminID' => $adminID
+            ':pendingEmail' =>$newEmail,
+            ':token' =>$verificationTokenHash,
+            ':expires' =>$verificationExpires,
+            ':adminID' =>$adminID
         ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Verification URL
+        | Build Verification URL
         |--------------------------------------------------------------------------
         */
 
         $scheme = (
-            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+            (
+                !empty($_SERVER['HTTPS']) &&
+                $_SERVER['HTTPS'] !== 'off'
+            ) ||
+            (
+                isset($_SERVER['SERVER_PORT']) &&
+                $_SERVER['SERVER_PORT'] == 443
+            )
         )
             ? 'https'
             : 'http';
 
+
         $host = $_SERVER['HTTP_HOST'];
 
-        $projectPath = '/Convergence%20Project';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Localhost uses the XAMPP project folder.
+        | Render does not.
+        |--------------------------------------------------------------------------
+        */
+
+        $projectPath = '';
+
+        if (
+            strpos(
+                $host,
+                'localhost'
+            ) !== false
+        ) {
+
+            $projectPath =
+                '/Convergence%20Project';
+        }
+
 
         $verificationUrl =
             $scheme .
@@ -589,77 +611,14 @@ try {
             '/Admin%20Panel/verify_email.php?token=' .
             urlencode($verificationToken);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Configure PHPMailer
-        |--------------------------------------------------------------------------
-        */
-
-        $mail = new PHPMailer(true);
-
-        $mail->isSMTP();
-
-        $mail->Host =
-            $_ENV['MAIL_HOST'] ??
-            'smtp.gmail.com';
-
-        $mail->SMTPAuth = true;
-
-        $mail->Username =
-            $_ENV['MAIL_USERNAME'] ??
-            '';
-
-        $mail->Password =
-            $_ENV['MAIL_PASSWORD'] ??
-            '';
-
-        $mail->SMTPSecure =
-            PHPMailer::ENCRYPTION_STARTTLS;
-
-        $mail->Port =
-            (int) (
-                $_ENV['MAIL_PORT'] ??
-                587
-            );
-
 
         /*
         |--------------------------------------------------------------------------
-        | Sender
+        | Email HTML
         |--------------------------------------------------------------------------
         */
 
-        $mail->setFrom(
-            $_ENV['MAIL_FROM_ADDRESS'] ??
-                '',
-            $_ENV['MAIL_FROM_NAME'] ??
-                'Convergence Journal'
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Recipient
-        |--------------------------------------------------------------------------
-        */
-
-        $mail->addAddress(
-            $newEmail
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Email Content
-        |--------------------------------------------------------------------------
-        */
-
-        $mail->isHTML(true);
-
-        $mail->Subject =
-            'Verify Your New Email Address - Convergence Journal';
-
-        $mail->Body = '
+        $htmlBody = '
             <h2>Verify Your Email Address</h2>
 
             <p>
@@ -709,11 +668,11 @@ try {
 
         /*
         |--------------------------------------------------------------------------
-        | Plain Text Email
+        | Email Plain Text
         |--------------------------------------------------------------------------
         */
 
-        $mail->AltBody =
+        $textBody =
             'Verify your new Convergence Journal email address ' .
             'using this link: ' .
             $verificationUrl;
@@ -721,11 +680,16 @@ try {
 
         /*
         |--------------------------------------------------------------------------
-        | Send Email
+        | Send Through Mailjet
         |--------------------------------------------------------------------------
         */
 
-        $mail->send();
+        sendMailjetEmail(
+            $newEmail,
+            'Verify Your New Email Address - Convergence Journal',
+            $htmlBody,
+            $textBody
+        );
     }
 
 
@@ -746,9 +710,11 @@ try {
         WHERE "adminID" = :adminID
     ';
 
+
     $updateStmt = $pdo->prepare(
         $updateQuery
     );
+
 
     $updateStmt->execute([
         ':username' => $username,
@@ -785,6 +751,7 @@ try {
         header(
             'Location: edit_profile.php?success=verification_sent'
         );
+
     } else {
 
         header(
@@ -795,48 +762,35 @@ try {
     exit;
 
 
-    /*
-|--------------------------------------------------------------------------
-| PHPMailer Exception
-|--------------------------------------------------------------------------
-*/
-} catch (PHPMailerException $e) {
+} catch (PDOException $e) {
 
     if ($pdo->inTransaction()) {
+
         $pdo->rollBack();
     }
 
+
     error_log(
-        'Edit Profile Email Error: ' .
-            $e->getMessage()
+        'Edit Profile Database Error: ' .
+        $e->getMessage()
     );
 
+
     header(
-        'Location: edit_profile.php?error=email_send'
+        'Location: edit_profile.php?error=database'
     );
 
     exit;
 
 
-    /*
-|--------------------------------------------------------------------------
-| Database Exception
-|--------------------------------------------------------------------------
-*/
-} catch (PDOException $e) {
+} catch (\Exception $e) {
 
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
-    error_log(
-        'Edit Profile Database Error: ' .
-            $e->getMessage()
-    );
-
-    header(
-        'Location: edit_profile.php?error=database'
-    );
+    error_log('Edit Profile Email Error: ' . $e->getMessage());
+    header( 'Location: edit_profile.php?error=email_send');
 
     exit;
 }

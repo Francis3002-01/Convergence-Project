@@ -14,8 +14,9 @@ document.addEventListener("DOMContentLoaded", function () {
    * Get PDF URL and journal ID.
    */
   const pdfUrl = pdfSection ? pdfSection.dataset.pdfUrl || "" : "";
-
   const journalId = pdfSection ? pdfSection.dataset.journalId || "" : "";
+  console.log("PDF URL:", pdfUrl);
+  console.log("Journal ID:", journalId);
 
   /*
    * ---------------------------------------------------------
@@ -35,9 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * themselves as desktop-class devices.
    */
   const isMobileOrTablet =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent,
-    ) ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent,) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   /*
@@ -81,9 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       pdfViewer.src = pdfUrl;
-
       pdfViewerContainer.style.display = "block";
-
       pdfViewerContainer.scrollIntoView({
         behavior: "smooth",
         block: "start",
@@ -105,18 +102,18 @@ document.addEventListener("DOMContentLoaded", function () {
    */
   if (downloadPdf) {
     downloadPdf.addEventListener("click", function (event) {
-        event.preventDefault();
+      event.preventDefault();
 
-        const downloadUrl = downloadPdf.href;
+      const downloadUrl = downloadPdf.href;
 
-        if (!downloadUrl) {
-            return;
-        }
+      if (!downloadUrl) {
+        return;
+      }
 
-        /*
-         * Record the article download.
-         */
-        if (journalId) {
+      /*
+       * Record the article download.
+       */
+      /*if (journalId) {
             fetch("track_download.php", {
                 method: "POST",
                 credentials: "same-origin",
@@ -148,24 +145,55 @@ document.addEventListener("DOMContentLoaded", function () {
                     error
                 );
             });
-        }
+        }*/
 
-        /*
-         * Send the browser to the PHP download endpoint.
-         *
-         * download_article.php sends
-         * Content-Disposition: attachment,
-         * which forces the PDF to download.
-         */
-        window.location.href = downloadUrl;
+      if (journalId) {
+        fetch("track_download.php", {
+          method: "POST",
+          credentials: "same-origin",
+          keepalive: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            journalID: Number(journalId),
+          }),
+        })
+          .then(function (response) {
+            return response.json().then(function (data) {
+              if (!response.ok) {
+                throw new Error(
+                  data.message || "Download tracking request failed.",
+                );
+              }
+              return data;
+            });
+          })
+
+          .then(function (data) {
+            console.log("Download tracked successfully:", data);
+          })
+          .catch(function (error) {
+            console.error("Download tracking error:", error);
+          });
+      } 
+      
+      else {
+        console.error("Cannot track download: journalID is missing.");
+      }
+
+      /*
+       * Send the browser to the PHP download endpoint.
+       *
+       * download_article.php sends
+       * Content-Disposition: attachment,
+       * which forces the PDF to download.
+       */
+      window.location.href = downloadUrl;
     });
-}
+  }
 
-  /*
-   * ---------------------------------------------------------
-   * COPY APA CITATION
-   * ---------------------------------------------------------
-   */
+  /*COPY APA CITATION*/
   if (copyCitation && citation) {
     copyCitation.addEventListener("click", function () {
       const citationText = citation.textContent.trim();
@@ -197,14 +225,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /*
-   * ---------------------------------------------------------
-   * COPY SUCCESS MESSAGE
-   * ---------------------------------------------------------
-   */
+  /*COPY SUCCESS MESSAGE*/
   function showCopySuccess() {
     const originalText = copyCitation.innerHTML;
-
     copyCitation.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
 
     setTimeout(function () {
@@ -212,22 +235,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 1500);
   }
 
-  /*
-   * ---------------------------------------------------------
-   * FALLBACK COPY
-   * ---------------------------------------------------------
-   */
+  /*FALLBACK COPy*/
   function fallbackCopy(text) {
     const textarea = document.createElement("textarea");
 
     textarea.value = text;
-
     textarea.style.position = "fixed";
     textarea.style.left = "-9999px";
     textarea.style.top = "0";
 
     document.body.appendChild(textarea);
-
     textarea.focus();
     textarea.select();
 
@@ -235,7 +252,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       copied = document.execCommand("copy");
-    } catch (error) {
+    } 
+    
+    catch (error) {
       console.error("Fallback copy failed:", error);
     }
 
@@ -243,7 +262,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (copied) {
       showCopySuccess();
-    } else {
+    } 
+    
+    else {
       console.error("Unable to copy citation.");
     }
   }

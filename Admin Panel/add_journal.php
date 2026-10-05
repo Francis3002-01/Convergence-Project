@@ -30,9 +30,7 @@ $pageTitle = "Add Journal - Convergence";
         <?php include 'components/header.php'; ?>
 
         <main class="content">
-
             <section class="add-journal-container">
-
                 <!-- PAGE HEADER -->
                 <div class="page-header">
                     <div class="page-heading">
@@ -44,13 +42,11 @@ $pageTitle = "Add Journal - Convergence";
                     </div>
                 </div>
 
-
                 <!-- JOURNAL FORM -->
                 <div class="journal-form" id="journalForm">
 
                     <!-- PUBLICATION STEP -->
                     <div class="form-step" id="publicationStep">
-
                         <div class="form-header">
                             <div>
                                 <h2>Publication Issue</h2>
@@ -66,21 +62,16 @@ $pageTitle = "Add Journal - Convergence";
                             <div class="publication-fields">
 
                                 <div class="form-group">
-                                    <label for="year">
-                                        Year
-                                    </label>
-
+                                    <label for="year">Year</label>
                                     <select id="year" name="year" required>
                                         <option value="">Select year</option>
                                     </select>
                                 </div>
 
-
                                 <div class="form-group">
                                     <label for="volume">Volume</label>
                                     <input type="number" id="volume" name="volume" min="1" placeholder="e.g. 11" required>
                                 </div>
-
 
                                 <div class="form-group">
                                     <label for="number">Number</label>
@@ -89,72 +80,39 @@ $pageTitle = "Add Journal - Convergence";
 
                             </div>
 
-
                             <!-- EDITORIAL NOTE PDF -->
                             <div class="form-group">
-
                                 <label>Editorial Note PDF</label>
-
                                 <div class="pdf-upload-box" id="publicationPdfUploadBox">
-
                                     <input type="file" id="publicationPDF" name="publicationPDF" accept="application/pdf,.pdf" hidden>
 
-                                    <label
-                                        for="publicationPDF"
-                                        class="pdf-upload-label">
-
+                                    <label for="publicationPDF"class="pdf-upload-label">
                                         <div class="upload-icon">
                                             <i class="fa-solid fa-file-pdf"></i>
                                         </div>
 
-                                        <span class="upload-title">
-                                            Choose Publication Issue PDF
-                                        </span>
-
-                                        <span
-                                            class="upload-file-name"
-                                            id="publicationPdfFileName">
-                                            No file selected
-                                        </span>
-
+                                        <span class="upload-title">Choose Publication Issue PDF</span>
+                                        <span class="upload-file-name" id="publicationPdfFileName">No file selected</span>
                                     </label>
 
-
-                                    <button
-                                        type="button"
-                                        class="undo-pdf-btn"
-                                        id="publicationPdfUndo"
-                                        hidden>
+                                    <button type="button"class="undo-pdf-btn"id="publicationPdfUndo"hidden>
                                         Undo
                                     </button>
-
                                 </div>
-
                             </div>
-
                         </div>
-
 
                         <!-- PUBLICATION ACTIONS -->
                         <div class="form-actions">
 
-                            <button
-                                type="button"
-                                class="cancel-btn"
-                                onclick="cancelAddJournal()">
+                            <button type="button" class="cancel-btn"onclick="cancelAddJournal()">
                                 Cancel
                             </button>
 
-                            <button
-                                type="button"
-                                class="next-btn"
-                                onclick="goToArticles()">
-                                Next
+                            <button type="button"class="next-btn"onclick="goToArticles()">Next
                                 <i class="fa-solid fa-arrow-right"></i>
                             </button>
-
                         </div>
-
                     </div>
 
 
@@ -331,23 +289,16 @@ $pageTitle = "Add Journal - Convergence";
 
                                     <label>Authors</label>
 
-                                    <button
-                                        type="button"
-                                        class="add-author-button"
-                                        onclick="addAuthor()">
+                                    <button type="button"class="add-author-button"onclick="addAuthor()">
                                         <i class="fa-solid fa-plus"></i>
                                         Add Author
                                     </button>
 
                                 </div>
 
-
-                                <div
-                                    id="authors"
-                                    class="authors-container"></div>
-
+                                <div id="authors"class="authors-container">
+                                </div>
                             </div>
-
                         </div>
 
                         <!-- ARTICLE ACTIONS -->
@@ -358,11 +309,7 @@ $pageTitle = "Add Journal - Convergence";
 
 
                             <!-- SAVE AS DRAFT -->
-                            <button
-                                type="button"
-                                class="save-draft-btn"
-                                id="saveDraftButton"
-                                onclick="openSaveDraftConfirmation()">
+                            <button type="button"class="save-draft-btn"id="saveDraftButton"onclick="openSaveDraftConfirmation()">
                                 <i class="fa-solid fa-file-pen"></i>
                                 Save as Draft
                             </button>

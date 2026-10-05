@@ -5,14 +5,14 @@ require_once __DIR__ . '/../Classes/Admin.php';
 
 // Make sure the admin is logged in.
 if (!Admin::isLoggedIn()) {
-    header('Location: admin_login.php');
-    exit;
+  header('Location: admin_login.php');
+  exit;
 }
 
 
 // Generate CSRF token if one does not already exist.
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 ?>
@@ -48,8 +48,7 @@ if (empty($_SESSION['csrf_token'])) {
       <img
         src="../Images/Convergence Logo.png"
         alt="Convergence logo"
-        class="brand-logo"
-      >
+        class="brand-logo">
 
       <div class="brand-text">
 
@@ -127,15 +126,13 @@ if (empty($_SESSION['csrf_token'])) {
       <form
         action="change_password_handler.php"
         method="POST"
-        class="cp-form"
-      >
+        class="cp-form">
 
         <!-- CSRF token -->
         <input
           type="hidden"
           name="csrf_token"
-          value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>"
-        >
+          value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
 
 
         <!-- Current Password -->
@@ -152,16 +149,14 @@ if (empty($_SESSION['csrf_token'])) {
               id="current_password"
               name="current_password"
               autocomplete="current-password"
-              required
-            >
+              required>
 
             <button
               type="button"
               class="toggle-password"
               data-target="current_password"
               aria-label="Show password"
-              aria-pressed="false"
-            >
+              aria-pressed="false">
               <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
             </button>
 
@@ -184,16 +179,14 @@ if (empty($_SESSION['csrf_token'])) {
               id="new_password"
               name="new_password"
               autocomplete="new-password"
-              required
-            >
+              required>
 
             <button
               type="button"
               class="toggle-password"
               data-target="new_password"
               aria-label="Show password"
-              aria-pressed="false"
-            >
+              aria-pressed="false">
               <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
             </button>
 
@@ -216,16 +209,14 @@ if (empty($_SESSION['csrf_token'])) {
               id="confirm_password"
               name="confirm_password"
               autocomplete="new-password"
-              required
-            >
+              required>
 
             <button
               type="button"
               class="toggle-password"
               data-target="confirm_password"
               aria-label="Show password"
-              aria-pressed="false"
-            >
+              aria-pressed="false">
               <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
             </button>
 
@@ -256,37 +247,71 @@ if (empty($_SESSION['csrf_token'])) {
 
 
   <script>
+    const newPassword =document.getElementById('new_password');
+    const confirmPassword =document.getElementById('confirm_password');
+    const confirmPasswordField =confirmPassword.closest('.cp-field');
+    const passwordError =document.createElement('p');
+
+    passwordError.className = 'password-error';
+    passwordError.textContent ='New passwords do not match.';
+    passwordError.style.display = 'none';
+    confirmPasswordField.appendChild(passwordError);
+
+
+    function checkPasswordMatch() {
+
+      const newValue = newPassword.value;
+      const confirmValue = confirmPassword.value;
+
+      // Nothing to validate yet
+      if (confirmValue === '') {
+        newPassword.classList.remove('password-mismatch','password-match');
+        confirmPassword.classList.remove('password-mismatch','password-match');
+        passwordError.style.display = 'none';
+
+        return;
+      }
+
+      // Passwords do not match
+      if (newValue !== confirmValue) {
+        newPassword.classList.add('password-mismatch');
+        confirmPassword.classList.add('password-mismatch');
+        newPassword.classList.remove('password-match');
+        confirmPassword.classList.remove('password-match');
+        passwordError.style.display = 'block';
+      } 
+      
+      else {
+        // Passwords match
+        newPassword.classList.remove('password-mismatch');
+        confirmPassword.classList.remove('password-mismatch');
+        newPassword.classList.add('password-match');
+        confirmPassword.classList.add('password-match');
+        passwordError.style.display = 'none';
+      }
+    }
+
+
+    newPassword.addEventListener('input',checkPasswordMatch);
+    confirmPassword.addEventListener('input',checkPasswordMatch);
 
     document.querySelectorAll('.toggle-password').forEach(function(button) {
-
       button.addEventListener('click', function() {
-
         var targetId = this.getAttribute('data-target');
         var passwordInput = document.getElementById(targetId);
-
         var show = passwordInput.type === 'password';
-
         passwordInput.type = show ? 'text' : 'password';
 
-        this.setAttribute(
-          'aria-pressed',
-          show ? 'true' : 'false'
-        );
-
-        this.setAttribute(
-          'aria-label',
-          show ? 'Hide password' : 'Show password'
-        );
+        this.setAttribute('aria-pressed',show ? 'true' : 'false');
+        this.setAttribute('aria-label',show ? 'Hide password' : 'Show password');
 
         var icon = this.querySelector('i');
-
         icon.classList.toggle('fa-eye', show);
         icon.classList.toggle('fa-eye-slash', !show);
 
       });
 
     });
-
   </script>
 
 </body>
