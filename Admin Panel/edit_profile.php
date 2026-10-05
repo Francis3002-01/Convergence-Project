@@ -177,65 +177,51 @@ $initial = strtoupper(
 
 
             <!-- Profile Form -->
-
-            <form
-                action="edit_profile_handler.php"
-                method="POST"
-                enctype="multipart/form-data"
-                class="profile-form">
+            <form action="edit_profile_handler.php" method="POST" enctype="multipart/form-data" class="profile-form">
 
                 <!-- Profile Picture -->
-                <div class="profile-picture-preview" id="profilePicturePreview">
+                <div class="profile-picture-section">
 
-                    <?php if (!empty($currentProfilePic)): ?>
+                    <div class="profile-picture-preview" id="profilePicturePreview">
 
-                        <img
-                            src="<?php echo htmlspecialchars(
-                                        $currentProfilePic,
-                                        ENT_QUOTES,
-                                        'UTF-8'
-                                    ); ?>"
-                            alt="Admin Profile Picture"
-                            id="profilePictureImage">
+                        <?php if (!empty($currentProfilePic)): ?>
 
-                    <?php else: ?>
+                            <img
+                                src="<?php echo htmlspecialchars(
+                                            $currentProfilePic,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ); ?>"
+                                alt="Admin Profile Picture"
+                                id="profilePictureImage">
 
-                        <span id="profilePictureInitial">
-                            <?php echo htmlspecialchars(
-                                $initial,
-                                ENT_QUOTES,
-                                'UTF-8'
-                            ); ?>
-                        </span>
+                        <?php else: ?>
 
-                    <?php endif; ?>
+                            <span id="profilePictureInitial">
+                                <?php echo htmlspecialchars(
+                                    $initial,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ); ?>
+                            </span>
 
-                </div>
+                        <?php endif; ?>
 
-                <div class="profile-picture-content">
+                    </div>
 
-                    <span class="profile-picture-label">
-                        Profile Picture
-                    </span>
+                    <div class="profile-picture-content">
+                        <span class="profile-picture-label">Profile Picture</span>
+                        <p class="profile-picture-help">Upload a new profile picture.</p>
 
-                    <p class="profile-picture-help">
-                        Upload a new profile picture.
-                    </p>
+                        <label
+                            for="profile_picture"
+                            class="upload-button">
+                            <i class="fa-solid fa-upload"></i>
+                            Choose Picture
+                        </label>
 
-                    <label
-                        for="profile_picture"
-                        class="upload-button">
-
-                        <i class="fa-solid fa-upload"></i>
-                        Choose Picture
-
-                    </label>
-
-                    <input
-                        type="file"
-                        id="profile_picture"
-                        name="profile_picture"
-                        accept="image/jpeg,image/png,image/webp">
+                        <input type="file"id="profile_picture"name="profile_picture"accept="image/jpeg,image/png,image/webp">
+                    </div>
 
                 </div>
 
