@@ -22,7 +22,6 @@ if (file_exists($envFile)) {
     $dotenv = Dotenv::createImmutable(__DIR__);
 
     $dotenv->safeLoad();
-
 }
 
 $supabaseUrl = trim($_ENV['SUPABASE_URL'] ?? '');
@@ -40,7 +39,8 @@ if ($supabaseUrl === '' || $supabaseKey === '') {
     exit;
 }
 
-function sendJsonResponse(bool $success,string $message,array $data = [],int $statusCode = 200): void {
+function sendJsonResponse(bool $success, string $message, array $data = [], int $statusCode = 200): void
+{
     http_response_code($statusCode);
 
     echo json_encode([
@@ -53,58 +53,57 @@ function sendJsonResponse(bool $success,string $message,array $data = [],int $st
 }
 
 /*Check if IP is local/private*/
-function isLocalOrPrivateIp(string $ip): bool{
+function isLocalOrPrivateIp(string $ip): bool
+{
     if ($ip === '127.0.0.1' || $ip === '::1') {
         return true;
     }
 
-    return filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_NO_PRIV_RANGE |FILTER_FLAG_NO_RES_RANGE) === false;
+    return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
 }
 
 /*Get visitor IP*/
-function getClientIp(): string{
+function getClientIp(): string
+{
     /*
      * Optional testing:
      *
      * track_download.php?test_ip=8.8.8.8
      */
-    if (isset($_GET['test_ip']) &&filter_var($_GET['test_ip'],FILTER_VALIDATE_IP)) {
+    if (isset($_GET['test_ip']) && filter_var($_GET['test_ip'], FILTER_VALIDATE_IP)) {
         return $_GET['test_ip'];
     }
 
     /*
      * Cloudflare IP
      */
-    if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) &&filter_var($_SERVER['HTTP_CF_CONNECTING_IP'],FILTER_VALIDATE_IP)) {
+    if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && filter_var($_SERVER['HTTP_CF_CONNECTING_IP'], FILTER_VALIDATE_IP)) {
         $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
     }
 
     /*
      * X-Forwarded-For
-     */
-    elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $forwardedIps = explode(',',$_SERVER['HTTP_X_FORWARDED_FOR']);
+     */ elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $forwardedIps = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
 
         $ip = trim($forwardedIps[0]);
 
-        if (!filter_var($ip,FILTER_VALIDATE_IP)) {
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
             $ip = $_SERVER['REMOTE_ADDR'] ?? '';
         }
     }
 
 
-    /*Client IP*/
-    elseif (isset($_SERVER['HTTP_CLIENT_IP']) &&filter_var($_SERVER['HTTP_CLIENT_IP'],FILTER_VALIDATE_IP)) {
+    /*Client IP*/ elseif (isset($_SERVER['HTTP_CLIENT_IP']) && filter_var($_SERVER['HTTP_CLIENT_IP'], FILTER_VALIDATE_IP)) {
         $ip = $_SERVER['HTTP_CLIENT_IP'];
     }
 
-    /*Normal server IP*/
-    else {
+    /*Normal server IP*/ else {
         $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     }
 
     /*Local/private IPs cannot be geolocated.Use 8.8.8.8 during local testing*/
-    if ($ip === '' ||isLocalOrPrivateIp($ip)) {
+    if ($ip === '' || isLocalOrPrivateIp($ip)) {
         return '8.8.8.8';
     }
 
@@ -112,10 +111,11 @@ function getClientIp(): string{
 }
 
 /*Supabase REST API request*/
-function supabaseRequest(string $method,string $endpoint,array $payload = []): array {
+function supabaseRequest(string $method, string $endpoint, array $payload = []): array
+{
     global $supabaseUrl, $supabaseKey;
 
-    $url =rtrim($supabaseUrl, '/') .'/rest/v1/' .$endpoint;
+    $url = rtrim($supabaseUrl, '/') . '/rest/v1/' . $endpoint;
 
     $headers = [
         'apikey: ' . $supabaseKey,
@@ -141,7 +141,7 @@ function supabaseRequest(string $method,string $endpoint,array $payload = []): a
 
 
     /*Add JSON payload for write requests*/
-    if (in_array($method,['POST', 'PATCH', 'PUT'],true)) {
+    if (in_array($method, ['POST', 'PATCH', 'PUT'], true)) {
         $jsonPayload = json_encode($payload);
 
         if ($jsonPayload === false) {
@@ -152,7 +152,7 @@ function supabaseRequest(string $method,string $endpoint,array $payload = []): a
             );
         }
 
-        curl_setopt($ch,CURLOPT_POSTFIELDS,$jsonPayload);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
     }
 
     /*Execute request*/
@@ -169,13 +169,13 @@ function supabaseRequest(string $method,string $endpoint,array $payload = []): a
 
 
     /*Get HTTP status*/
-    $httpCode = curl_getinfo($ch,CURLINFO_HTTP_CODE);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     curl_close($ch);
 
     /*Supabase returned an error*/
-    if ($httpCode < 200 ||$httpCode >= 300) {
-        throw new RuntimeException('Supabase HTTP ' .$httpCode .': ' .$response);
+    if ($httpCode < 200 || $httpCode >= 300) {
+        throw new RuntimeException('Supabase HTTP ' . $httpCode . ': ' . $response);
     }
 
     /*Empty successful response*/
@@ -185,12 +185,12 @@ function supabaseRequest(string $method,string $endpoint,array $payload = []): a
 
 
     /*Decode Supabase JSON*/
-    $decoded = json_decode($response,true);
+    $decoded = json_decode($response, true);
 
     if (!is_array($decoded)) {
         throw new RuntimeException(
             'Invalid Supabase response: ' .
-            $response
+                $response
         );
     }
 
@@ -205,9 +205,9 @@ try {
     $rawInput = file_get_contents('php://input');
     $jsonPayload = [];
 
-    if ($rawInput !== false &&trim($rawInput) !== '') {
+    if ($rawInput !== false && trim($rawInput) !== '') {
 
-        $decoded = json_decode($rawInput,true);
+        $decoded = json_decode($rawInput, true);
 
         if (is_array($decoded)) {
             $jsonPayload = $decoded;
@@ -226,12 +226,14 @@ try {
         ?? $_GET['journalID']
         ?? null;
 
-    $journalID = filter_var($journalID,FILTER_VALIDATE_INT);
+    $journalID = filter_var($journalID, FILTER_VALIDATE_INT);
 
     /*Validate journal ID*/
-    if ($journalID === false ||$journalID <= 0) {
+    if ($journalID === false || $journalID <= 0) {
 
-        sendJsonResponse(false,'Invalid or missing journal ID.',
+        sendJsonResponse(
+            false,
+            'Invalid or missing journal ID.',
             [
                 'receivedJournalID' => $journalID
             ],
@@ -240,14 +242,14 @@ try {
     }
 
     /*Get continents from Supabase*/
-    $continents = supabaseRequest('GET','Continent?select=continentID,continentName');
+    $continents = supabaseRequest('GET', 'Continent?select=continentID,continentName');
 
     /*Build continent name => ID map.*/
     $continentMap = [];
 
     foreach ($continents as $continent) {
 
-        if (!isset($continent['continentID']) ||!isset($continent['continentName'])) {
+        if (!isset($continent['continentID']) || !isset($continent['continentName'])) {
             continue;
         }
 
@@ -265,10 +267,31 @@ try {
 
     /*Determine continent*/
     $continent = new Continent();
-    $continentID = $continent->identifyContinent($visitorIp,$continentMap);
+    $continentID = $continent->identifyContinent($visitorIp, $continentMap);
 
     /*Record the download through the Download model*/
-    $download = new Download(0, $continentID ?? 0, $journalID);
+    //$download = new Download(0, $continentID ?? 0, $journalID);
+    if ($continentID === null) {
+        sendJsonResponse(
+            false,
+            'Unable to determine visitor continent.',
+            [
+                'journalID' => $journalID,
+                'ip' => $visitorIp
+            ],
+            500
+        );
+    }
+
+    $download = new Download(
+        0,
+        $continentID,
+        $journalID
+    );
+
+
+
+
     $insertedDownload = $download->recordDownload($supabaseUrl, $supabaseKey);
 
     /*Success*/
@@ -283,13 +306,16 @@ try {
         ],
         200
     );
+} catch (Throwable $e) {
 
+    error_log(
+        'Download tracking error: ' .
+            $e->getMessage()
+    );
 
-} 
-
-catch (Throwable $e) {
-    /*Error*/
-    sendJsonResponse(false,'Unable to record download.',
+    sendJsonResponse(
+        false,
+        'Unable to record download.',
         [
             'error' => $e->getMessage(),
             'journalID' => $journalID ?? null

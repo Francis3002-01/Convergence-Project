@@ -1,3 +1,6 @@
 .env
 /vendor/
 /.git/
+
+maxmind_credentials
+geoip/*.mmdb
