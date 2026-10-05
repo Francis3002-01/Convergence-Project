@@ -41,8 +41,8 @@ if (!$profile) {
 */
 
 $emailVerification = $admin->getEmailVerificationStatus();
-$verificationPending =$emailVerification['pending'];
-$pendingEmail =$emailVerification['email'];
+$verificationPending = $emailVerification['pending'];
+$pendingEmail = $emailVerification['email'];
 
 /*
 |--------------------------------------------------------------------------
@@ -298,7 +298,6 @@ $initial = strtoupper(
                     Verification pending for:
 
                     <strong>
-
                         <?php echo htmlspecialchars(
                             $pendingEmail,
                             ENT_QUOTES,
@@ -306,33 +305,19 @@ $initial = strtoupper(
                         ); ?>
 
                     </strong>
-
                 </p>
-
             <?php endif; ?>
-
         </div>
 
-
         <!-- Buttons -->
-
         <div class="profile-actions">
-
-
-            <a
-                href="dashboard.php"
-                class="btn-secondary">
-                Cancel
-            </a>
-
-
-            <button type="submit"class="btn-primary">Save Changes</button>
+            <a href="dashboard.php"class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Save Changes</button>
 
         </div>
         </form>
         </div>
     </main>
-
 
     <!-- Footer -->
     <footer class="site-footer">
@@ -345,6 +330,7 @@ $initial = strtoupper(
             const verificationPoll = setInterval(async () => {
 
                 try {
+
                     const response = await fetch(
                         'check_email_verification.php', {
                             cache: 'no-store'
@@ -352,6 +338,7 @@ $initial = strtoupper(
                     );
 
                     const data = await response.json();
+
                     if (data.status === 'verified') {
                         clearInterval(verificationPoll);
                         window.location.href ='edit_profile.php?success=email_verified';
@@ -373,67 +360,121 @@ $initial = strtoupper(
         <?php endif; ?>
 
 
-        //For Profile Picture Preview
-        const profilePictureInput = document.getElementById('profile_picture');
-        const profilePicturePreview = document.getElementById('profilePicturePreview');
+        // Profile Picture Preview
+        const profilePictureInput =document.getElementById('profile_picture');
+        const profilePicturePreview =document.getElementById('profilePicturePreview');
 
-        if (profilePictureInput && profilePicturePreview) {
+        if (profilePictureInput &&profilePicturePreview) {
 
-            profilePictureInput.addEventListener('change', function() {
+            profilePictureInput.addEventListener(
+                'change',
+                function() {
 
-                const file = this.files[0];
+                    const file = this.files[0];
 
-                if (!file) {
-                    return;
+                    if (!file) {
+                        return;
+                    }
+
+
+                    // Check file type
+
+                    const allowedTypes = [
+                        'image/jpeg',
+                        'image/png',
+                        'image/webp'
+                    ];
+
+                    if (!allowedTypes.includes(file.type)) {
+
+                        alert(
+                            'Only JPG, PNG, and WebP images are allowed.'
+                        );
+
+                        this.value = '';
+
+                        return;
+                    }
+
+
+                    // Check file size
+
+                    if (file.size > 2 * 1024 * 1024) {
+
+                        alert(
+                            'The profile picture must be 2 MB or smaller.'
+                        );
+
+                        this.value = '';
+
+                        return;
+                    }
+
+
+                    // Create temporary preview URL
+
+                    const imageUrl =
+                        URL.createObjectURL(file);
+
+
+                    // Remove the default initial letter
+
+                    const initialElement =
+                        document.getElementById(
+                            'profilePictureInitial'
+                        );
+
+                    if (initialElement) {
+                        initialElement.remove();
+                    }
+
+
+                    // Check if an image already exists
+
+                    let imageElement =
+                        document.getElementById(
+                            'profilePictureImage'
+                        );
+
+
+                    // Create image element if one does not exist
+
+                    if (!imageElement) {
+
+                        imageElement =
+                            document.createElement('img');
+
+                        imageElement.id =
+                            'profilePictureImage';
+
+                        imageElement.alt =
+                            'Admin Profile Picture';
+
+                        profilePicturePreview.appendChild(
+                            imageElement
+                        );
+                    }
+
+
+                    // Show the newly selected image
+
+                    imageElement.src = imageUrl;
+
+
+                    // Release the temporary URL after loading
+
+                    imageElement.onload = function() {
+
+                        URL.revokeObjectURL(
+                            imageUrl
+                        );
+
+                    };
+
                 }
-
-                // Check file type
-                const allowedTypes = [
-                    'image/jpeg',
-                    'image/png',
-                    'image/webp'
-                ];
-
-                if (!allowedTypes.includes(file.type)) {
-                    alert('Only JPG, PNG, and WebP images are allowed.');
-                    this.value = '';
-                    return;
-                }
-
-                // Check file size
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('The profile picture must be 2 MB or smaller.');
-                    this.value = '';
-                    return;
-                }
-
-                // Create a temporary preview URL
-                const imageUrl = URL.createObjectURL(file);
-
-                // Remove the default initial letter if it exists
-                const initialElement = document.getElementById('profilePictureInitial');
-
-                if (initialElement) {
-                    initialElement.remove();
-                }
-
-                // Find existing image
-                let imageElement = document.getElementById('profilePictureImage');
-
-                // If there is no existing image, create one
-                if (!imageElement) {
-                    imageElement = document.createElement('img');
-                    imageElement.id = 'profilePictureImage';
-                    imageElement.alt = 'Admin Profile Picture';
-                    profilePicturePreview.appendChild(imageElement);
-                }
-
-                // Show the newly selected image
-                imageElement.src = imageUrl;
-            });
+            );
         }
     </script>
-
 
 </body>
 
