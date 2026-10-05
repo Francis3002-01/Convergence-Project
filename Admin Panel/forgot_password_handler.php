@@ -314,7 +314,8 @@ try {
    
     $mail->send();*/
 
-    $apiKey = $_ENV['RESEND_API_KEY'];
+    //$apiKey = $_ENV['RESEND_API_KEY'];
+    $apiKey = $_ENV['RESEND_API_KEY'] ?? getenv('RESEND_API_KEY');
 
     $emailData = [
         'from' => $_ENV['MAIL_FROM_ADDRESS'],
