@@ -2,10 +2,18 @@
 
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
-//require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-/*use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;*/
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use Dotenv\Dotenv;
+
+$envFile = dirname(__DIR__) . '/.env';
+
+if (file_exists($envFile)) {
+    $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+    $dotenv->safeLoad();
+}
 
 
 // Only allow POST requests.
@@ -220,200 +228,88 @@ try {
         $basePath .
         '/Admin%20Panel/reset_password.php?token=' .
         urlencode($rawToken);
-    /*
-     * Create PHPMailer instance.
-     */
-    /*$mail = new PHPMailer(true);
+  
 
-    // SMTP configuration.
+    $mail = new PHPMailer(true);
+
     $mail->isSMTP();
-    $mail->Host = $_ENV['MAIL_HOST'];
-    $mail->SMTPAuth = true;
-    $mail->Username = $_ENV['MAIL_USERNAME'];
-    $mail->Password = $_ENV['MAIL_PASSWORD'];
+    $mail->Host       = $_ENV['MAIL_HOST'];
+    $mail->SMTPAuth   = true;
+    $mail->Username   = $_ENV['MAIL_USERNAME'];
+    $mail->Password   = $_ENV['MAIL_PASSWORD'];
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port = (int) $_ENV['MAIL_PORT'];
+    $mail->Port       = (int) $_ENV['MAIL_PORT'];
 
-    // Sender.
-    $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
+    $mail->setFrom(
+        $_ENV['MAIL_FROM_ADDRESS'],
+        $_ENV['MAIL_FROM_NAME']
+    );
 
-    
     $mail->addAddress($admin['email']);
 
-   
     $mail->isHTML(true);
     $mail->Subject = 'Convergence Journal - Password Reset';
 
-    
     $mail->Body = '
-        <div style="
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333333;
-        ">
+    <div style="
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333333;
+    ">
+        <h2 style="color: #A5241E;">
+            Convergence Journal
+        </h2>
 
-            <h2 style="color: #A5241E;">
-                Convergence Journal
-            </h2>
+        <p>
+            A password reset request was made for your
+            administrator account.
+        </p>
 
-            <p>
-                A password reset request was made for your
-                administrator account.
-            </p>
+        <p>
+            Click the button below to create a new password.
+        </p>
 
-            <p>
-                Click the button below to create a new password.
-            </p>
-
-            <p>
-                <a
-                    href="' .
+        <p>
+            <a
+                href="' .
         htmlspecialchars(
             $resetUrl,
             ENT_QUOTES,
             'UTF-8'
         ) .
         '"
-                    style="
-                        display: inline-block;
-                        padding: 12px 20px;
-                        background: #A5241E;
-                        color: #ffffff;
-                        text-decoration: none;
-                        border-radius: 6px;
-                    "
-                >
-                    Reset Password
-                </a>
-            </p>
+                style="
+                    display: inline-block;
+                    padding: 12px 20px;
+                    background: #A5241E;
+                    color: #ffffff;
+                    text-decoration: none;
+                    border-radius: 6px;
+                "
+            >
+                Reset Password
+            </a>
+        </p>
 
-            <p>
-                This link will expire in 30 minutes.
-            </p>
+        <p>
+            This link will expire in 30 minutes.
+        </p>
 
-            <p>
-                If you did not request a password reset,
-                you can safely ignore this email.
-            </p>
+        <p>
+            If you did not request a password reset,
+            you can safely ignore this email.
+        </p>
+    </div>
+';
 
-        </div>
-    ';
-
-
-  
     $mail->AltBody =
         "A password reset was requested for your " .
         "Convergence Journal administrator account.\n\n" .
-
         "Reset your password using this link:\n" .
         $resetUrl . "\n\n" .
-
         "This link expires in 30 minutes.";
 
-
-   
-    $mail->send();*/
-
-    //$apiKey = $_ENV['RESEND_API_KEY'];
-    $apiKey = $_ENV['RESEND_API_KEY'] ?? getenv('RESEND_API_KEY');
-
-    $emailData = [
-        'from' => $_ENV['MAIL_FROM_ADDRESS'],
-        'to' => [$admin['email']],
-        'subject' => 'Convergence Journal - Password Reset',
-        'html' => '
-        <div style="
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333333;
-        ">
-            <h2 style="color: #A5241E;">
-                Convergence Journal
-            </h2>
-
-            <p>
-                A password reset request was made for your
-                administrator account.
-            </p>
-
-            <p>
-                Click the button below to create a new password.
-            </p>
-
-            <p>
-                <a
-                    href="' .
-            htmlspecialchars(
-                $resetUrl,
-                ENT_QUOTES,
-                'UTF-8'
-            ) .
-            '"
-                    style="
-                        display: inline-block;
-                        padding: 12px 20px;
-                        background: #A5241E;
-                        color: #ffffff;
-                        text-decoration: none;
-                        border-radius: 6px;
-                    "
-                >
-                    Reset Password
-                </a>
-            </p>
-
-            <p>
-                This link will expire in 30 minutes.
-            </p>
-
-            <p>
-                If you did not request a password reset,
-                you can safely ignore this email.
-            </p>
-        </div>
-    ',
-    ];
-
-    $ch = curl_init('https://api.resend.com/emails');
-
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $apiKey,
-            'Content-Type: application/json',
-        ],
-        CURLOPT_POSTFIELDS => json_encode($emailData),
-        CURLOPT_TIMEOUT => 15,
-    ]);
-
-    $response = curl_exec($ch);
-
-    if ($response === false) {
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        throw new \Exception(
-            'Email API request failed: ' . $curlError
-        );
-    }
-
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-    curl_close($ch);
-
-    if ($httpCode < 200 || $httpCode >= 300) {
-        error_log(
-            'Password reset email API failed. HTTP ' .
-                $httpCode .
-                ': ' .
-                $response
-        );
-
-        throw new \Exception(
-            'Password reset email could not be sent.'
-        );
-    }
+    $mail->send();
 
 
     /*
@@ -425,11 +321,34 @@ try {
     );
 
     exit;
-} catch (\Exception $e) {
+} catch (PDOException $e) {
+    error_log(
+        'Password reset database error: ' .
+            $e->getMessage()
+    );
 
-    /*
-     * Do not expose PHPMailer errors to the user.
-     */
+    header(
+        'Location: forgot_password.php?error=general'
+    );
+    exit;
+
+} catch (Exception $e) {
+    error_log(
+        'Password reset email failed: ' .
+            $e->getMessage()
+    );
+
+    header(
+        'Location: forgot_password.php?error=general'
+    );
+    exit;
+}
+
+
+
+/*} catch (Exception $e) {
+
+   
     error_log(
         'Password reset email failed: ' .
             $e->getMessage()
@@ -442,9 +361,9 @@ try {
     exit;
 } catch (PDOException $e) {
 
-    /*
-     * Do not expose database errors to the user.
-     */
+
+
+    
     error_log(
         'Password reset database error: ' .
             $e->getMessage()
@@ -455,4 +374,4 @@ try {
     );
 
     exit;
-}
+}*/
