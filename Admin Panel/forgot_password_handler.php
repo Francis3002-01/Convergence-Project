@@ -89,24 +89,37 @@ try {
 
 
     /*
-     * Generate a cryptographically secure
-     * 32-byte random token.
-     *
-     * bin2hex() converts it into 64 hexadecimal
-     * characters.
-     */
+    * Generate a cryptographically secure
+    * password reset token.
+    *
+    * The raw token is sent only through
+    * the email link.
+    */
     $rawToken = bin2hex(random_bytes(32));
 
-    //$requestID = bin2hex(random_bytes(32));
-
+    /*
+    * Store only the SHA-256 hash of the
+    * password reset token.
+    */
+    $tokenHash = hash('sha256', $rawToken);
 
     /*
-     * Store only the SHA-256 hash of the token.
-     *
-     * The raw token is only sent through the
-     * email link.
-     */
-    $tokenHash = hash('sha256', $rawToken);
+    * Generate a separate secure handoff token.
+    *
+    * This is used to connect Device A
+    * (the Admin Panel) with the email click
+    * made on Device B.
+    */
+    $handoffToken = bin2hex(random_bytes(32));
+
+    /*
+    * Store only the hash of the handoff token
+    * in the database.
+    *
+    * The raw handoff token remains only
+    * in Device A's session.
+    */
+    $handoffHash = hash('sha256', $handoffToken);
 
 
     /*
@@ -142,34 +155,47 @@ try {
 
         // Insert new reset token.
         $insertSql = '
-    INSERT INTO "PasswordResetToken"
-    (
-        "adminID",
-        "tokenHash",
-        "expiresAt"
-    )
-    VALUES
-    (
-        :adminID,
-        :tokenHash,
-        :expiresAt
-    )
-    RETURNING "tokenID"
-';
+            INSERT INTO "PasswordResetToken"
+            (
+                "adminID",
+                "tokenHash",
+                "expiresAt",
+                "handoffHash"
+            )
+            VALUES
+            (
+                :adminID,
+                :tokenHash,
+                :expiresAt,
+                :handoffHash
+            )
+            RETURNING "tokenID"
+        ';
 
         $insertStmt = $pdo->prepare($insertSql);
 
         $insertStmt->execute([
             ':adminID' => $admin['adminID'],
             ':tokenHash' => $tokenHash,
-            ':expiresAt' => $expiresAt
+            ':expiresAt' => $expiresAt,
+            ':handoffHash' => $handoffHash
         ]);
 
         $tokenID = $insertStmt->fetchColumn();
 
 
         $pdo->commit();
+
+        /*
+        * Store the reset request information
+        * in Device A's session.
+        *
+        * Device A will use these values to
+        * check whether Device B has clicked
+        * the password reset email.
+        */
         $_SESSION['password_reset_request'] = $tokenID;
+        $_SESSION['password_reset_handoff'] = $handoffToken;
     } catch (PDOException $e) {
 
         if ($pdo->inTransaction()) {
@@ -179,18 +205,6 @@ try {
         throw $e;
     }
 
-
-    /*
-     * Build password reset URL.
-     *
-     * This is correct for the current local
-     * XAMPP project location.
-     *
-     * Change this URL when the website is
-     * deployed to the actual hosting domain.
-     */
-
-    // Build password reset URL dynamically from the current request.
 
     $scheme = (
         (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
@@ -230,31 +244,6 @@ try {
         $basePath .
         '/Admin%20Panel/reset_password.php?token=' .
         urlencode($rawToken);
-
-    // TEMPORARY connectivity probe - remove after use.
-    /*foreach (
-        [
-            ['smtp.gmail.com', 465],
-            ['smtp.gmail.com', 587],
-            ['google.com', 443],      // control: general outbound HTTPS
-            ['api.brevo.com', 443],   // control: HTTPS email API
-        ] as [$h, $p]
-    ) {
-        $t  = microtime(true);
-        $fp = @stream_socket_client("tcp://$h:$p", $errno, $errstr, 8);
-        $ms = round((microtime(true) - $t) * 1000);
-        error_log(sprintf(
-            'PROBE %s:%d %s in %dms errno=%s %s',
-            $h,
-            $p,
-            $fp ? 'OK' : 'FAIL',
-            $ms,
-            $errno,
-            $errstr
-        ));
-        if ($fp) fclose($fp);
-    }
-    error_log('PROBE DNS smtp.gmail.com A=' . json_encode(array_column(@dns_get_record('smtp.gmail.com', DNS_A) ?: [], 'ip')));*/
 
     // Get Mailjet credentials from environment variables.
     $apiKey = $_ENV['MAILJET_API_KEY'] ?? getenv('MAILJET_API_KEY');
@@ -364,22 +353,7 @@ try {
 
     curl_close($ch);
 
-    // Check whether Mailjet accepted the email.
-    /*if ($response === false ||$httpCode < 200 ||$httpCode >= 300) {
-        error_log('Mailjet password reset failed. HTTP ' .$httpCode .'. cURL error: ' .$curlError);
-        header('Location: forgot_password.php?error=general');
-        exit;
-    }*/
     if ($response === false || $httpCode < 200 || $httpCode >= 300) {
-
-
-
-        /*echo '<h2>Mailjet Send Failed</h2>';
-    echo '<p>HTTP Status: ' . htmlspecialchars((string)$httpCode) . '</p>';
-    echo '<p>cURL Error: ' . htmlspecialchars($curlError) . '</p>';
-    echo '<h3>Mailjet Response:</h3>';
-    echo '<pre>' . htmlspecialchars($response) . '</pre>';*/
-
         echo '<h2>Mailjet Debug</h2>';
 
         echo '<p><strong>HTTP Status:</strong> ' .
@@ -395,11 +369,6 @@ try {
         echo '<pre>' .
             htmlspecialchars($response ?? '') .
             '</pre>';
-
-        exit;
-
-
-
 
         exit;
     }

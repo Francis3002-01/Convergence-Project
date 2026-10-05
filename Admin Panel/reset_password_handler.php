@@ -3,79 +3,43 @@
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
 
-
 // Only allow POST requests.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-
     header('Location: forgot_password.php');
-
     exit;
 }
 
-
-// Get submitted values.
-$token = $_POST['token'] ?? '';
-
+// Get submitted passwords.
 $newPassword = $_POST['new_password'] ?? '';
-
 $confirmPassword = $_POST['confirm_password'] ?? '';
 
+// Get the reset request from Device A's session.
+$tokenID = $_SESSION['password_reset_request'] ?? null;
+$handoffToken = $_SESSION['password_reset_handoff'] ?? null;
 
-// Validate token format.
-if (
-    $token === '' ||
-    !preg_match('/^[a-f0-9]{64}$/', $token)
-) {
-
-    header(
-        'Location: forgot_password.php?error=invalid_token'
-    );
-
+// Make sure Device A has an active password reset request.
+if (!$tokenID || !$handoffToken) {
+    header('Location: forgot_password.php?error=invalid_token');
     exit;
 }
-
 
 // Check empty passwords.
-if (
-    $newPassword === '' ||
-    $confirmPassword === ''
-) {
-
-    header(
-        'Location: reset_password.php?token=' .
-        urlencode($token) .
-        '&error=empty'
-    );
-
+if ($newPassword === '' ||$confirmPassword === '') {
+    header('Location: reset_password.php?device=original&error=empty');
     exit;
 }
-
 
 // Check password confirmation.
 if ($newPassword !== $confirmPassword) {
-
-    header(
-        'Location: reset_password.php?token=' .
-        urlencode($token) .
-        '&error=mismatch'
-    );
-
+    header('Location: reset_password.php?device=original&error=mismatch');
     exit;
 }
-
 
 // Check minimum password length.
 if (strlen($newPassword) < 8) {
-
-    header(
-        'Location: reset_password.php?token=' .
-        urlencode($token) .
-        '&error=length'
-    );
-
+    header('Location: reset_password.php?device=original&error=length');
     exit;
 }
-
 
 try {
 
@@ -83,75 +47,63 @@ try {
     $database = new Database();
     $pdo = $database->getConnection();
 
+    // Hash Device A's handoff token.
+    $handoffHash = hash('sha256', $handoffToken);
 
-    /*
-     * Hash the token to compare it with
-     * the database value.
-     */
-    $tokenHash = hash('sha256', $token);
-
-
-    /*
-     * Find the valid reset token.
-     */
+    // Find the reset request belonging to this Device A session.
     $sql = '
         SELECT
             "tokenID",
-            "adminID"
+            "adminID",
+            "clickedAt",
+            "expiresAt",
+            "usedAt"
         FROM "PasswordResetToken"
-        WHERE "tokenHash" = :tokenHash
-        AND "usedAt" IS NULL
-        AND "expiresAt" > NOW()
+        WHERE "tokenID" = :tokenID
+        AND "handoffHash" = :handoffHash
         LIMIT 1
     ';
 
-
     $stmt = $pdo->prepare($sql);
 
-
     $stmt->execute([
-        ':tokenHash' => $tokenHash
+        ':tokenID' => $tokenID,
+        ':handoffHash' => $handoffHash
     ]);
-
 
     $resetToken = $stmt->fetch();
 
-
-    /*
-     * Token does not exist, was already used,
-     * or has expired.
-     */
+    // Reset request does not exist.
     if (!$resetToken) {
-
-        header(
-            'Location: forgot_password.php?error=invalid_token'
-        );
-
+        header('Location: forgot_password.php?error=invalid_token');
         exit;
     }
 
+    // Reset has already been completed.
+    if ($resetToken['usedAt'] !== null) {
+        header('Location: forgot_password.php?error=invalid_token');
+        exit;
+    }
 
-    /*
-     * Start transaction.
-     *
-     * Password update and token invalidation
-     * should happen together.
-     */
+    // Reset request has expired.
+    if (strtotime($resetToken['expiresAt']) <= time()) {
+        header('Location: forgot_password.php?error=invalid_token');
+        exit;
+    }
+
+    // Email has not been verified yet.
+    if ($resetToken['clickedAt'] === null) {
+        header('Location: reset_password.php?device=original');
+        exit;
+    }
+
+    // Start transaction.
     $pdo->beginTransaction();
 
+    // Hash the new password securely.
+    $passwordHash = password_hash($newPassword,PASSWORD_DEFAULT);
 
-    /*
-     * Hash the new password securely.
-     */
-    $passwordHash = password_hash(
-        $newPassword,
-        PASSWORD_DEFAULT
-    );
-
-
-    /*
-     * Update administrator password.
-     */
+    // Update administrator password.
     $updateSql = '
         UPDATE "Admin"
         SET
@@ -160,21 +112,14 @@ try {
         WHERE "adminID" = :adminID
     ';
 
-
     $updateStmt = $pdo->prepare($updateSql);
-
 
     $updateStmt->execute([
         ':password' => $passwordHash,
         ':adminID' => $resetToken['adminID']
     ]);
 
-
-    /*
-     * Mark the token used.
-     *
-     * The token cannot be used again.
-     */
+    // Mark this reset token as used.
     $tokenSql = '
         UPDATE "PasswordResetToken"
         SET
@@ -183,19 +128,14 @@ try {
         AND "usedAt" IS NULL
     ';
 
-
     $tokenStmt = $pdo->prepare($tokenSql);
-
 
     $tokenStmt->execute([
         ':tokenID' => $resetToken['tokenID']
     ]);
 
-
-    /*
-     * Invalidate any other unused reset tokens
-     * belonging to this administrator.
-     */
+    // Invalidate any other unused reset tokens
+    // belonging to this administrator.
     $invalidateSql = '
         UPDATE "PasswordResetToken"
         SET
@@ -205,60 +145,35 @@ try {
         AND "usedAt" IS NULL
     ';
 
-
     $invalidateStmt = $pdo->prepare($invalidateSql);
-
 
     $invalidateStmt->execute([
         ':adminID' => $resetToken['adminID'],
         ':tokenID' => $resetToken['tokenID']
     ]);
 
-
-    /*
-     * Everything succeeded.
-     */
+    // Everything succeeded.
     $pdo->commit();
 
+    // Remove the password reset information
+    // from Device A's session.
+    unset($_SESSION['password_reset_request']);
+    unset($_SESSION['password_reset_handoff']);
 
-    /*
-     * Return to login page.
-     */
-    header(
-        'Location: admin_login.php?reset=success'
-    );
-
+    // Return to login page.
+    header('Location: admin_login.php?reset=success');
     exit;
-
 
 } catch (PDOException $e) {
 
-
-    /*
-     * Undo database changes if something failed.
-     */
-    if (
-        isset($pdo) &&
-        $pdo->inTransaction()
-    ) {
-
+    // Undo database changes if something failed.
+    if (isset($pdo) &&$pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
-
-    /*
-     * Log the actual error for development/server logs,
-     * but do not expose it to the administrator.
-     */
-    error_log(
-        'Password reset failed: ' .
-        $e->getMessage()
-    );
-
-
-    header(
-        'Location: forgot_password.php?error=general'
-    );
-
+    // Log the actual error for development/server logs,
+    // but do not expose it to the administrator.
+    error_log('Password reset failed: ' .$e->getMessage());
+    header('Location: forgot_password.php?error=general');
     exit;
 }

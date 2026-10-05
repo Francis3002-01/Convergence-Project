@@ -36,7 +36,9 @@ document.addEventListener("DOMContentLoaded", function () {
    * themselves as desktop-class devices.
    */
   const isMobileOrTablet =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent,) ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
+    ) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   /*
@@ -163,7 +165,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return response.json().then(function (data) {
               if (!response.ok) {
                 throw new Error(
-                  data.message || "Download tracking request failed.",
+                  data.data?.error ||
+                    data.message ||
+                    "Download tracking request failed.",
                 );
               }
               return data;
@@ -176,9 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
           .catch(function (error) {
             console.error("Download tracking error:", error);
           });
-      } 
-      
-      else {
+      } else {
         console.error("Cannot track download: journalID is missing.");
       }
 
@@ -252,9 +254,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       copied = document.execCommand("copy");
-    } 
-    
-    catch (error) {
+    } catch (error) {
       console.error("Fallback copy failed:", error);
     }
 
@@ -262,9 +262,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (copied) {
       showCopySuccess();
-    } 
-    
-    else {
+    } else {
       console.error("Unable to copy citation.");
     }
   }

@@ -15,6 +15,7 @@ $urlError = $_GET['error'] ?? '';
 
 $error = '';
 $validToken = false;
+$emailVerified = false;
 
 
 // Validate token format first.
@@ -25,12 +26,12 @@ if ($device === 'original') {
     // Original device mode.
     // Use the tokenID stored in this device's session.
 
-    $tokenID = $_SESSION['password_reset_token_id'] ?? null;
+    $tokenID = $_SESSION['password_reset_request'] ?? null;
+    $handoffToken = $_SESSION['password_reset_handoff'] ?? null;
 
-    if (!$tokenID) {
+    if (!$tokenID || !$handoffToken) {
 
         $error = 'No active password reset request was found.';
-
     } else {
 
         try {
@@ -38,6 +39,19 @@ if ($device === 'original') {
             // Connect to database.
             $database = new Database();
             $pdo = $database->getConnection();
+
+            /*$sql = '
+                SELECT
+                    "tokenID",
+                    "clickedAt",
+                    "expiresAt",
+                    "usedAt"
+                FROM "PasswordResetToken"
+                WHERE "tokenID" = :tokenID
+                LIMIT 1
+            ';*/
+
+            $handoffHash = hash('sha256', $handoffToken);
 
             $sql = '
                 SELECT
@@ -47,13 +61,15 @@ if ($device === 'original') {
                     "usedAt"
                 FROM "PasswordResetToken"
                 WHERE "tokenID" = :tokenID
+                AND "handoffHash" = :handoffHash
                 LIMIT 1
             ';
 
             $stmt = $pdo->prepare($sql);
 
             $stmt->execute([
-                ':tokenID' => $tokenID
+                ':tokenID' => $tokenID,
+                ':handoffHash' => $handoffHash
             ]);
 
             $resetToken = $stmt->fetch();
@@ -61,36 +77,30 @@ if ($device === 'original') {
             if (!$resetToken) {
 
                 $error = 'Invalid or expired password reset request.';
-
             } elseif ($resetToken['usedAt'] !== null) {
 
                 $error = 'This password reset has already been completed.';
-
             } elseif (strtotime($resetToken['expiresAt']) < time()) {
 
                 $error = 'This password reset request has expired.';
-
             } elseif ($resetToken['clickedAt'] === null) {
 
                 $error = 'Please click the password reset link sent to your email first.';
-
             } else {
 
                 // Email link was clicked.
                 $validToken = true;
             }
-
         } catch (PDOException $e) {
 
             error_log(
                 'Original device reset validation failed: ' .
-                $e->getMessage()
+                    $e->getMessage()
             );
 
             $error = 'Unable to process the password reset.';
         }
     }
-
 } elseif (
     $token === '' ||
     !preg_match('/^[a-f0-9]{64}$/', $token)
@@ -98,7 +108,6 @@ if ($device === 'original') {
 
     // Email link mode.
     $error = 'Invalid or expired password reset link.';
-
 } else {
 
     try {
@@ -141,21 +150,25 @@ if ($device === 'original') {
 
         if ($resetToken) {
 
-            $validToken = true;
-
             // Mark the reset link as clicked.
+            // This tells the original device that
+            // the email has been successfully verified.
             $updateSql = '
-        UPDATE "PasswordResetToken"
-        SET "clickedAt" = NOW()
-        WHERE "tokenID" = :tokenID
-        AND "clickedAt" IS NULL
-    ';
+                UPDATE "PasswordResetToken"
+                SET "clickedAt" = COALESCE("clickedAt", NOW())
+                WHERE "tokenID" = :tokenID
+            ';
 
             $updateStmt = $pdo->prepare($updateSql);
 
             $updateStmt->execute([
                 ':tokenID' => $resetToken['tokenID']
             ]);
+
+            // IMPORTANT:
+            // Device B only verifies the email.
+            // It must NOT show the password form.
+            $emailVerified = true;
         } else {
 
             $error = 'Invalid or expired password reset link.';
@@ -272,7 +285,15 @@ if ($urlError === 'empty') {
         <div class="rp-card">
 
 
-            <?php if (!$validToken): ?>
+            <?php if ($emailVerified): ?>
+
+                <p class="rp-intro">
+                    Your email has been verified successfully.
+                    Please return to the device where you requested
+                    the password reset to continue.
+                </p>
+
+            <?php elseif (!$validToken): ?>
 
 
                 <!-- Invalid Token -->
