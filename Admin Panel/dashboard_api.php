@@ -3,32 +3,54 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 use Dotenv\Dotenv;
 
-/*Load .env*/
-$dotenv = Dotenv::createImmutable(dirname(__DIR__));
-$dotenv->load();
+function sendResponse(bool $success, string $message = '', array $data = [], int $status = 200): never {
 
-/*Supabase configuration*/
+    http_response_code($status);
+
+    header('Content-Type: application/json; charset=utf-8');
+
+    echo json_encode([
+
+        'success' => $success,
+
+        'message' => $message,
+
+        ...$data
+
+    ]);
+
+    exit;
+
+}
+
+/* Load .env only when it exists */
+
+$envFile = dirname(__DIR__) . '/.env';
+
+if (file_exists($envFile)) {
+
+    $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+
+    $dotenv->safeLoad();
+
+}
+
+/* Supabase configuration */
+
 $supabaseUrl = trim($_ENV['SUPABASE_URL'] ?? '');
+
 $supabaseKey = trim($_ENV['SUPABASE_SECRET_KEY'] ?? '');
 
 if ($supabaseUrl === '') {
-    sendResponse(false,'SUPABASE_URL is not configured',[],500);
+
+    sendResponse(false, 'SUPABASE_URL is not configured', [], 500);
+
 }
 
 if ($supabaseKey === '') {
-    sendResponse(false,'SUPABASE_SECRET_KEY is not configured',[],500);
-}
 
-/*JSON response*/
-function sendResponse(bool $success,string $message = '',array $data = [],int $status = 200): never {
-    http_response_code($status);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode([
-        'success' => $success,
-        'message' => $message,
-        ...$data
-    ]);
-    exit;
+    sendResponse(false, 'SUPABASE_SECRET_KEY is not configured', [], 500);
+
 }
 
 /*Supabase REST request*/
