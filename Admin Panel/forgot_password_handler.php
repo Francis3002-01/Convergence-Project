@@ -365,11 +365,19 @@ try {
     curl_close($ch);
 
     // Check whether Mailjet accepted the email.
-    if ($response === false ||$httpCode < 200 ||$httpCode >= 300) {
+    /*if ($response === false ||$httpCode < 200 ||$httpCode >= 300) {
         error_log('Mailjet password reset failed. HTTP ' .$httpCode .'. cURL error: ' .$curlError);
         header('Location: forgot_password.php?error=general');
         exit;
-    }
+    }*/
+    if ($response === false || $httpCode < 200 || $httpCode >= 300) {
+    echo '<h2>Mailjet Send Failed</h2>';
+    echo '<p>HTTP Status: ' . htmlspecialchars((string)$httpCode) . '</p>';
+    echo '<p>cURL Error: ' . htmlspecialchars($curlError) . '</p>';
+    echo '<h3>Mailjet Response:</h3>';
+    echo '<pre>' . htmlspecialchars($response) . '</pre>';
+    exit;
+}
 
     /*
      * Always show the generic success message.
