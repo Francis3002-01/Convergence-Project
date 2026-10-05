@@ -229,31 +229,30 @@ try {
         '/Admin%20Panel/reset_password.php?token=' .
         urlencode($rawToken);
 
-
-    /*$mail = new PHPMailer(true);
-
-    $mail->isSMTP();
-    $mail->Host       = $_ENV['MAIL_HOST'];
-    $mail->SMTPAuth   = true;
-    $mail->Username   = $_ENV['MAIL_USERNAME'];
-    $mail->Password   = $_ENV['MAIL_PASSWORD'];
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port       = (int) $_ENV['MAIL_PORT'];
-
-    $mail->setFrom(
-        $_ENV['MAIL_FROM_ADDRESS'],
-        $_ENV['MAIL_FROM_NAME']
-    );*/
-    /*$mail = new PHPMailer(true);
-
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = $_ENV['MAIL_USERNAME'] ?? getenv('MAIL_USERNAME');
-    $mail->Password = $_ENV['MAIL_PASSWORD'] ?? getenv('MAIL_PASSWORD');
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port = 587;
-    $mail->Timeout = 15;*/
+    // TEMPORARY connectivity probe - remove after use.
+    foreach (
+        [
+            ['smtp.gmail.com', 465],
+            ['smtp.gmail.com', 587],
+            ['google.com', 443],      // control: general outbound HTTPS
+            ['api.brevo.com', 443],   // control: HTTPS email API
+        ] as [$h, $p]
+    ) {
+        $t  = microtime(true);
+        $fp = @stream_socket_client("tcp://$h:$p", $errno, $errstr, 8);
+        $ms = round((microtime(true) - $t) * 1000);
+        error_log(sprintf(
+            'PROBE %s:%d %s in %dms errno=%s %s',
+            $h,
+            $p,
+            $fp ? 'OK' : 'FAIL',
+            $ms,
+            $errno,
+            $errstr
+        ));
+        if ($fp) fclose($fp);
+    }
+    error_log('PROBE DNS smtp.gmail.com A=' . json_encode(array_column(@dns_get_record('smtp.gmail.com', DNS_A) ?: [], 'ip')));
 
     $mail = new PHPMailer(true);
 
