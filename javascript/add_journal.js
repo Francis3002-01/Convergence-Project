@@ -186,11 +186,15 @@ async function initializeAddJournalPage() {
       editingPublicationID = parsedID;
       resetPublicationForm();
       await loadDraftPublication(editingPublicationID);
-    } else {
+    } 
+    
+    else {
       console.error("Invalid publicationID.");
       resetPublicationForm();
     }
-  } else {
+  } 
+  
+  else {
     /*
      * No publicationID means this is a new journal.
      */
@@ -313,7 +317,6 @@ function resetPublicationForm() {
 /* =========================================================
    LOAD EXISTING DRAFT
    ========================================================= */
-
 async function loadDraftPublication(publicationID) {
   try {
     const response = await fetch(
@@ -562,63 +565,6 @@ function setupPublicationPdfUpload() {
   }
 }
 
-/*
- * Validate and store publication PDF.
- */
-/*function handlePublicationPdfFile(file) {
-
-
-  if (file.type !== "application/pdf" &&!file.name.toLowerCase().endsWith(".pdf")) {
-    const fileInput = document.getElementById("publicationPDF");
-
-    if (fileInput) {
-      fileInput.value = "";
-    }
-
-    showMessage("Invalid File", "Please select a PDF file.");
-    return;
-  }
-
-  
-  const maxSize = 40 * 1024 * 1024;
-
-  
-  if (file.size > maxSize) {
-    const fileInput = document.getElementById("pdfFile");
-
-    if (fileInput) {
-      fileInput.value = "";
-    }
-
-    showMessage("File Too Large", "The article PDF must not exceed 40 MB.");
-    return;
-  }
-
-  publicationPdfFile = file;
-
-  
-  existingPublicationPdf = null;
-  const fileName = document.getElementById("publicationPdfFileName");
-
-  if (fileName) {
-    fileName.textContent = file.name;
-  }
-
-  const uploadTitle = document.querySelector(
-    "#publicationPdfUploadBox .upload-title",
-  );
-
-  if (uploadTitle) {
-    uploadTitle.style.display = "none";
-  }
-
-  const undoButton = document.getElementById("publicationPdfUndo");
-
-  if (undoButton) {
-    undoButton.hidden = false;
-  }
-}*/
-
 //NEW HANDLE PUBLICATION PDF FILE - ADDED: SEPT 30
 function handlePublicationPdfFile(file) {
   if (!file) {
@@ -766,59 +712,6 @@ function setupArticlePdfUpload() {
   }
 }
 
-/*
- * Validate and store article PDF.
- */
-/*function handleArticlePdfFile(file) {
-  if (!file) {
-    return;
-  }
-
-  if (
-    file.type !== "application/pdf" &&
-    !file.name.toLowerCase().endsWith(".pdf")
-  ) {
-    showMessage("Invalid File", "Please select a PDF file.");
-    return;
-  }
-
-  const maxSize = 40 * 1024 * 1024;
-
-  if (file.size > maxSize) {
-    showMessage("File Too Large", "The article PDF must not exceed 40 MB.");
-    return;
-  }
-
-  const article = articles[currentArticleIndex];
-
-  if (!article) {
-    return;
-  }
-
-  article.pdf = file;
-  article.existingPdf = null;
-
-  const fileName = document.getElementById("pdfFileName");
-
-  if (fileName) {
-    fileName.textContent = file.name;
-  }
-
-  const uploadTitle = document.querySelector(
-    "#articlePdfUploadBox .upload-title",
-  );
-
-  if (uploadTitle) {
-    uploadTitle.style.display = "none";
-  }
-
-  const undoButton = document.getElementById("articlePdfUndo");
-
-  if (undoButton) {
-    undoButton.hidden = false;
-  }
-}*/
-
 //NEW HANDLEARTICLEPDFFILE:
 function handleArticlePdfFile(file) {
   if (!file) {
@@ -930,7 +823,6 @@ function undoPdfFile() {
 /* =========================================================
    PUBLICATION STEP / ARTICLE STEP
    ========================================================= */
-
 function goToArticles() {
   if (!validateIssueInformation()) {
     return;
@@ -957,15 +849,10 @@ function goToArticles() {
    * Update summary.
    */
   const year = document.getElementById("year");
-
   const volume = document.getElementById("volume");
-
   const number = document.getElementById("number");
-
   const displayYear = document.getElementById("displayYear");
-
   const displayVolume = document.getElementById("displayVolume");
-
   const displayNumber = document.getElementById("displayNumber");
 
   if (displayYear) {
@@ -1202,23 +1089,17 @@ function saveCurrentArticle() {
 /* =========================================================
    ADD ARTICLE
    ========================================================= */
-
 function addArticle() {
   saveCurrentArticle();
-
   articles.push(createArticle());
-
   currentArticleIndex = articles.length - 1;
-
   renderArticleTabs();
-
   loadArticle(currentArticleIndex);
 }
 
 /* =========================================================
    REMOVE ARTICLE
    ========================================================= */
-
 function requestDeleteArticle() {
   /*
    * Do not allow the last article to be removed.
@@ -1226,20 +1107,14 @@ function requestDeleteArticle() {
    */
   if (articles.length <= 1) {
     showMessage("Cannot Remove Article", "At least one article is required.");
-
     return;
   }
 
   saveCurrentArticle();
-
   articleDeleteIndex = currentArticleIndex;
-
   const modal = document.getElementById("confirmationModal");
-
   const title = document.getElementById("confirmationTitle");
-
   const message = document.getElementById("confirmationMessage");
-
   const confirmButton = document.getElementById("confirmDeleteButton");
 
   if (!modal || !title || !message || !confirmButton) {
@@ -1297,7 +1172,6 @@ function deleteArticle() {
 /* =========================================================
    AUTHORS
    ========================================================= */
-
 function renderAuthors() {
   const container = document.getElementById("authors");
 
@@ -1481,11 +1355,7 @@ function deleteAuthor() {
     return;
   }
 
-  if (
-    authorDeleteIndex === null ||
-    authorDeleteIndex < 0 ||
-    authorDeleteIndex >= article.authors.length
-  ) {
+  if (authorDeleteIndex === null ||authorDeleteIndex < 0 ||authorDeleteIndex >= article.authors.length) {
     closeConfirmationModal();
     return;
   }
@@ -1538,10 +1408,7 @@ function validatePublicationPdfForPublishing() {
     return true;
   }
 
-  showMessage(
-    "Publication PDF Required",
-    "Please upload the publication issue PDF before publishing.",
-  );
+  showMessage("Publication PDF Required","Please upload the publication issue PDF before publishing.",);
   return false;
 }
 
@@ -1586,10 +1453,7 @@ function validateArticlesForPublishing() {
      * At least one complete author is required.
      */
     if (!Array.isArray(article.authors) || article.authors.length === 0) {
-      showMessage(
-        "Author Required",
-        `Please add at least one author for Article ${i + 1}.`,
-      );
+      showMessage("Author Required",`Please add at least one author for Article ${i + 1}.`,);
       return false;
     }
 
@@ -1611,10 +1475,7 @@ function validateArticlesForPublishing() {
        * for a non-empty author row.
        */
       if (firstName === "" || lastName === "") {
-        showMessage(
-          "Incomplete Author",
-          `Please complete the first name and last name for Author ${j + 1} of Article ${i + 1}.`,
-        );
+        showMessage("Incomplete Author",`Please complete the first name and last name for Author ${j + 1} of Article ${i + 1}.`,);
         return false;
       }
 
@@ -1622,9 +1483,7 @@ function validateArticlesForPublishing() {
     }
 
     if (!hasCompleteAuthor) {
-      showMessage(
-        "Author Required",
-        `Please enter at least one complete author for Article ${i + 1}.`,
+      showMessage("Author Required",`Please enter at least one complete author for Article ${i + 1}.`,
       );
       return false;
     }
@@ -1658,22 +1517,11 @@ function buildArticleData() {
 
 function openSaveDraftConfirmation() {
 
-    const modal =
-        document.getElementById(
-            "saveDraftConfirmationModal"
-        );
-
-    const confirmButton =
-        document.getElementById(
-            "confirmSaveDraftButton"
-        );
+    const modal = document.getElementById("saveDraftConfirmationModal");
+    const confirmButton = document.getElementById("confirmSaveDraftButton");
 
     if (!modal || !confirmButton) {
-
-        console.error(
-            "Save draft confirmation modal elements not found."
-        );
-
+        console.error("Save draft confirmation modal elements not found.");
         return;
     }
 
@@ -1693,17 +1541,12 @@ function openSaveDraftConfirmation() {
 
 function closeSaveDraftConfirmation() {
 
-    const modal =
-        document.getElementById(
-            "saveDraftConfirmationModal"
-        );
+    const modal = document.getElementById("saveDraftConfirmationModal");
 
     if (modal) {
         modal.classList.remove("show");
     }
 }
-
-
 
 function savePublication(mode) {
   /*
