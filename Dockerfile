@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2.35-apache
 
 # Change Debian repositories from HTTP to HTTPS
 RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
@@ -29,24 +29,13 @@ RUN composer install \
     --no-interaction \
     --optimize-autoloader
 
-# Copy project
+# Copy project files
 COPY . /var/www/html
 
-# Download GeoLite2-Country database using Render secret
-RUN --mount=type=secret,id=maxmind_credentials,dst=/etc/secrets/maxmind_credentials,required=true \
-    set -a \
-    && . /etc/secrets/maxmind_credentials \
-    && set +a \
-    && mkdir -p /var/www/html/geoip \
-    && curl -fL \
-        -u "$MAXMIND_ACCOUNT_ID:$MAXMIND_LICENSE_KEY" \
-        "https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=tar.gz" \
-        -o /tmp/GeoLite2-Country.tar.gz \
-    && mkdir -p /tmp/geolite \
-    && tar -xzf /tmp/GeoLite2-Country.tar.gz -C /tmp/geolite \
-    && find /tmp/geolite -name "GeoLite2-Country.mmdb" -exec cp {} /var/www/html/geoip/GeoLite2-Country.mmdb \; \
-    && test -f /var/www/html/geoip/GeoLite2-Country.mmdb \
-    && rm -rf /tmp/GeoLite2-Country.tar.gz /tmp/geolite
+# Use the existing GeoLite2-Country database
+RUN mkdir -p /var/www/html/geoip
+
+COPY geoip/GeoLite2-Country.mmdb /var/www/html/geoip/GeoLite2-Country.mmdb
 
 # Allow .htaccess
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf

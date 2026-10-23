@@ -3,4 +3,4 @@
 /.git/
 
 maxmind_credentials
-geoip/*.mmdb
+
