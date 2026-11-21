@@ -4,14 +4,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../Classes/JournalArticle.php';
 
-/*use Dotenv\Dotenv;
-
-$dotenv = Dotenv::createImmutable(dirname(__DIR__));
-$dotenv->load();
-
-$supabaseUrl = trim($_ENV['SUPABASE_URL'] ?? '');
-$supabaseKey = trim($_ENV['SUPABASE_SECRET_KEY'] ?? '');
-$bucket = trim($_ENV['SUPABASE_BUCKET'] ?? '');*/
 use Dotenv\Dotenv;
 
 $envFile = dirname(__DIR__) . '/.env';
@@ -21,9 +13,6 @@ if (file_exists($envFile)) {
     $dotenv->safeLoad();
 }
 
-/*$supabaseUrl = trim($_ENV['SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: '');
-$supabaseKey = trim($_ENV['SUPABASE_SECRET_KEY'] ?? getenv('SUPABASE_SECRET_KEY') ?: '');
-$bucket = trim($_ENV['SUPABASE_BUCKET'] ?? getenv('SUPABASE_BUCKET') ?: '');*/
 $supabaseUrl = trim((string) ($_ENV['SUPABASE_URL'] ?? $_SERVER['SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?? ''));
 $supabaseKey = trim((string) ($_ENV['SUPABASE_SECRET_KEY'] ?? $_SERVER['SUPABASE_SECRET_KEY'] ?? getenv('SUPABASE_SECRET_KEY') ?? ''));
 $bucket = trim((string) ($_ENV['SUPABASE_BUCKET'] ?? $_SERVER['SUPABASE_BUCKET'] ?? getenv('SUPABASE_BUCKET') ?? ''));
@@ -553,9 +542,21 @@ function ensureOneDraft(PDO $pdo): void
 
 function saveArticleAuthors(PDO $pdo, int $journalID, array $authors, bool $isDraft = false): void
 {
+    $existingAuthorIDsStatement = $pdo->prepare(
+        'SELECT "authorID"
+     FROM "ArticleAuthor"
+     WHERE "journalID" = :journalID'
+    );
+
+    $existingAuthorIDsStatement->execute([
+        ':journalID' => $journalID
+    ]);
+
+    $existingAuthorIDs = $existingAuthorIDsStatement->fetchAll(PDO::FETCH_COLUMN);
+
     $pdo->prepare(
         'DELETE FROM "ArticleAuthor"
-         WHERE "journalID" = :journalID'
+     WHERE "journalID" = :journalID'
     )->execute([
         ':journalID' => $journalID
     ]);
@@ -624,6 +625,7 @@ function saveArticleAuthors(PDO $pdo, int $journalID, array $authors, bool $isDr
     if (empty($validAuthors)) {
 
         if ($isDraft) {
+            deleteOrphanAuthors($pdo, $existingAuthorIDs);
             return;
         }
 
@@ -682,6 +684,31 @@ function saveArticleAuthors(PDO $pdo, int $journalID, array $authors, bool $isDr
 
         $insertLink->execute([
             ':journalID' => $journalID,
+            ':authorID' => (int) $authorID
+        ]);
+    }
+
+    deleteOrphanAuthors($pdo, $existingAuthorIDs);
+}
+
+function deleteOrphanAuthors(PDO $pdo, array $authorIDs): void
+{
+    if (empty($authorIDs)) {
+        return;
+    }
+
+    $deleteOrphanAuthorStatement = $pdo->prepare(
+        'DELETE FROM "Author" a
+         WHERE a."authorID" = :authorID
+           AND NOT EXISTS (
+               SELECT 1
+               FROM "ArticleAuthor" aa
+               WHERE aa."authorID" = a."authorID"
+           )'
+    );
+
+    foreach (array_unique($authorIDs) as $authorID) {
+        $deleteOrphanAuthorStatement->execute([
             ':authorID' => (int) $authorID
         ]);
     }
@@ -1868,7 +1895,7 @@ function validateDraftForPublishing(PDO $pdo, int $publicationID): void
         $publicationID
     ]);
 
-    $articles =$statement->fetchAll();
+    $articles = $statement->fetchAll();
 
     if (empty($articles)) {
         throw new Exception('At least one article is required before publishing.');
@@ -1889,7 +1916,7 @@ function validateDraftForPublishing(PDO $pdo, int $publicationID): void
             throw new Exception('Title for Article ' . $articleNumber . ' is required before publishing.');
         }
 
-        $articlePDF =trim((string) ($article['journalPDF'] ?? ''));
+        $articlePDF = trim((string) ($article['journalPDF'] ?? ''));
 
         if ($articlePDF === '') {
             throw new Exception('PDF for Article ' . $articleNumber . ' is required before publishing.');
@@ -1939,7 +1966,8 @@ function validateDraftForPublishing(PDO $pdo, int $publicationID): void
     }
 }
 
-function publishExistingDraft(PDO $pdo, int $publicationID): void{
+function publishExistingDraft(PDO $pdo, int $publicationID): void
+{
     $issue = getIssueByPublicationId($pdo, $publicationID);
 
     if (!$issue || !postgresBoolean($issue['is_draft'])) {
@@ -1965,7 +1993,7 @@ function publishExistingDraft(PDO $pdo, int $publicationID): void{
             ':publicationID' => $publicationID
         ]);
 
-        $previousCurrentID =$previousCurrentStatement->fetchColumn();
+        $previousCurrentID = $previousCurrentStatement->fetchColumn();
 
         $archiveCurrentIssues = $pdo->prepare(
             'UPDATE "PublicationIssue"
@@ -1993,13 +2021,12 @@ function publishExistingDraft(PDO $pdo, int $publicationID): void{
         $publishStatement->execute([
             ':publicationID' => $publicationID,
             ':previousPublicationID' =>
-                $previousCurrentID !== false
-                    ? (int) $previousCurrentID
-                    : null
+            $previousCurrentID !== false
+                ? (int) $previousCurrentID
+                : null
         ]);
 
         $pdo->commit();
-
     } catch (Throwable $e) {
 
         if ($pdo->inTransaction()) {
@@ -2010,7 +2037,8 @@ function publishExistingDraft(PDO $pdo, int $publicationID): void{
     }
 }
 
-function deleteIssue(PDO $pdo, int $publicationID): void{
+function deleteIssue(PDO $pdo, int $publicationID): void
+{
 
     $issue = getIssueByPublicationId($pdo, $publicationID);
 
@@ -2033,7 +2061,21 @@ function deleteIssue(PDO $pdo, int $publicationID): void{
         $publicationID
     ]);
 
-    $articles =$statement->fetchAll();
+    $articles = $statement->fetchAll();
+
+    $authorIDsStatement = $pdo->prepare(
+        'SELECT DISTINCT aa."authorID"
+     FROM "ArticleAuthor" aa
+     INNER JOIN "JournalArticle" ja
+        ON ja."journalID" = aa."journalID"
+     WHERE ja."publicationID" = :publicationID'
+    );
+
+    $authorIDsStatement->execute([
+        ':publicationID' => $publicationID
+    ]);
+
+    $authorIDs = $authorIDsStatement->fetchAll(PDO::FETCH_COLUMN);
 
     $pdo->beginTransaction();
 
@@ -2060,6 +2102,8 @@ function deleteIssue(PDO $pdo, int $publicationID): void{
                 $article['journalID']
             ]);
         }
+
+        deleteOrphanAuthors($pdo, $authorIDs);
 
         $pdo->prepare(
             'DELETE FROM "JournalArticle"
@@ -2119,7 +2163,7 @@ $pdo = $database->getConnection();
 
 try {
 
-    $action = trim((string) ($_POST['action'] ??$_GET['action'] ??''));
+    $action = trim((string) ($_POST['action'] ?? $_GET['action'] ?? ''));
     switch ($action) {
 
         case 'list':
@@ -2197,7 +2241,7 @@ try {
                 )
             );
 
-            if ($mode !== 'draft' &&$mode !== 'publish') {
+            if ($mode !== 'draft' && $mode !== 'publish') {
                 $mode = 'draft';
             }
 
@@ -2219,7 +2263,7 @@ try {
             $isDraft = postgresBoolean($existingIssue['is_draft']);
 
             if ($mode === 'publish' && !$isDraft) {
-                sendResponse(false,'Only a draft issue can be published.',[],400);
+                sendResponse(false, 'Only a draft issue can be published.', [], 400);
             }
 
             $articleList = json_decode($_POST['articles'] ?? '[]', true);
@@ -2234,8 +2278,8 @@ try {
                 sendResponse(false, 'At least one article is required.', [], 400);
             }
 
-            $existingArticles =getExistingArticles($pdo,(int) $publicationID);
-            $oldPublicationPdf =trim((string) ($existingIssue['publicationPDF']?? ''));
+            $existingArticles = getExistingArticles($pdo, (int) $publicationID);
+            $oldPublicationPdf = trim((string) ($existingIssue['publicationPDF'] ?? ''));
 
             if ($oldPublicationPdf !== '') {
                 $oldPublicationPdf = normalizeStoragePath($oldPublicationPdf);
@@ -2316,10 +2360,8 @@ try {
                             );
                         }
 
-                        updateExistingArticle($pdo,$article,$existingArticles[$journalID],(int) $year,(int) $publicationID,$index + 1,$isDraft);
-                    } 
-                    
-                    else {
+                        updateExistingArticle($pdo, $article, $existingArticles[$journalID], (int) $year, (int) $publicationID, $index + 1, $isDraft);
+                    } else {
                         insertNewArticle(
                             $pdo,
                             $article,
@@ -2376,12 +2418,30 @@ try {
                             ':journalID' => (int) $existingJournalID
                         ]);
 
+
+
+                        $authorIDsStatement = $pdo->prepare(
+                            'SELECT "authorID"
+                        FROM "ArticleAuthor"
+                        WHERE "journalID" = :journalID'
+                        );
+
+                        $authorIDsStatement->execute([
+                            ':journalID' => (int) $existingJournalID
+                        ]);
+
+                        $authorIDs = $authorIDsStatement->fetchAll(PDO::FETCH_COLUMN);
+
+
+
                         $pdo->prepare(
                             'DELETE FROM "ArticleAuthor"
              WHERE "journalID" = :journalID'
                         )->execute([
                             ':journalID' => (int) $existingJournalID
                         ]);
+
+                        deleteOrphanAuthors($pdo, $authorIDs);
 
                         $pdo->prepare(
                             'DELETE FROM "JournalArticle"
@@ -2406,7 +2466,7 @@ try {
                     (int) $publicationID
                 ]);
 
-                $remainingArticles =(int) $remainingStatement->fetchColumn();
+                $remainingArticles = (int) $remainingStatement->fetchColumn();
                 $pdo->commit();
 
                 foreach ($removedArticlePdfPaths as $removedPdfPath) {
@@ -2574,6 +2634,19 @@ try {
                 ]);
 
 
+                $authorIDsStatement = $pdo->prepare(
+                'SELECT "authorID"
+                FROM "ArticleAuthor"
+                WHERE "journalID" = :journalID'
+                );
+
+                $authorIDsStatement->execute([
+                    ':journalID' => $journalID
+                ]);
+
+                $authorIDs = $authorIDsStatement->fetchAll(PDO::FETCH_COLUMN);
+
+
                 $deleteAuthorsStatement = $pdo->prepare(
                     'DELETE FROM "ArticleAuthor"
              WHERE "journalID" = :journalID'
@@ -2582,6 +2655,8 @@ try {
                 $deleteAuthorsStatement->execute([
                     ':journalID' => $journalID
                 ]);
+
+                deleteOrphanAuthors($pdo, $authorIDs);
 
 
                 $deleteArticleStatement = $pdo->prepare(
@@ -2630,7 +2705,7 @@ try {
                         $issueDeleted = true;
                     } elseif ($isCurrent) {
 
-                      
+
                         $previousIssueStatement = $pdo->prepare(
                             'SELECT
                             "previousPublicationID"
@@ -2646,7 +2721,7 @@ try {
                             ':publicationID' => $publicationID
                         ]);
 
-                        $previousIssue =$previousIssueStatement->fetch(PDO::FETCH_ASSOC);
+                        $previousIssue = $previousIssueStatement->fetch(PDO::FETCH_ASSOC);
                         $deleteCurrentIssueStatement = $pdo->prepare(
                             'DELETE FROM "PublicationIssue"
                      WHERE "publicationID" = :publicationID
@@ -2699,7 +2774,7 @@ try {
 
                     deletePdf($articlePdfPath);
                 } catch (Throwable $e) {
-                    error_log('Article PDF cleanup error: ' .$e->getMessage());
+                    error_log('Article PDF cleanup error: ' . $e->getMessage());
                 }
             }
 

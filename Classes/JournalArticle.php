@@ -149,12 +149,13 @@ class JournalArticle
         }
     }
 
-    public function updateJournal(PDO $pdo,int $journalID,string $title,bool $isDraft,?string $journalPDF = null): bool{
+    public function updateJournal(PDO $pdo, int $journalID, string $title, bool $isDraft, ?string $journalPDF = null): bool
+    {
         if ($journalID <= 0) {
             throw new InvalidArgumentException('Invalid journal ID.');
         }
 
-         if (!$isDraft && trim($title) === '') {
+        if (!$isDraft && trim($title) === '') {
             throw new InvalidArgumentException('Article title cannot be empty.');
         }
 
@@ -238,6 +239,19 @@ class JournalArticle
         try {
             $pdo->beginTransaction();
 
+            // Get the authors associated with this article before deleting the relationships.
+            $authorIDsStatement = $pdo->prepare(
+                'SELECT "authorID"
+     FROM "ArticleAuthor"
+     WHERE "journalID" = :journalID'
+            );
+
+            $authorIDsStatement->execute([
+                ':journalID' => $journalID
+            ]);
+
+            $authorIDs = $authorIDsStatement->fetchAll(PDO::FETCH_COLUMN);
+
             /*
          * 1. Remove the article-author relationships first.
          */
@@ -249,6 +263,23 @@ class JournalArticle
             $stmt->execute([
                 ':journalID' => $journalID
             ]);
+
+            // Delete authors who are no longer associated with any article.
+            $deleteOrphanAuthorStatement = $pdo->prepare(
+                'DELETE FROM "Author" a
+     WHERE a."authorID" = :authorID
+       AND NOT EXISTS (
+           SELECT 1
+           FROM "ArticleAuthor" aa
+           WHERE aa."authorID" = a."authorID"
+       )'
+            );
+
+            foreach ($authorIDs as $authorID) {
+                $deleteOrphanAuthorStatement->execute([
+                    ':authorID' => (int) $authorID
+                ]);
+            }
 
             /*
          * 2. Remove download records for this article.
