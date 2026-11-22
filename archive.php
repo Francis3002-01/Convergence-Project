@@ -55,7 +55,7 @@ $archiveIssues = $stmt->fetchAll();
     <meta property="og:description" content="Browse previous issues of Convergence and explore archived scholarly articles published by Silliman University.">
 
     <!-- X (Twitter) -->
-    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Journal Archive | Convergence Journal">
     <meta name="twitter:description" content="Browse previous issues of Convergence and explore archived scholarly articles published by Silliman University.">
 

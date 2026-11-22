@@ -268,7 +268,7 @@ if ($publicationID && $publicationID > 0) {
     <meta property="og:description" content="Explore the latest issue of Convergence, Silliman University's multidisciplinary journal featuring scholarly articles and research.">
 
     <!-- X (Twitter) -->
-    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Current Issue | Convergence Journal">
     <meta name="twitter:description" content="Explore the latest issue of Convergence, Silliman University's multidisciplinary journal featuring scholarly articles and research.">
 

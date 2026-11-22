@@ -19,7 +19,7 @@
     <meta property="og:description" content="Get in touch with Convergence for inquiries about journal publications, submissions, and other information.">
 
     <!-- X (Twitter) -->
-    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Contact Convergence | Silliman University">
     <meta name="twitter:description" content="Get in touch with Convergence for inquiries about journal publications, submissions, and other information.">
 

@@ -20,7 +20,7 @@
     <meta property="og:description" content="Learn about Convergence, Silliman University's multidisciplinary journal, its academic scope, purpose, and commitment to scholarly exchange.">
 
     <!-- X (Twitter) -->
-    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="About Convergence | Silliman University">
     <meta name="twitter:description" content="Learn about Convergence, Silliman University's multidisciplinary journal, its academic scope, purpose, and commitment to scholarly exchange.">
 
