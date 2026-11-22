@@ -42,8 +42,21 @@ try {
 
     <title>Convergence: A Multidisciplinary Journal | Silliman University</title>
 
-     <meta name="description" content="Convergence: A Multidisciplinary Journal of Silliman University 
-     publishes interdisciplinary and multidisciplinary research across the humanities, social sciences, and natural sciences.">
+    <meta name="description" content="Convergence: A Multidisciplinary Journal of Silliman University 
+    publishes interdisciplinary and multidisciplinary research across the humanities, social sciences, and natural sciences.">
+
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph: Facebook and other social media previews -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Convergence: A Multidisciplinary Journal">
+    <meta property="og:title" content="Convergence: A Multidisciplinary Journal | Silliman University">
+    <meta property="og:description" content="Explore interdisciplinary and multidisciplinary research across the humanities, social sciences, and natural sciences, published by Silliman University.">
+
+    <!-- Twitter/X preview -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Convergence: A Multidisciplinary Journal | Silliman University">
+    <meta name="twitter:description" content="Explore interdisciplinary and multidisciplinary research across the humanities, social sciences, and natural sciences, published by Silliman University.">
 
     <!--External CSS-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
