@@ -7,67 +7,39 @@ $error = $_GET['error'] ?? '';
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Forgot Password | Convergence Admin</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap"
-        rel="stylesheet"
-    >
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap"rel="stylesheet">
 
     <!-- Font Awesome -->
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
+    <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <!-- Forgot Password CSS -->
     <link rel="stylesheet" href="../css/forgot_password.css">
-
 </head>
-
 <body>
 
     <!-- Header -->
     <header class="site-header">
-
         <div class="brand">
-
-            <img
-                src="../Images/Convergence Logo.png"
-                alt="Convergence logo"
-                class="brand-logo"
-            >
-
+            <img src="../Images/Convergence Logo.png" alt="Convergence logo"class="brand-logo">
             <div class="brand-text">
-
                 <h1>CONVERGENCE</h1>
-
                 <span>A MULTIDISCIPLINARY JOURNAL</span>
-
             </div>
-
         </div>
-
     </header>
-
 
     <!-- Page Banner -->
     <section class="page-banner">
-
         <h2>Forgot Password</h2>
-
     </section>
-
 
     <!-- Main Content -->
     <main class="content-area">
@@ -108,13 +80,8 @@ $error = $_GET['error'] ?? '';
 
             </div>
 
-
             <!-- Forgot Password Form -->
-            <form
-                action="forgot_password_handler.php"
-                method="POST"
-                class="fp-form"
-            >
+            <form action="forgot_password_handler.php"method="POST"class="fp-form">
 
                 <div class="fp-field">
 

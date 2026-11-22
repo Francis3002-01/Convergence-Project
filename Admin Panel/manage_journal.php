@@ -2,6 +2,12 @@
 $pageTitle = "Manage Journals - Convergence";
 
 require_once __DIR__ . '/../config/session.php';
+
+if (!isset($_SESSION['adminID'])) {
+    header('Location: admin_login.php');
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>

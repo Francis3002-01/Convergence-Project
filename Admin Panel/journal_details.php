@@ -1,6 +1,13 @@
 <?php
 
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../Classes/Admin.php';
+
+if (!Admin::isLoggedIn()) {
+    http_response_code(404);
+    exit;
+}
+
 
 ?>
 

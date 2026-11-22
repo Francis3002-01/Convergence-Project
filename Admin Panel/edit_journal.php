@@ -1,6 +1,14 @@
 <?php
 
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../Classes/Admin.php';
+
+// Check admin authentication
+if (!Admin::isLoggedIn()) {
+    http_response_code(404);
+    exit;
+}
+
 require_once __DIR__ . '/../config/database.php';
 
 $publicationID = filter_input( INPUT_GET,'publicationID',FILTER_VALIDATE_INT);

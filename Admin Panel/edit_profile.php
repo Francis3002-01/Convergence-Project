@@ -6,26 +6,20 @@ require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../Classes/Admin.php';
 
-
-// Make sure the admin is logged in
 if (!Admin::isLoggedIn()) {
-    header('Location: admin_login.php');
+    http_response_code(404);
     exit;
 }
-
 
 // Connect to database
 $database = new Database();
 $pdo = $database->getConnection();
 
-
 // Create Admin object
 $admin = new Admin($pdo);
 
-
 // Get current admin profile
 $profile = $admin->getProfile();
-
 
 // If the admin profile could not be found
 if (!$profile) {
@@ -33,13 +27,11 @@ if (!$profile) {
     exit;
 }
 
-
 /*
 |--------------------------------------------------------------------------
 | Check Email Verification Status
 |--------------------------------------------------------------------------
 */
-
 $emailVerification = $admin->getEmailVerificationStatus();
 $verificationPending = $emailVerification['pending'];
 $pendingEmail = $emailVerification['email'];
@@ -52,7 +44,6 @@ $pendingEmail = $emailVerification['email'];
 $currentUsername = $profile['username'] ?? '';
 $currentEmail = $profile['email'] ?? '';
 $currentProfilePic = $profile['profilePic'] ?? '';
-
 
 // First letter for the default profile picture
 $initial = strtoupper(

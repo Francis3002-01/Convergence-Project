@@ -1,13 +1,19 @@
 <?php
 
 require_once __DIR__ . '/../config/session.php';
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../Classes/Admin.php';
 
+if (!Admin::isLoggedIn()) {
+    http_response_code(404);
+    exit;
+}
+
+
+require_once __DIR__ . '/../config/database.php';
 
 // Get token and device mode from URL.
 $token = $_GET['token'] ?? '';
 $device = $_GET['device'] ?? '';
-
 
 // Get validation error from handler.
 $urlError = $_GET['error'] ?? '';
@@ -16,7 +22,6 @@ $urlError = $_GET['error'] ?? '';
 $error = '';
 $validToken = false;
 $emailVerified = false;
-
 
 // Validate token format first.
 // Validate the reset request.

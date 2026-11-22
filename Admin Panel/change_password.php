@@ -3,12 +3,10 @@
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../Classes/Admin.php';
 
-// Make sure the admin is logged in.
 if (!Admin::isLoggedIn()) {
-  header('Location: admin_login.php');
-  exit;
+    http_response_code(404);
+    exit;
 }
-
 
 // Generate CSRF token if one does not already exist.
 if (empty($_SESSION['csrf_token'])) {
@@ -16,12 +14,9 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -42,33 +37,21 @@ if (empty($_SESSION['csrf_token'])) {
 <body>
 
   <header class="site-header">
-
     <div class="brand">
-
-      <img
-        src="../Images/Convergence Logo.png"
-        alt="Convergence logo"
-        class="brand-logo">
+      <img src="../Images/Convergence Logo.png"alt="Convergence logo"class="brand-logo">
 
       <div class="brand-text">
-
         <h1>CONVERGENCE</h1>
-
         <span>A MULTIDISCIPLINARY JOURNAL</span>
-
       </div>
 
     </div>
 
   </header>
 
-
   <section class="page-banner">
-
     <h2>Change Password</h2>
-
   </section>
-
 
   <main class="content-area">
 

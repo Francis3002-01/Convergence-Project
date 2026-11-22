@@ -1,6 +1,12 @@
 <?php
 
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../Classes/Admin.php';
+
+if (!Admin::isLoggedIn()) {
+    http_response_code(404);
+    exit;
+}
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/database.php';
@@ -281,50 +287,29 @@ if ($publicationID && $publicationID > 0) {
     <link rel="icon" type="image/png" href="../Images/Convergence Logo.png">
 </head>
 
-
 <body>
-
-
     <?php include 'components/left_sidebar.php'; ?>
-
-
     <div class="main-area">
-
 
         <?php include 'components/header.php'; ?>
 
-
         <main class="content">
 
-
             <?php if (!$selectedIssue): ?>
-
 
                 <!-- =====================================================
                      ARCHIVE LIST / SEARCH PAGE
                      ===================================================== -->
-
-
                 <section id="archiveListPage">
 
-
                     <!-- PAGE HEADER -->
-
                     <div class="page-header">
-
                         <div class="page-heading">
-
                             <h1>Archive</h1>
-
-                            <p>
-                                View previously published journal issues
-                            </p>
-
+                            <p>View previously published journal issues</p>
                         </div>
 
-
                         <!-- SEARCH -->
-
                         <div class="page-actions">
 
                             <form method="GET" action="archive_admin.php"
@@ -364,32 +349,15 @@ if ($publicationID && $publicationID > 0) {
                         <!-- =================================================
                              ARTICLE SEARCH RESULTS
                              ================================================= -->
-
-
                         <div class="archive-list-container archive-search-container">
-
-
                             <!-- SEARCH RESULT HEADER -->
-
                             <div class="archive-list-header">
-
-                                <div>
-                                    Title
-                                </div>
-
-                                <div>
-                                    Authors
-                                </div>
-
-                                <div>
-                                    Actions
-                                </div>
-
+                                <div>Title</div>
+                                <div>Authors</div>
+                                <div>Actions</div>
                             </div>
 
-
                             <!-- SEARCH RESULTS -->
-
                             <div
                                 id="archiveSearchResults"
                                 class="archive-list">
