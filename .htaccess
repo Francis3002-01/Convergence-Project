@@ -3,7 +3,7 @@ DirectoryIndex home.php index.php index.html
 Options -MultiViews
 
 # Custom 404 Error Page
-ErrorDocument 404 /Convergence%20Project/custom404.php
+ErrorDocument 404 /custom404.php
 
 RewriteEngine On
 
