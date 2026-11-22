@@ -36,6 +36,7 @@ $archiveIssues = $stmt->fetchAll();
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,6 +45,19 @@ $archiveIssues = $stmt->fetchAll();
 
     <meta name="description" content="Browse the Convergence journal archive and explore previous issues 
     and scholarly articles published across the humanities, social sciences, and natural sciences.">
+
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph: Facebook and other social media -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Convergence: A Multidisciplinary Journal">
+    <meta property="og:title" content="Journal Archive | Convergence Journal">
+    <meta property="og:description" content="Browse previous issues of Convergence and explore archived scholarly articles published by Silliman University.">
+
+    <!-- X (Twitter) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Journal Archive | Convergence Journal">
+    <meta name="twitter:description" content="Browse previous issues of Convergence and explore archived scholarly articles published by Silliman University.">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="includes_css/header.css">
@@ -98,4 +112,5 @@ $archiveIssues = $stmt->fetchAll();
     </main>
     <?php include 'includes/footer.php'; ?>
 </body>
+
 </html>

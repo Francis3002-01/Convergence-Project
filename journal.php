@@ -259,6 +259,19 @@ if ($publicationID && $publicationID > 0) {
     <meta name="description" content="Explore the current issue of Convergence: A Multidisciplinary Journal, 
     featuring research and scholarly articles across the humanities, social sciences, and natural sciences.">
 
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph: Facebook and other social media -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Convergence: A Multidisciplinary Journal">
+    <meta property="og:title" content="Current Issue | Convergence Journal">
+    <meta property="og:description" content="Explore the latest issue of Convergence, Silliman University's multidisciplinary journal featuring scholarly articles and research.">
+
+    <!-- X (Twitter) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Current Issue | Convergence Journal">
+    <meta name="twitter:description" content="Explore the latest issue of Convergence, Silliman University's multidisciplinary journal featuring scholarly articles and research.">
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <!-- Header -->

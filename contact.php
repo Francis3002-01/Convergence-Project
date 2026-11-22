@@ -10,6 +10,19 @@
     <meta name="description" content="Contact Convergence: A Multidisciplinary Journal 
     at Silliman University for inquiries about the journal, its publications, and submissions.">
 
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph: Facebook and other social media -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Convergence: A Multidisciplinary Journal">
+    <meta property="og:title" content="Contact Convergence | Silliman University">
+    <meta property="og:description" content="Get in touch with Convergence for inquiries about journal publications, submissions, and other information.">
+
+    <!-- X (Twitter) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Contact Convergence | Silliman University">
+    <meta name="twitter:description" content="Get in touch with Convergence for inquiries about journal publications, submissions, and other information.">
+
     <!--External CSS-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="includes_css/header.css">
@@ -37,7 +50,7 @@
             </div>
             <h2>Email</h2>
 
-           <a href="https://mail.google.com/mail/?view=cm&fs=1&to=convergence@su.edu.ph" target="_blank">
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=convergence@su.edu.ph" target="_blank">
                 convergence@su.edu.ph
             </a>
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,20 @@
 
     <meta name="description" content="Learn about Convergence: A Multidisciplinary Journal of Silliman University, 
     its purpose, scope, and commitment to interdisciplinary and multidisciplinary scholarship.">
-    
+
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph: Facebook and other social media -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Convergence: A Multidisciplinary Journal">
+    <meta property="og:title" content="About Convergence | Silliman University">
+    <meta property="og:description" content="Learn about Convergence, Silliman University's multidisciplinary journal, its academic scope, purpose, and commitment to scholarly exchange.">
+
+    <!-- X (Twitter) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="About Convergence | Silliman University">
+    <meta name="twitter:description" content="Learn about Convergence, Silliman University's multidisciplinary journal, its academic scope, purpose, and commitment to scholarly exchange.">
+
     <!--External CSS-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="includes_css/header.css">
@@ -20,6 +34,7 @@
 
 
 </head>
+
 <body>
     <?php include 'includes/header.php'; ?>
     <!-- ABOUT PAGE CONTENT -->
@@ -35,7 +50,7 @@
             <h2>What is Convergence?</h2>
             <p>
                 Convergence is published by the Silliman University College of Arts and Sciences
-                in the Philippines devoted to the publication of inter and multidisciplinary 
+                in the Philippines devoted to the publication of inter and multidisciplinary
                 interests of scholars in the humanities, social sciences, and natural sciences
             </p>
         </section>
@@ -103,4 +118,5 @@
 
     <?php include 'includes/footer.php'; ?>
 </body>
+
 </html>
